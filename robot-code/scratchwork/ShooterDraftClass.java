@@ -1,4 +1,4 @@
-public class MyClass {
+public class ShooterDraftClass {
   static double visionx() {
     return 2;
   }
