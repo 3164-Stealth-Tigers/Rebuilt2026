@@ -1,16 +1,16 @@
 package frc.robot.scratchwork;
 
 public class VisionDraftClass {
-  public static double visionx() {
+  public double visionx() {
     return 2; 
   } // determine x coordinate of the robot, where x axis runs along long axis of field, in meters
-  public static double visiony() {
+  public double visiony() {
     return 4.034663;
   } // determine y coordinate of the robot, where y axis runs along short axis of field, in meters
-  public static double visionz() {
+  public double visionz() {
     return 0;
   } // determine z coordinate of the robot, where z axis is vertical, in meters
-  public static double visionAngle() {
+  public double visionAngle() {
     return 0;
   } // determine angle that the robot is facing where 0 is facing away from the driver station, in degrees
 }
