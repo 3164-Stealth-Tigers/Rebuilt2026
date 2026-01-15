@@ -40,7 +40,7 @@ public class ShooterDraftClass {
     if (deltax == -180) {
       return 0;
     } // determine if robot is in neutral zone and return zero if so
-    double theta = 45; // launch angle of fuel, in degrees
+    double theta = 60; // launch angle of fuel, in degrees
     double g = 9.8067; // acceleration due to gravity in meters per second squared
     double yInit = vision.visionz() + 0.5; // height of fuel at launch
     double yFinal = 1.8288; // height of the hub rim
