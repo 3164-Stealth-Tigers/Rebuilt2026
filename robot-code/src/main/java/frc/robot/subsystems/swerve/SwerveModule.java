@@ -148,9 +148,9 @@ import frc.robot.Constants.SwerveConstants;
  */
 public class SwerveModule {
 
-    // ========================================================================
+  
     // IDENTIFICATION
-    // ========================================================================
+  
 
     /**
      * Which module this is (0=FL, 1=FR, 2=RL, 3=RR).
@@ -158,9 +158,9 @@ public class SwerveModule {
      */
     private final int moduleNumber;
 
-    // ========================================================================
+  
     // MOTORS - The muscle of the module
-    // ========================================================================
+  
 
     /**
      * DRIVE MOTOR - Controls wheel speed.
@@ -190,9 +190,9 @@ public class SwerveModule {
      */
     private final SparkMax azimuthMotor;
 
-    // ========================================================================
+  
     // ENCODERS - Position/velocity feedback
-    // ========================================================================
+  
 
     /**
      * Drive motor's built-in encoder.
@@ -232,9 +232,9 @@ public class SwerveModule {
      */
     private final CANcoder canCoder;
 
-    // ========================================================================
+  
     // CONTROLLERS - PID control
-    // ========================================================================
+  
 
     /**
      * PID controller for drive motor velocity.
@@ -258,9 +258,9 @@ public class SwerveModule {
      */
     private final SparkClosedLoopController azimuthController;
 
-    // ========================================================================
+  
     // FEEDFORWARD - Physics-based control
-    // ========================================================================
+  
 
     /**
      * Feedforward calculator for drive motor.
@@ -278,9 +278,9 @@ public class SwerveModule {
      */
     private final SimpleMotorFeedforward driveFeedforward;
 
-    // ========================================================================
+  
     // CALIBRATION
-    // ========================================================================
+  
 
     /**
      * Offset to correct CANCoder reading to "true forward."
@@ -296,9 +296,9 @@ public class SwerveModule {
      */
     private final Rotation2d encoderOffset;
 
-    // ========================================================================
+  
     // STATE TRACKING
-    // ========================================================================
+  
 
     /**
      * The last state we commanded (for optimization).
@@ -306,9 +306,9 @@ public class SwerveModule {
      */
     private SwerveModuleState lastState = new SwerveModuleState();
 
-    // ========================================================================
+  
     // CONSTRUCTOR
-    // ========================================================================
+  
 
     /**
      * Creates a new SwerveModule.
@@ -371,9 +371,9 @@ public class SwerveModule {
         resetToAbsolute();     // Sync relative encoder to absolute position
     }
 
-    // ========================================================================
+  
     // CONFIGURATION METHODS
-    // ========================================================================
+  
 
     /**
      * Configure motor controllers with appropriate settings.
@@ -508,9 +508,9 @@ public class SwerveModule {
         azimuthEncoder.setPosition(absolutePosition);
     }
 
-    // ========================================================================
+  
     // GETTER METHODS - Read current state
-    // ========================================================================
+  
 
     /**
      * Get the absolute angle from the CANCoder, accounting for offset.
@@ -601,9 +601,9 @@ public class SwerveModule {
         return new SwerveModulePosition(getPosition(), getAngle());
     }
 
-    // ========================================================================
+  
     // CONTROL METHODS - Set desired state
-    // ========================================================================
+  
 
     /**
      * Set the desired state of the swerve module.

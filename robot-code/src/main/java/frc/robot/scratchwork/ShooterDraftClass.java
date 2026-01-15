@@ -1,11 +1,11 @@
 package frc.robot.scratchwork;
 
 public class ShooterDraftClass {
-  private double x, y, hubx, huby;
+  private double x, y, hubx;
   private VisionDraftClass vision = new VisionDraftClass();
-  final huby = 4.034663; // set universal y coordinate of hub
+  final double huby = 4.034663; // set universal y coordinate of hub
 
-  double hubx() {
+  void hubx() {
     if (x <= 4.625594) {
       hubx = 4.625594;
     } // determine if robot is in red alliance zone and set x coordinate of hub accordingly 
@@ -13,7 +13,7 @@ public class ShooterDraftClass {
       hubx = 11.915394;
     } // determine if robot is in blue alliance zone and set x coordinate of hub accordingly 
     else {
-      return -180;
+      hubx = -180.0;
     } // determine if robot is in neutral zone and return invalid value, showing not to run
   } // determine hub x coordinate from robot position
 
@@ -24,20 +24,23 @@ public class ShooterDraftClass {
   double hubAngle() {
     x = vision.visionx(); // find x coordinate of robot
     y = vision.visiony(); // find y coordinate of robot
-    hubx()
+    hubx();
     return vision.visionAngle() - Math.atan((huby - y) / (hubx - x)) * 57.2957795131 - shooterAngle(); // calculate hub angle, convert it to degrees, and subtract it from robot angle
   } // determine angle difference between robot angle and hub, in degrees
   
   double hubDistance() {
     x = vision.visionx(); // find x coordinate of robot
     y = vision.visiony(); // find y coordinate of robot
-    hubx()
+    hubx();
+    if (hubx == -180.0) {
+      return 0;
+    }
     return Math.sqrt(Math.pow(hubx - x, 2) + Math.pow(huby - y, 2)); // calculate distance between robot and hub using pythagorean theorem
   } // determine distance between robot and hub, in meters
   
   double shootVelocity() {
     double deltax = hubDistance(); // find distance between robot and hub, in meters
-    if (deltax == -180) {
+    if (deltax == 0) {
       return 0;
     } // determine if robot is in neutral zone and return zero if so
     double theta = 60; // launch angle of fuel, in degrees
@@ -48,8 +51,11 @@ public class ShooterDraftClass {
   } // determine velocity needed to shoot the ball into the hub, in meters per second
 
   public void shootHub() {
+    if (shootVelocity() == 0) {
+      return;
+    }
     while (Math.abs(hubAngle()) > 10) {
-      if (hubAngle > 0) {
+      if (hubAngle() > 0) {
         // rotate shooter clockwise??
       }
       else {
@@ -59,7 +65,7 @@ public class ShooterDraftClass {
     // run shootVelocity() and divide by gear ratio to get number, then run motor at that speed and push fuel into it
   } // shoot the fuel at the hub
 
-  public void shoot() {
+  public void shoot() {}
     // run shooter at set speed, then push fuel into the shooter
   public static void main(String args[]) {
     ShooterDraftClass shooter = new ShooterDraftClass();

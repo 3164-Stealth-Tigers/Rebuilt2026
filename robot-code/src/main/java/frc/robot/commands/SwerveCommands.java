@@ -99,9 +99,9 @@ public final class SwerveCommands {
         // Utility class - prevent instantiation
     }
 
-    // ========================================================================
+  
     // SKI STOP COMMAND
-    // ========================================================================
+  
     //
     // The "ski stop" (or "X-lock") sets wheels in an X pattern:
     //
@@ -112,7 +112,7 @@ public final class SwerveCommands {
     // This makes it very hard for other robots to push us!
     // Like digging in your ski edges to stop on a slope.
     //
-    // ========================================================================
+  
 
     /**
      * Create a command that sets the wheels in an X pattern to resist pushing.
@@ -135,9 +135,9 @@ public final class SwerveCommands {
         return Commands.run(swerve::setX, swerve).withName("SkiStop");
     }
 
-    // ========================================================================
+  
     // DRIVE TO POSE COMMAND
-    // ========================================================================
+  
     //
     // Uses a PID controller to drive the robot to a specific position and
     // rotation on the field. This is useful for autonomous and auto-align.
@@ -151,7 +151,7 @@ public final class SwerveCommands {
     //   │       └──────────── Robot ←──────────────────────┘         │
     //   └─────────────────────────────────────────────────────────────┘
     //
-    // ========================================================================
+  
 
     /**
      * Command that drives the robot to a specific pose on the field.
@@ -273,9 +273,9 @@ public final class SwerveCommands {
         }
     }
 
-    // ========================================================================
+  
     // DRIVE DISTANCE COMMAND
-    // ========================================================================
+  
     //
     // Drives the robot a specific distance in a straight line.
     // Useful for simple autonomous movements.
@@ -289,7 +289,7 @@ public final class SwerveCommands {
     //   Start ─────────────────→ End
     //   [Record]    [Drive]    [Stop when distance reached]
     //
-    // ========================================================================
+  
 
     /**
      * Command that drives the robot a specific distance in a straight line.

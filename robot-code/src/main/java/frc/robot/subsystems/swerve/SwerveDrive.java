@@ -133,9 +133,9 @@ import frc.robot.Constants.SwerveConstants;
  */
 public class SwerveDrive extends SubsystemBase {
 
-    // ========================================================================
+  
     // HARDWARE - The four swerve modules (wheels)
-    // ========================================================================
+  
 
     /**
      * Array of all four swerve modules.
@@ -148,9 +148,9 @@ public class SwerveDrive extends SubsystemBase {
      */
     private final SwerveModule[] modules;
 
-    // ========================================================================
+  
     // SENSORS - Gyroscope for rotation tracking
-    // ========================================================================
+  
 
     /**
      * Pigeon2 gyroscope - Measures the robot's rotation.
@@ -168,9 +168,9 @@ public class SwerveDrive extends SubsystemBase {
      */
     private final Pigeon2 gyro;
 
-    // ========================================================================
+  
     // MATH - Kinematics and pose estimation
-    // ========================================================================
+  
 
     /**
      * Kinematics - Converts desired robot motion into individual wheel motions.
@@ -207,9 +207,9 @@ public class SwerveDrive extends SubsystemBase {
      */
     private final SwerveDrivePoseEstimator poseEstimator;
 
-    // ========================================================================
+  
     // VISUALIZATION - Dashboard displays
-    // ========================================================================
+  
 
     /**
      * Field2d - Displays robot position on a field diagram in Shuffleboard.
@@ -231,9 +231,9 @@ public class SwerveDrive extends SubsystemBase {
     private final StructPublisher<Pose2d> posePublisher;
     private final StructArrayPublisher<SwerveModuleState> statePublisher;
 
-    // ========================================================================
+  
     // STATE - Current driving mode
-    // ========================================================================
+  
 
     /**
      * Field-relative mode flag.
@@ -261,9 +261,9 @@ public class SwerveDrive extends SubsystemBase {
      */
     private boolean openLoop = SwerveConstants.DRIVE_OPEN_LOOP_RAMP > 0;
 
-    // ========================================================================
+  
     // CONSTRUCTOR - Initialize all swerve drive components
-    // ========================================================================
+  
 
     /**
      * Creates a new SwerveDrive subsystem.
@@ -372,9 +372,9 @@ public class SwerveDrive extends SubsystemBase {
         statePublisher = table.getStructArrayTopic("ModuleStates", SwerveModuleState.struct).publish();
     }
 
-    // ========================================================================
+  
     // PERIODIC - Updates every robot loop (50 times per second)
-    // ========================================================================
+  
 
     /**
      * Called periodically (every 20ms) to update odometry and logging.
@@ -406,9 +406,9 @@ public class SwerveDrive extends SubsystemBase {
         }
     }
 
-    // ========================================================================
+  
     // DRIVE METHODS - Control robot movement
-    // ========================================================================
+  
 
     /**
      * Drive the robot with the given velocities.
@@ -512,9 +512,9 @@ public class SwerveDrive extends SubsystemBase {
         }
     }
 
-    // ========================================================================
+  
     // GYRO METHODS - Read and control robot rotation
-    // ========================================================================
+  
 
     /**
      * Get the current yaw angle from the gyro.
@@ -545,9 +545,9 @@ public class SwerveDrive extends SubsystemBase {
         gyro.setYaw(angle.getDegrees());
     }
 
-    // ========================================================================
+  
     // POSE METHODS - Robot position on the field
-    // ========================================================================
+  
 
     /**
      * Get the current estimated pose (position + rotation).
@@ -597,9 +597,9 @@ public class SwerveDrive extends SubsystemBase {
         poseEstimator.addVisionMeasurement(pose, timestampSeconds);
     }
 
-    // ========================================================================
+  
     // MODULE STATE GETTERS - Read wheel data
-    // ========================================================================
+  
 
     /**
      * Get the positions of all modules.
@@ -646,9 +646,9 @@ public class SwerveDrive extends SubsystemBase {
         return kinematics;
     }
 
-    // ========================================================================
+  
     // DRIVE MODE CONTROL
-    // ========================================================================
+  
 
     /**
      * Toggle field-relative driving mode.
@@ -668,9 +668,9 @@ public class SwerveDrive extends SubsystemBase {
         return fieldRelative;
     }
 
-    // ========================================================================
+  
     // COMMANDS - Actions for teleop and auto
-    // ========================================================================
+  
 
     /**
      * Create a teleop drive command.

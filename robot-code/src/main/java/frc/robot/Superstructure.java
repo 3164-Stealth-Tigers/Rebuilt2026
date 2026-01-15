@@ -83,18 +83,18 @@ import frc.robot.subsystems.swerve.SwerveDrive;
  */
 public class Superstructure {
 
-    // ========================================================================
+  
     // SUBSYSTEM REFERENCES
-    // ========================================================================
+  
 
     /**
      * Reference to swerve drive (for checking robot velocity and position).
      */
     private final SwerveDrive swerve;
 
-    // ========================================================================
+  
     // CONSTRUCTOR
-    // ========================================================================
+  
 
     /**
      * Creates a new Superstructure coordinator.
@@ -112,7 +112,7 @@ public class Superstructure {
 
     // ================================================
     // ACCESSORS - Get references to subsystems
-    // ========================================================================
+  
     // These let other code access the subsystems through Superstructure
 
     public SwerveDrive getSwerve() {
