@@ -1,3 +1,5 @@
+package frc.robot.scratchwork;
+
 public class VisionDraftClass {
   public static double visionx() {
     return 2; 
