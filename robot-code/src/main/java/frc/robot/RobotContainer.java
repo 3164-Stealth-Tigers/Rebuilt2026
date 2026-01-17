@@ -79,7 +79,7 @@ public class RobotContainer {
     // }
 
     private void exampleAuto() {
-        Command auto = Commands.run(() -> swerve.drive(null, speedExponent, false, false););
+        Command auto = Commands.run(() -> swerve.drive(null, speedExponent, false, false));
     }
 
     public Command getAutonomousCommand() {

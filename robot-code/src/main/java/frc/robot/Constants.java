@@ -16,6 +16,8 @@ public final class Constants {
         public static final double LAUNCH_ANGLE = 60.0; // degrees
         public static final double G_ACCEL = 9.8067; // a due to gravity (g) m/s^2
         public static final double Z_OFFSET = 0.5; // meters (placeholder TODO)
+        
+        public static final double ANGLE_TOLERANCE = 10.0; // degrees
     }
 
     public static final class DrivingConstants {
