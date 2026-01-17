@@ -72,8 +72,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
-import frc.robot.Constants.DrivingConstants;
-import frc.robot.Constants.SwerveConstants;
+import frc.robot.foundation.Constants.DrivingConstants;
+import frc.robot.foundation.Constants.SwerveConstants;
 import frc.robot.subsystems.swerve.SwerveDrive;
 
 /**

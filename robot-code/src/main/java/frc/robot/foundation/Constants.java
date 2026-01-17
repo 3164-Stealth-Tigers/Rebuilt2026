@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.foundation;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;

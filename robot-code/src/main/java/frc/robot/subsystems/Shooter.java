@@ -1,4 +1,4 @@
-package frc.robot.scratchwork;
+package frc.robot.subsystems;
 
 import java.util.Optional;
 
@@ -26,7 +26,7 @@ import frc.robot.foundation.Constants.ShooterConstants;
  * @apiNote shootHub()
  * @apiNote shoot()
  */
-public class OtherShooterDraftClass {
+public class Shooter {
     private double x, y;
     private Alliance alliance;
     private double[] hub = new double[2];
@@ -37,7 +37,7 @@ public class OtherShooterDraftClass {
      * 
      * @apiNote Constructor for initialization
      */
-    public OtherShooterDraftClass() {
+    public Shooter() {
         UpdateHubLocation();
     }
 
@@ -99,12 +99,12 @@ public class OtherShooterDraftClass {
     private double robotToHub() {
         UpdateHubLocation();
 
-        x = VisionDraftClass.getX();
-        y = VisionDraftClass.getY();
+        x = Vision.getX();
+        y = Vision.getY();
 
         Rotation2d targetAngle = new Rotation2d(hub[0] - x, hub[1] - y); // dx, dy
 
-        return VisionDraftClass.getAngle().minus(targetAngle).minus(robotToShooter()).getDegrees();
+        return Vision.getAngle().minus(targetAngle).minus(robotToShooter()).getDegrees();
     }
 
     /**
@@ -120,8 +120,8 @@ public class OtherShooterDraftClass {
             return null;
         }
 
-        x = VisionDraftClass.getX();
-        y = VisionDraftClass.getY();
+        x = Vision.getX();
+        y = Vision.getY();
 
         Translation2d a = new Translation2d(x, y);
         Translation2d b = new Translation2d(hub[0], hub[1]);
@@ -145,7 +145,7 @@ public class OtherShooterDraftClass {
 
         double dx = dx_proxy.get();
         double dy = Constants.ShooterConstants.HUB_RIM_HEIGHT
-                - (VisionDraftClass.getZ() + Constants.ShooterConstants.Z_OFFSET);
+                - (Vision.getZ() + Constants.ShooterConstants.Z_OFFSET);
         double g = Constants.ShooterConstants.G_ACCEL; // acceleration due to gravity in meters per second squared
         double theta = Math.toRadians(Constants.ShooterConstants.LAUNCH_ANGLE);
 
@@ -176,13 +176,14 @@ public class OtherShooterDraftClass {
     } // shoot the fuel at the hub
 
     /**
-     * <b> Shoot Method </b>
+     * <i> Shoot Method </i>
+     * @deprecated Use superstructure instead
      * <hr>
      * 
      * @apiNote A test method for calculating values off-handedly
      */
-    public static void shoot() {
-        OtherShooterDraftClass shooter = new OtherShooterDraftClass();
+    private static void shoot() {
+        Shooter shooter = new Shooter();
         System.out.println("Velocity Needed: " + shooter.getVelocity() + " meters per second.");
         System.out.println("Angle Change Needed: " + shooter.robotToHub() + " degrees.");
     }

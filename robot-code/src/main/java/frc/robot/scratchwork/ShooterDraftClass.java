@@ -1,3 +1,4 @@
+/*
 package frc.robot.scratchwork;
 
 public class ShooterDraftClass {
@@ -72,3 +73,4 @@ public class ShooterDraftClass {
     System.out.println("Angle Change Needed: " + shooter.hubAngle() + " degrees.");
   }
 }
+*/
