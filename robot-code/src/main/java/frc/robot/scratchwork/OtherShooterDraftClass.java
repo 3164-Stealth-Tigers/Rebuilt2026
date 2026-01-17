@@ -2,82 +2,94 @@ package frc.robot.scratchwork;
 
 import java.util.Optional;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Constants;
+import frc.robot.Constants.ShooterConstants;
 
 public class OtherShooterDraftClass {
     private double x, y;
-    private final DriverStation.Alliance alliance = DriverStation.getAlliance().isPresent()
-            ? DriverStation.getAlliance().get()
-            : Constants.ShooterConstants.DEFAULT_ALLIANCE;
+    private Alliance alliance;
+    private double[] hub = new double[2];
 
-    private VisionDraftClass vision = new VisionDraftClass();
-    private final double huby = 4.034663; // set universal y coordinate of hub
-    private final double hubx = (alliance.equals(DriverStation.Alliance.Blue)) ? 11.915394 : 4.625594;
+    // Constructor for init
+    public OtherShooterDraftClass() {
+        UpdateHubLocation();
+    }
 
-    if(x<=4.625594)
+    @SuppressWarnings("unlikely-arg-type")
+    private void UpdateHubLocation() {
+        hub[1] = Constants.ShooterConstants.UNIV_Y;
 
-    {
-        hubx = 4.625594;
-    } // determine if robot is in red alliance zone and set x coordinate of hub
-      // accordingly
-    else if(x>=11.915394)
-    {
-        hubx = 11.915394;
-    } // determine if robot is in blue alliance zone and set x coordinate of hub
-      // accordingly
-    else
-    {
-      hubx = -180.0;
-    } // determine if robot is in neutral zone and return invalid value, showing not
-      // to run
-  } // determine hub x coordinate from robot position
+        hub[0] = ((DriverStation.getAlliance().equals(Alliance.Blue)) ? ShooterConstants.BLUE_X // Hub X if on Blue
+                : ((DriverStation.getAlliance().equals(Alliance.Red)) ? ShooterConstants.RED_X // Hub X if on Red
+                        : -180.0)); // Indicator that something's gone wrong (not on an alliance yet)
+    };
 
-    double shooterAngle() {
-        return 0;
-    } // determine difference between robot angle and shooter angle in degrees by
-      // reading encoder
+    private boolean canScore() {
+        // Check if we're active
+        String gameData = DriverStation.getGameSpecificMessage();
+        char active = (gameData.length() > 0) ? gameData.charAt(0) : 'Z';
 
-    double hubAngle() {
-        x = vision.visionx(); // find x coordinate of robot
-        y = vision.visiony(); // find y coordinate of robot
-        hubx();
-        return vision.visionAngle() - Math.atan((huby - y) / (hubx - x)) * 57.2957795131 - shooterAngle(); // calculate
-                                                                                                           // hub angle,
-                                                                                                           // convert it
-                                                                                                           // to
-                                                                                                           // degrees,
-                                                                                                           // and
-                                                                                                           // subtract
-                                                                                                           // it from
-                                                                                                           // robot
-                                                                                                           // angle
+        // Check if the robot is in its own zone
+        return ((active == 'B' && alliance.equals(Alliance.Blue) && x >= ShooterConstants.BLUE_X) // Blue active
+                || (active == 'R' && alliance.equals(Alliance.Red) && x <= ShooterConstants.RED_X) // Red active
+        );
+    }
+
+    private Rotation2d robotToShooter() {
+        // Replace 0.0 w/ eqn
+        return Rotation2d.fromDegrees(0.0);
+    }
+
+    private double hubAngle() {
+        UpdateHubLocation();
+
+        x = VisionDraftClass.getX();
+        y = VisionDraftClass.getY();
+
+        Rotation2d targetAngle = new Rotation2d(hub[0] - x, hub[1] - y); // dx, dy
+
+        return VisionDraftClass.getAngle().minus(targetAngle).minus(robotToShooter()).getDegrees();
     } // determine angle difference between robot angle and hub, in degrees
 
-    double hubDistance() {
-        x = vision.visionx(); // find x coordinate of robot
-        y = vision.visiony(); // find y coordinate of robot
-        hubx();
-        if (hubx == -180.0) {
-            return 0;
-        }
-        return Math.sqrt(Math.pow(hubx - x, 2) + Math.pow(huby - y, 2)); // calculate distance between robot and hub
-                                                                         // using pythagorean theorem
-    } // determine distance between robot and hub, in meters
+    private Optional<Double> hubDistance() {
+        UpdateHubLocation();
 
-    double shootVelocity() {
-        double deltax = hubDistance(); // find distance between robot and hub, in meters
-        if (deltax == 0) {
-            return 0;
-        } // determine if robot is in neutral zone and return zero if so
-        double theta = 60; // launch angle of fuel, in degrees
-        double g = 9.8067; // acceleration due to gravity in meters per second squared
-        double yInit = vision.visionz() + 0.5; // height of fuel at launch
-        double yFinal = 1.8288; // height of the hub rim
-        return deltax / Math.cos(theta * 0.01745329251)
-                * Math.sqrt(g / 2 * (yInit - yFinal + deltax * Math.tan(theta * 0.01745329251))); // calculate velocity
-                                                                                                  // needed using
-                                                                                                  // kinematics
+        if (!canScore()) {
+            return null;
+        }
+
+        x = VisionDraftClass.getX(); // find x coordinate of robot
+        y = VisionDraftClass.getY(); // find y coordinate of robot
+
+        Translation2d a = new Translation2d(x, y);
+        Translation2d b = new Translation2d(hub[0], hub[1]);
+
+        return Optional.of(a.getDistance(b)); // dist btwn bot & hub
+    }
+
+    private double shootVelocity() {
+        Optional<Double> dx_proxy = hubDistance(); // find distance between robot and hub, in meters
+
+        if (dx_proxy.isEmpty()) {
+            return 0.0;
+        }
+
+        double dx = dx_proxy.get();
+        double dy = Constants.ShooterConstants.HUB_RIM_HEIGHT
+                - (VisionDraftClass.getZ() + Constants.ShooterConstants.Z_OFFSET);
+        double g = Constants.ShooterConstants.G_ACCEL; // acceleration due to gravity in meters per second squared
+        double theta = Math.toRadians(Constants.ShooterConstants.LAUNCH_ANGLE);
+
+        return dx / Math.cos(theta)
+                * Math.sqrt(g / 2
+                        * (-dy + dx * Math.tan(theta))); // calculate
+                                                         // velocity
+        // needed using
+        // kinematics
     } // determine velocity needed to shoot the ball into the hub, in meters per
       // second
 
@@ -96,12 +108,8 @@ public class OtherShooterDraftClass {
           // that speed and push fuel into it
     } // shoot the fuel at the hub
 
-    public void shoot() {
-    }
-
-    // run shooter at set speed, then push fuel into the shooter
-    public static void main(String args[]) {
-        ShooterDraftClass shooter = new ShooterDraftClass();
+    public static void shoot() {
+        OtherShooterDraftClass shooter = new OtherShooterDraftClass();
         System.out.println("Velocity Needed: " + shooter.shootVelocity() + " meters per second.");
         System.out.println("Angle Change Needed: " + shooter.hubAngle() + " degrees.");
     }

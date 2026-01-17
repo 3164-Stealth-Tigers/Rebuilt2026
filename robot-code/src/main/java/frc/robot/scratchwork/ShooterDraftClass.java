@@ -2,7 +2,6 @@ package frc.robot.scratchwork;
 
 public class ShooterDraftClass {
   private double x, y, hubx;
-  private VisionDraftClass vision = new VisionDraftClass();
   final double huby = 4.034663; // set universal y coordinate of hub
 
   void hubx() {
@@ -22,15 +21,15 @@ public class ShooterDraftClass {
   } // determine difference between robot angle and shooter angle in degrees by reading encoder
   
   double hubAngle() {
-    x = vision.visionx(); // find x coordinate of robot
-    y = vision.visiony(); // find y coordinate of robot
+    x = VisionDraftClass.visionx(); // find x coordinate of robot
+    y = VisionDraftClass.visiony(); // find y coordinate of robot
     hubx();
-    return vision.visionAngle() - Math.atan((huby - y) / (hubx - x)) * 57.2957795131 - shooterAngle(); // calculate hub angle, convert it to degrees, and subtract it from robot angle
+    return VisionDraftClass.visionAngle() - Math.atan((huby - y) / (hubx - x)) * 57.2957795131 - shooterAngle(); // calculate hub angle, convert it to degrees, and subtract it from robot angle
   } // determine angle difference between robot angle and hub, in degrees
   
   double hubDistance() {
-    x = vision.visionx(); // find x coordinate of robot
-    y = vision.visiony(); // find y coordinate of robot
+    x = VisionDraftClass.visionx(); // find x coordinate of robot
+    y = VisionDraftClass.visiony(); // find y coordinate of robot
     hubx();
     if (hubx == -180.0) {
       return 0;
@@ -45,7 +44,7 @@ public class ShooterDraftClass {
     } // determine if robot is in neutral zone and return zero if so
     double theta = 60; // launch angle of fuel, in degrees
     double g = 9.8067; // acceleration due to gravity in meters per second squared
-    double yInit = vision.visionz() + 0.5; // height of fuel at launch
+    double yInit = VisionDraftClass.visionz() + 0.5; // height of fuel at launch
     double yFinal = 1.8288; // height of the hub rim
     return deltax / Math.cos(theta * 0.01745329251) * Math.sqrt(g / 2 * (yInit - yFinal + deltax * Math.tan(theta * 0.01745329251))); // calculate velocity needed using kinematics
   } // determine velocity needed to shoot the ball into the hub, in meters per second

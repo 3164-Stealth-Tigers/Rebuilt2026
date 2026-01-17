@@ -11,9 +11,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {
-        // Start recording data to log file
-        // This saves NetworkTables values for post-match analysis
-        // Logs are stored on the roboRIO and can be viewed with AdvantageScope
         DataLogManager.start();
 
         robotContainer = new RobotContainer();
@@ -23,7 +20,6 @@ public class Robot extends TimedRobot {
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
 
-        // Log useful data to SmartDashboard for debugging
         robotContainer.logData();
     }
 
@@ -38,7 +34,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        // Get the autonomous command selected on the dashboard
         autonomousCommand = robotContainer.getAutonomousCommand();
 
         // If an auto was selected, start running it
