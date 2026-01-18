@@ -172,4 +172,31 @@ public final class Constants {
         public static final int BUTTON_BOARD_PORT = 2;
         public static final double JOYSTICK_DEADBAND = 0.1;
     }
+
+    public static final class IntakeConstants {
+        public static final int DEPLOY_MOTOR_ID = 9;
+        public static final int ROLLER_MOTOR_ID = 10;
+        public static final int BEAM_BREAK_DIO_PORT = 0;
+
+        public static final double DEPLOYED_POSITION = 1.0;
+        public static final double STOWED_POSITION = 0.0;
+        public static final double POSITION_TOLERANCE = 0.05;
+
+        public static final double DEPLOY_kP = 0.1;
+        public static final double INTAKE_SPEED = 0.8;
+        public static final double OUTTAKE_SPEED = -0.5;
+        public static final int MAX_FUEL_CAPACITY = 8;
+    }
+
+    public static final class ClimberConstants {
+        public static final int CLIMBER_MOTOR_ID = 11;
+
+        // Heights from game manual
+        public static final double L1_HEIGHT = 0.686;  // Low rung (27")
+        public static final double L2_HEIGHT = 1.143;  // Mid rung (45")
+        public static final double L3_HEIGHT = 1.60;   // High rung (63")
+        public static final double STOWED_HEIGHT = 0.0;
+
+        public static final double POSITION_TOLERANCE = 0.05;
+    }
 }

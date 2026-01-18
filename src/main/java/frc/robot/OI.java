@@ -14,21 +14,21 @@ public final class OI {
     public interface DriverActionSet {
         /**
          * Movement along the X axis (forward/backward).
-         * 
+         *
          * @return Value from -1 (full backward) to 1 (full forward)
          */
         double forward();
 
         /**
          * Movement along the Y axis (left/right strafe).
-         * 
+         *
          * @return Value from -1 (full left) to 1 (full right)
          */
         double strafe();
 
         /**
          * Rotation around the Z axis (turning).
-         * 
+         *
          * @return Value from -1 (full clockwise) to 1 (full counter-clockwise)
          */
         double turn();
@@ -48,10 +48,36 @@ public final class OI {
         /**
          * Check if the driver is commanding any movement.
          * Used to release ski stop when driver wants to move.
-         * 
+         *
          * @return true if any movement axis is non-zero
          */
         boolean isMovementCommanded();
+
+        // ================================================================
+        // INTAKE CONTROLS
+        // ================================================================
+
+        /** Hold to deploy intake and run rollers */
+        Trigger intake();
+
+        /** Hold to run outtake (eject FUEL) */
+        Trigger outtake();
+
+        // ================================================================
+        // CLIMBER CONTROLS
+        // ================================================================
+
+        /** Climb to Level 1 (Low Rung) */
+        Trigger climbL1();
+
+        /** Climb to Level 2 (Mid Rung) */
+        Trigger climbL2();
+
+        /** Climb to Level 3 (High Rung) */
+        Trigger climbL3();
+
+        /** Stow the climber */
+        Trigger stowClimber();
     }
 
     public static class XboxDriver implements DriverActionSet {
@@ -102,6 +128,45 @@ public final class OI {
         @Override
         public boolean isMovementCommanded() {
             return forward() + strafe() + turn() != 0;
+        }
+
+        // ================================================================
+        // INTAKE CONTROLS
+        // ================================================================
+
+        @Override
+        public Trigger intake() {
+            return stick.rightBumper();
+        }
+
+        @Override
+        public Trigger outtake() {
+            return stick.leftBumper();
+        }
+
+        // ================================================================
+        // CLIMBER CONTROLS
+        // ================================================================
+
+        @Override
+        public Trigger climbL1() {
+            return stick.povDown();
+        }
+
+        @Override
+        public Trigger climbL2() {
+            // Left or Right on D-pad for L2
+            return stick.povLeft().or(stick.povRight());
+        }
+
+        @Override
+        public Trigger climbL3() {
+            return stick.povUp();
+        }
+
+        @Override
+        public Trigger stowClimber() {
+            return stick.b();
         }
     }
 }

@@ -7,10 +7,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import frc.robot.auto.AutoRoutines;
+import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.SwerveCommands;
 import frc.robot.Superstructure;
 import frc.robot.OI.DriverActionSet;
 import frc.robot.OI.XboxDriver;
+import frc.robot.subsystems.Climber;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.swerve.SwerveDrive;
@@ -20,6 +24,8 @@ public class RobotContainer {
     private final SwerveDrive swerve;
     private final Vision vision;
     private final Shooter shooter;
+    private final Intake intake;
+    private final Climber climber;
     private final Superstructure superstructure;
 
     private final SendableChooser<Command> autoChooser;
@@ -31,12 +37,15 @@ public class RobotContainer {
         driverJoystick = new XboxDriver(Constants.DrivingConstants.CONTROLLER_PORT);
 
         autoChooser = new SendableChooser<>();
-        SmartDashboard.putData("Auto Chooser", autoChooser); // Insert dropdown
+        SmartDashboard.putData("Auto Chooser", autoChooser);
 
+        // Initialize all subsystems
         swerve = new SwerveDrive();
         vision = new Vision();
         shooter = new Shooter(vision, swerve);
-        superstructure = new Superstructure(swerve, vision, shooter);
+        intake = new Intake();
+        climber = new Climber();
+        superstructure = new Superstructure(swerve, vision, shooter, intake, climber);
 
         // This command reads joystick inputs and drives the robot
         Command teleopDriveCommand = swerve.teleopCommand(
@@ -50,6 +59,7 @@ public class RobotContainer {
         SmartDashboard.putData("TeleOp Command", teleopDriveCommand);
 
         configureButtonBindings();
+        registerAutoRoutines();
     }
 
     private double applySpeedCurve(double input) {
@@ -58,6 +68,7 @@ public class RobotContainer {
     }
 
     private void configureButtonBindings() {
+        // Swerve controls
         driverJoystick.resetGyro().onTrue(swerve.resetGyroCommand());
 
         driverJoystick.toggleFieldRelative().onTrue(new InstantCommand(swerve::toggleFieldRelative));
@@ -68,27 +79,37 @@ public class RobotContainer {
         // 1 = fast, 2 = precise
         driverJoystick.toggleSpeed().onTrue(
                 new InstantCommand(() -> speedExponent = (speedExponent == 1) ? 2 : 1));
+
+        // Intake controls (uses new trigger methods from OI)
+        driverJoystick.intake().whileTrue(intake.holdToIntakeCommand());
+        driverJoystick.outtake().whileTrue(intake.outtakeCommand());
+
+        // Climber controls
+        driverJoystick.climbL1().onTrue(climber.climbToL1Command());
+        driverJoystick.climbL2().onTrue(climber.climbToL2Command());
+        driverJoystick.climbL3().onTrue(climber.climbToL3Command());
+        driverJoystick.stowClimber().onTrue(climber.stowCommand());
     }
 
-    // Autos are a WIP
+    /**
+     * Register all autonomous routines with the auto chooser.
+     */
+    private void registerAutoRoutines() {
+        // Safety default
+        autoChooser.setDefaultOption("Do Nothing", AutoRoutines.doNothing());
 
-    // private void buildForwardAuto() {
-    // Command auto = Commands.run(
-    // // Drive forward at 1.5 m/s, no strafe, no rotation
-    // () -> swerve.drive(new Translation2d(1.5, 0), 0, false, false),
-    // swerve
-    // ).andThen(
-    // // Stop after driving
-    // Commands.run(() -> swerve.drive(new Translation2d(), 0, false, false),
-    // swerve)
-    // ).withTimeout(2); // Total runtime: 2 seconds
+        // Simple movement autos
+        autoChooser.addOption("Drive Forward", AutoRoutines.driveForwardAuto(swerve));
+        autoChooser.addOption("Drive Backward", AutoRoutines.driveBackwardAuto(swerve));
 
-    // // Add to the auto chooser
-    // autoChooser.setDefaultOption("Drive Forward", auto);
-    // }
+        // Intake autos
+        autoChooser.addOption("Drive and Intake", AutoRoutines.driveAndIntakeAuto(swerve, intake));
+        autoChooser.addOption("Intake Then Drive", AutoRoutines.intakeThenDriveAuto(swerve, intake));
 
-    private void exampleAuto() {
-        Command auto = Commands.run(() -> swerve.drive(null, speedExponent, false, false));
+        // Scoring autos
+        autoChooser.addOption("Intake and Score", AutoRoutines.intakeAndScoreAuto(swerve, intake, shooter));
+        autoChooser.addOption("Two FUEL Auto", AutoRoutines.twoFuelAuto(swerve, intake, shooter));
+        autoChooser.addOption("Three FUEL Auto", AutoRoutines.threeFuelAuto(swerve, intake, shooter));
     }
 
     public Command getAutonomousCommand() {
@@ -98,5 +119,4 @@ public class RobotContainer {
     public void logData() {
         SmartDashboard.putBoolean("Slow Speed", speedExponent == 2);
     }
-
 }
