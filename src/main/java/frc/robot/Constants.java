@@ -13,25 +13,24 @@ public final class Constants {
 
         public static final double HUB_RIM_HEIGHT = 1.8288;
 
-        public static final double LAUNCH_ANGLE = 60.0; // degrees
-        public static final double G_ACCEL = 9.8067; // a due to gravity (g) m/s^2
+        public static final double LAUNCH_ANGLE = 60.0; // degrees (placeholder TODO)
+        public static final double G_ACCEL = 9.8067; // acceleration due to gravity (g) m/s^2
         public static final double Z_OFFSET = 0.5; // meters (placeholder TODO)
-        
+
         public static final double ANGLE_TOLERANCE = 10.0; // degrees
     }
 
     public static final class DrivingConstants {
         public static final int CONTROLLER_PORT = 0;
 
-        public static final boolean OPEN_LOOP = true; // Motor runs at percentage (true) or exact speed w/ encoder
-                                                      // (false)
+        public static final boolean OPEN_LOOP = true; // Motor runs @ % (true) or exact speed w/ encoder (false)
         public static final double NORMAL_SPEED_MULTIPLIER = 1.0; // Scale according to joystick
         public static final double SLOW_SPEED_MULTIPLIER = 0.3;
     }
 
     public static final class FieldConstants {
-        public static final double FIELD_LENGTH = 0.0;
-        public static final double FIELD_WIDTH = 0.0;
+        public static final double FIELD_LENGTH = 0.0; // meters (placeholder TODO)
+        public static final double FIELD_WIDTH = 0.0; // meters (placeholder TODO)
     }
 
     public static final class RobotPhysicalConstants {
