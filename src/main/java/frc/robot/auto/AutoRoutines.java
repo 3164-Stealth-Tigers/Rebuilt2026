@@ -315,4 +315,200 @@ public final class AutoRoutines {
             AutoCommands.holdPosition(swerve, 0.5)
         ).withName("Drive to Position Auto");
     }
+
+    // ================================================================
+    // COMPETITION AUTO ROUTINES (DIP Switch Selectable)
+    // ================================================================
+    // These are the primary autonomous routines designed for competition.
+    // Selected via physical DIP switch on the robot.
+    //
+    // Switch 0 (00): Do Nothing - Safety mode
+    // Switch 1 (01): Score & Collect - Offensive, maximize FUEL
+    // Switch 2 (10): Quick Climb - Defensive, guaranteed 15 pts
+    // Switch 3 (11): Score Then Climb - Maximum points potential
+    // ================================================================
+
+    /**
+     * STRATEGY 1: Score & Collect (Offensive)
+     *
+     * Goal: Maximize FUEL scored to win AUTO phase.
+     *
+     * Sequence:
+     * 1. Score all 8 preloaded FUEL (~8 seconds)
+     * 2. Drive to neutral zone (~4 seconds)
+     * 3. Intake additional FUEL (~5 seconds)
+     * 4. Score collected FUEL if time permits (~3 seconds)
+     *
+     * Expected Points: 8-12+ points from FUEL
+     * Risk: Medium (depends on shooting accuracy)
+     * Best When: Shooter is reliable, want to control hub shift timing
+     *
+     * @param swerve The swerve drive subsystem
+     * @param intake The intake subsystem
+     * @param shooter The shooter subsystem
+     * @return Command for Score & Collect auto
+     */
+    public static Command scoreAndCollectAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+        return Commands.sequence(
+            AutoCommands.logMessage("=== SCORE & COLLECT AUTO ==="),
+
+            // Phase 1: Score all preloaded FUEL (~8 seconds)
+            AutoCommands.logMessage("Phase 1: Scoring preloaded FUEL"),
+            AutoCommands.shootAllFuel(shooter, intake),
+
+            // Phase 2: Drive to neutral zone (~4 seconds)
+            AutoCommands.logMessage("Phase 2: Driving to neutral zone"),
+            AutoCommands.driveForward(swerve, 3.0, 2.0),
+
+            // Phase 3: Collect more FUEL (~5 seconds)
+            AutoCommands.logMessage("Phase 3: Collecting FUEL"),
+            Commands.parallel(
+                // Continue driving slowly while intaking
+                AutoCommands.driveForward(swerve, 1.5, 1.0),
+                Commands.sequence(
+                    Commands.runOnce(intake::deploy, intake),
+                    Commands.waitUntil(intake::isDeployed),
+                    Commands.run(intake::runIntake, intake)
+                )
+            ).withTimeout(5.0),
+
+            // Stop intake and retract
+            Commands.runOnce(intake::stopRollers, intake),
+            Commands.runOnce(intake::retract, intake),
+
+            // Phase 4: Score additional FUEL if collected (remaining time)
+            AutoCommands.logMessage("Phase 4: Scoring collected FUEL"),
+            Commands.either(
+                // If we have FUEL, score it
+                Commands.sequence(
+                    AutoCommands.driveBackward(swerve, 2.0, 2.5),
+                    AutoCommands.shootAllFuel(shooter, intake)
+                ),
+                // If no FUEL, just stop
+                AutoCommands.stopDriving(swerve),
+                () -> intake.getFuelCount() > 0
+            ),
+
+            AutoCommands.stopDriving(swerve),
+            AutoCommands.logMessage("=== SCORE & COLLECT COMPLETE ===")
+        ).withName("1: Score & Collect");
+    }
+
+    /**
+     * STRATEGY 2: Quick Climb (Defensive/Guaranteed)
+     *
+     * Goal: Secure reliable 15 points with L1 climb.
+     *
+     * Sequence:
+     * 1. Drive directly to TOWER (~5 seconds)
+     * 2. Climb to LEVEL 1 (~10 seconds)
+     * 3. Hold position (remaining time)
+     *
+     * Expected Points: 15 points (guaranteed)
+     * Risk: Low (no shooting required)
+     * Best When: Shooter unreliable, climber reliable, or alliance partner scoring FUEL
+     *
+     * NOTE: Only 2 robots per alliance can earn L1 points in AUTO.
+     * Coordinate with alliance partners!
+     *
+     * @param swerve The swerve drive subsystem
+     * @param climber The climber subsystem
+     * @return Command for Quick Climb auto
+     */
+    public static Command quickClimbAuto(SwerveDrive swerve, frc.robot.subsystems.Climber climber) {
+        return Commands.sequence(
+            AutoCommands.logMessage("=== QUICK CLIMB AUTO ==="),
+
+            // Phase 1: Drive to tower (~5 seconds)
+            AutoCommands.logMessage("Phase 1: Driving to TOWER"),
+            AutoCommands.driveForward(swerve, 2.5, 2.0),
+            AutoCommands.stopDriving(swerve),
+
+            // Phase 2: Climb to L1 (~10 seconds)
+            AutoCommands.logMessage("Phase 2: Climbing to LEVEL 1"),
+            Commands.runOnce(climber::climbToL1, climber),
+            Commands.waitUntil(climber::isAtL1).withTimeout(12.0),
+
+            // Phase 3: Hold position
+            AutoCommands.logMessage("Phase 3: Holding at L1"),
+            Commands.runOnce(climber::stop, climber),
+
+            AutoCommands.logMessage("=== QUICK CLIMB COMPLETE (15 pts) ===")
+        ).withName("2: Quick Climb");
+    }
+
+    /**
+     * STRATEGY 3: Score Then Climb (Maximum Points)
+     *
+     * Goal: Get both FUEL points AND climb bonus for maximum score.
+     *
+     * Sequence:
+     * 1. Rapid-fire preloaded FUEL (~6 seconds)
+     * 2. Drive to TOWER (~4 seconds)
+     * 3. Climb to LEVEL 1 (~10 seconds)
+     *
+     * Expected Points: 19-23 points (4-8 FUEL + 15 climb)
+     * Risk: High (time-critical, both systems must work)
+     * Best When: Robot is well-tuned and practiced
+     *
+     * @param swerve The swerve drive subsystem
+     * @param intake The intake subsystem
+     * @param shooter The shooter subsystem
+     * @param climber The climber subsystem
+     * @return Command for Score Then Climb auto
+     */
+    public static Command scoreThenClimbAuto(SwerveDrive swerve, Intake intake,
+                                              Shooter shooter, frc.robot.subsystems.Climber climber) {
+        return Commands.sequence(
+            AutoCommands.logMessage("=== SCORE THEN CLIMB AUTO ==="),
+
+            // Phase 1: Rapid-fire FUEL (~6 seconds)
+            // Only shoot for limited time to save time for climb
+            AutoCommands.logMessage("Phase 1: Rapid scoring (6 sec max)"),
+            Commands.race(
+                AutoCommands.shootAllFuel(shooter, intake),
+                Commands.waitSeconds(6.0)
+            ),
+
+            // Phase 2: Drive to tower (~4 seconds)
+            AutoCommands.logMessage("Phase 2: Driving to TOWER"),
+            AutoCommands.driveForward(swerve, 2.5, 2.5),  // Fast drive
+            AutoCommands.stopDriving(swerve),
+
+            // Phase 3: Climb to L1 (~10 seconds)
+            AutoCommands.logMessage("Phase 3: Climbing to LEVEL 1"),
+            Commands.runOnce(climber::climbToL1, climber),
+            Commands.waitUntil(climber::isAtL1).withTimeout(10.0),
+
+            // Done
+            Commands.runOnce(climber::stop, climber),
+            AutoCommands.logMessage("=== SCORE THEN CLIMB COMPLETE ===")
+        ).withName("3: Score Then Climb");
+    }
+
+    /**
+     * Get the appropriate auto command based on DIP switch selection.
+     *
+     * @param selection The DIP switch value (0-3)
+     * @param swerve The swerve drive subsystem
+     * @param intake The intake subsystem
+     * @param shooter The shooter subsystem
+     * @param climber The climber subsystem
+     * @return The selected autonomous command
+     */
+    public static Command getAutoFromSelection(int selection, SwerveDrive swerve,
+                                                Intake intake, Shooter shooter,
+                                                frc.robot.subsystems.Climber climber) {
+        switch (selection) {
+            case 1:
+                return scoreAndCollectAuto(swerve, intake, shooter);
+            case 2:
+                return quickClimbAuto(swerve, climber);
+            case 3:
+                return scoreThenClimbAuto(swerve, intake, shooter, climber);
+            case 0:
+            default:
+                return doNothing();
+        }
+    }
 }

@@ -18,6 +18,7 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.swerve.SwerveDrive;
+import frc.robot.util.DipSwitchSelector;
 
 public class RobotContainer {
     private final DriverActionSet driverJoystick;
@@ -29,6 +30,10 @@ public class RobotContainer {
     private final Superstructure superstructure;
 
     private final SendableChooser<Command> autoChooser;
+    private final DipSwitchSelector dipSwitchSelector;
+
+    // Set to true to use DIP switch, false to use SmartDashboard chooser
+    private static final boolean USE_DIP_SWITCH = true;
 
     private int speedExponent = 2;
 
@@ -38,6 +43,9 @@ public class RobotContainer {
 
         autoChooser = new SendableChooser<>();
         SmartDashboard.putData("Auto Chooser", autoChooser);
+
+        // Initialize DIP switch selector for auto mode selection
+        dipSwitchSelector = new DipSwitchSelector();
 
         // Initialize all subsystems
         swerve = new SwerveDrive();
@@ -93,30 +101,57 @@ public class RobotContainer {
 
     /**
      * Register all autonomous routines with the auto chooser.
+     * The SmartDashboard chooser serves as a backup when DIP switch is not used.
      */
     private void registerAutoRoutines() {
-        // Safety default
-        autoChooser.setDefaultOption("Do Nothing", AutoRoutines.doNothing());
+        // Competition autos (DIP switch selectable)
+        autoChooser.setDefaultOption("0: Do Nothing", AutoRoutines.doNothing());
+        autoChooser.addOption("1: Score & Collect", AutoRoutines.scoreAndCollectAuto(swerve, intake, shooter));
+        autoChooser.addOption("2: Quick Climb", AutoRoutines.quickClimbAuto(swerve, climber));
+        autoChooser.addOption("3: Score Then Climb", AutoRoutines.scoreThenClimbAuto(swerve, intake, shooter, climber));
 
-        // Simple movement autos
+        // Additional test/practice autos
         autoChooser.addOption("Drive Forward", AutoRoutines.driveForwardAuto(swerve));
         autoChooser.addOption("Drive Backward", AutoRoutines.driveBackwardAuto(swerve));
-
-        // Intake autos
         autoChooser.addOption("Drive and Intake", AutoRoutines.driveAndIntakeAuto(swerve, intake));
-        autoChooser.addOption("Intake Then Drive", AutoRoutines.intakeThenDriveAuto(swerve, intake));
-
-        // Scoring autos
-        autoChooser.addOption("Intake and Score", AutoRoutines.intakeAndScoreAuto(swerve, intake, shooter));
         autoChooser.addOption("Two FUEL Auto", AutoRoutines.twoFuelAuto(swerve, intake, shooter));
-        autoChooser.addOption("Three FUEL Auto", AutoRoutines.threeFuelAuto(swerve, intake, shooter));
     }
 
+    /**
+     * Get the autonomous command to run.
+     *
+     * If USE_DIP_SWITCH is true, reads the physical DIP switch.
+     * Otherwise, uses the SmartDashboard chooser selection.
+     *
+     * @return The selected autonomous command
+     */
     public Command getAutonomousCommand() {
-        return autoChooser.getSelected();
+        if (USE_DIP_SWITCH) {
+            // Lock the selection at the start of auto to prevent mid-match changes
+            dipSwitchSelector.lockSelection();
+            int selection = dipSwitchSelector.getSelection();
+            return AutoRoutines.getAutoFromSelection(selection, swerve, intake, shooter, climber);
+        } else {
+            return autoChooser.getSelected();
+        }
     }
 
+    /**
+     * Called when robot is disabled. Unlocks DIP switch selection.
+     */
+    public void onDisabled() {
+        dipSwitchSelector.unlockSelection();
+    }
+
+    /**
+     * Log telemetry data to SmartDashboard.
+     * Call this from robotPeriodic() or disabledPeriodic().
+     */
     public void logData() {
         SmartDashboard.putBoolean("Slow Speed", speedExponent == 2);
+        SmartDashboard.putBoolean("Auto/Using DIP Switch", USE_DIP_SWITCH);
+
+        // Always show DIP switch status so drivers can verify before match
+        dipSwitchSelector.updateDashboard();
     }
 }

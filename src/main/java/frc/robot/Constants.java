@@ -199,4 +199,27 @@ public final class Constants {
 
         public static final double POSITION_TOLERANCE = 0.05;
     }
+
+    public static final class AutoConstants {
+        // DIP Switch DIO ports (directly on roboRIO or through MXP)
+        // 2-bit selector allows 4 auto modes (0-3)
+        public static final int DIP_SWITCH_BIT_0_PORT = 1;  // LSB
+        public static final int DIP_SWITCH_BIT_1_PORT = 2;  // MSB
+
+        // Auto mode identifiers
+        public static final int AUTO_DO_NOTHING = 0;
+        public static final int AUTO_SCORE_AND_COLLECT = 1;
+        public static final int AUTO_QUICK_CLIMB = 2;
+        public static final int AUTO_SCORE_THEN_CLIMB = 3;
+
+        // Timing constants for auto routines (seconds)
+        public static final double SHOOT_TIME_PER_FUEL = 0.75;
+        public static final double DRIVE_TO_NEUTRAL_TIME = 4.0;
+        public static final double INTAKE_TIMEOUT = 5.0;
+        public static final double CLIMB_TIMEOUT = 12.0;
+
+        // Speed constants for auto
+        public static final double AUTO_DRIVE_SPEED = 2.0;  // m/s
+        public static final double AUTO_INTAKE_DRIVE_SPEED = 1.5;  // m/s while intaking
+    }
 }
