@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.swerve.SwerveDrive;
-import frc.robot.subsystems.vision.Vision;
 
 /**
  * <h2>Shooter Class</h2>
@@ -21,7 +20,7 @@ import frc.robot.subsystems.vision.Vision;
  * <hr>
  * <b> Methods </b>
  * 
- * @apiNote OtherShooterDraftClass()
+ * @apiNote Shooter()
  * @apiNote UpdateHubLocation()
  * @apiNote canScore()
  * @apiNote robotToShooter()

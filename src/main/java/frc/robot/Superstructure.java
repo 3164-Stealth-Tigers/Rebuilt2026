@@ -1,8 +1,8 @@
 package frc.robot;
 
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.swerve.SwerveDrive;
-import frc.robot.subsystems.vision.Vision;
 
 public class Superstructure {
     private final SwerveDrive swerve;

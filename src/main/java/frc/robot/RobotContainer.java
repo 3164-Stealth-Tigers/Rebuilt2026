@@ -12,8 +12,8 @@ import frc.robot.Superstructure;
 import frc.robot.OI.DriverActionSet;
 import frc.robot.OI.XboxDriver;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.swerve.SwerveDrive;
-import frc.robot.subsystems.vision.Vision;
 
 public class RobotContainer {
     private final DriverActionSet driverJoystick;
