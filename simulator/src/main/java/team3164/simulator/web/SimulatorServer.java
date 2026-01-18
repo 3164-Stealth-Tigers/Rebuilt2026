@@ -1,19 +1,19 @@
 package team3164.simulator.web;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.javalin.Javalin;
 import io.javalin.websocket.WsContext;
 import team3164.simulator.Constants;
-import team3164.simulator.engine.InputState;
-import team3164.simulator.engine.RobotState;
-import team3164.simulator.engine.SimulationEngine;
+import team3164.simulator.engine.*;
+import team3164.simulator.engine.FuelState.Fuel;
 
 import java.util.Map;
 import java.util.concurrent.*;
 
 /**
- * HTTP and WebSocket server for the simulator.
+ * HTTP and WebSocket server for the REBUILT 2026 simulator.
  *
  * Serves the web UI and handles real-time communication with the browser.
  */
@@ -60,7 +60,7 @@ public class SimulatorServer {
                 System.out.println("Client connected: " + id + " (total: " + clients.size() + ")");
 
                 // Send initial state
-                sendState(ctx, engine.getState());
+                sendFullState(ctx);
             });
 
             ws.onClose(ctx -> {
@@ -88,6 +88,7 @@ public class SimulatorServer {
             ctx.json(Map.of(
                 "status", "ok",
                 "running", engine.isRunning(),
+                "paused", engine.isPaused(),
                 "clients", clients.size(),
                 "ticks", engine.getTickCount()
             ));
@@ -99,7 +100,7 @@ public class SimulatorServer {
         // Start broadcast loop
         startBroadcastLoop();
 
-        System.out.println("Server started at http://localhost:" + port);
+        System.out.println("REBUILT 2026 Simulator Server started at http://localhost:" + port);
     }
 
     /**
@@ -141,8 +142,7 @@ public class SimulatorServer {
     private void broadcastState() {
         if (clients.isEmpty()) return;
 
-        RobotState state = engine.getState();
-        String json = buildStateJson(state);
+        String json = buildFullStateJson();
 
         for (WsContext ctx : clients.values()) {
             try {
@@ -154,24 +154,55 @@ public class SimulatorServer {
     }
 
     /**
-     * Send state to a single client.
+     * Send full state to a single client.
      */
-    private void sendState(WsContext ctx, RobotState state) {
+    private void sendFullState(WsContext ctx) {
         try {
-            ctx.send(buildStateJson(state));
+            ctx.send(buildFullStateJson());
         } catch (Exception e) {
             System.err.println("Error sending state: " + e.getMessage());
         }
     }
 
     /**
-     * Build JSON representation of robot state.
+     * Build JSON representation of full game state.
      */
-    private String buildStateJson(RobotState state) {
+    private String buildFullStateJson() {
+        RobotState robotState = engine.getState();
+        MatchState matchState = engine.getMatchState();
+        FuelState fuelState = engine.getFuelState();
+
         JsonObject json = new JsonObject();
         json.addProperty("type", "state");
 
-        // Robot pose
+        // Robot state
+        json.add("robot", buildRobotJson(robotState));
+
+        // Swerve modules
+        json.add("swerve", buildSwerveJson(robotState));
+
+        // Shooter
+        json.add("shooter", buildShooterJson(robotState));
+
+        // Climber
+        json.add("climber", buildClimberJson(robotState));
+
+        // Match state
+        json.add("match", buildMatchJson(matchState));
+
+        // FUEL on field
+        json.add("fuel", buildFuelJson(fuelState));
+
+        // Control state
+        json.add("control", buildControlJson(robotState));
+
+        return json.toString();
+    }
+
+    /**
+     * Build robot position/velocity JSON.
+     */
+    private JsonObject buildRobotJson(RobotState state) {
         JsonObject robot = new JsonObject();
         robot.addProperty("x", round(state.x, 3));
         robot.addProperty("y", round(state.y, 3));
@@ -179,9 +210,17 @@ public class SimulatorServer {
         robot.addProperty("vx", round(state.vx, 2));
         robot.addProperty("vy", round(state.vy, 2));
         robot.addProperty("omega", round(Math.toDegrees(state.omega), 1));
-        json.add("robot", robot);
+        robot.addProperty("height", round(state.robotHeight, 3));
+        robot.addProperty("onBump", state.onBump);
+        robot.addProperty("trenchMode", state.trenchMode);
+        robot.addProperty("alliance", state.alliance.name());
+        return robot;
+    }
 
-        // Swerve modules
+    /**
+     * Build swerve module JSON.
+     */
+    private JsonObject buildSwerveJson(RobotState state) {
         JsonObject swerve = new JsonObject();
         String[] moduleNames = {"fl", "fr", "rl", "rr"};
         for (int i = 0; i < 4; i++) {
@@ -190,50 +229,137 @@ public class SimulatorServer {
             module.addProperty("speed", round(state.moduleSpeeds[i], 2));
             swerve.add(moduleNames[i], module);
         }
-        json.add("swerve", swerve);
+        return swerve;
+    }
 
-        // Elevator
-        JsonObject elevator = new JsonObject();
-        elevator.addProperty("height", round(state.getElevatorHeightInches(), 1));
-        elevator.addProperty("goal", round(state.elevatorGoal * 39.37, 1));
-        elevator.addProperty("velocity", round(state.elevatorVelocity * 39.37, 1));
-        elevator.addProperty("atGoal", state.elevatorAtGoal);
-        json.add("elevator", elevator);
+    /**
+     * Build shooter state JSON.
+     */
+    private JsonObject buildShooterJson(RobotState state) {
+        JsonObject shooter = new JsonObject();
+        shooter.addProperty("angle", round(state.shooterAngle, 1));
+        shooter.addProperty("angleGoal", round(state.shooterAngleGoal, 1));
+        shooter.addProperty("velocity", round(state.shooterVelocity, 1));
+        shooter.addProperty("velocityGoal", round(state.shooterVelocityGoal, 1));
+        shooter.addProperty("atAngle", state.shooterAtAngle);
+        shooter.addProperty("atSpeed", state.shooterAtSpeed);
+        shooter.addProperty("spinningUp", state.shooterSpinningUp);
+        shooter.addProperty("fuelCount", state.fuelCount);
+        shooter.addProperty("intakeState", state.intakeState.name());
+        shooter.addProperty("readyToShoot", state.isReadyToShoot());
+        return shooter;
+    }
 
-        // Arm
-        JsonObject arm = new JsonObject();
-        arm.addProperty("angle", round(state.getArmAngleDegrees(), 1));
-        arm.addProperty("goal", round(Math.toDegrees(state.armGoal), 1));
-        arm.addProperty("atGoal", state.armAtGoal);
-        json.add("arm", arm);
-
-        // Claw
-        JsonObject claw = new JsonObject();
-        claw.addProperty("state", state.clawState.name());
-        claw.addProperty("hasCoral", state.hasCoral);
-        json.add("claw", claw);
-
-        // Climber
+    /**
+     * Build climber state JSON.
+     */
+    private JsonObject buildClimberJson(RobotState state) {
         JsonObject climber = new JsonObject();
-        climber.addProperty("position", round(state.climberPosition * 39.37, 1));
-        json.add("climber", climber);
+        climber.addProperty("position", round(state.climberPosition, 3));
+        climber.addProperty("velocity", round(state.climberVelocity, 3));
+        climber.addProperty("level", state.climbLevel);
+        climber.addProperty("isClimbing", state.isClimbing);
+        climber.addProperty("complete", state.climbComplete);
+        climber.addProperty("points", state.towerPoints);
+        return climber;
+    }
 
-        // Control state
+    /**
+     * Build match state JSON.
+     */
+    private JsonObject buildMatchJson(MatchState state) {
+        JsonObject match = new JsonObject();
+        match.addProperty("time", round(state.matchTime, 1));
+        match.addProperty("remaining", round(state.getRemainingTime(), 1));
+        match.addProperty("phase", state.currentPhase.name());
+        match.addProperty("phaseName", state.getPhaseName());
+        match.addProperty("started", state.matchStarted);
+        match.addProperty("ended", state.matchEnded);
+
+        // HUB status
+        match.addProperty("redHubActive", state.redHubStatus == MatchState.HubStatus.ACTIVE);
+        match.addProperty("blueHubActive", state.blueHubStatus == MatchState.HubStatus.ACTIVE);
+
+        // Scores
+        JsonObject scores = new JsonObject();
+        scores.addProperty("redTotal", state.redTotalScore);
+        scores.addProperty("blueTotal", state.blueTotalScore);
+        scores.addProperty("redFuel", state.redFuelScored);
+        scores.addProperty("blueFuel", state.blueFuelScored);
+        scores.addProperty("redTower", state.redTowerPoints);
+        scores.addProperty("blueTower", state.blueTowerPoints);
+        match.add("scores", scores);
+
+        // Outpost counts
+        JsonObject outpost = new JsonObject();
+        outpost.addProperty("redChute", state.redChuteCount);
+        outpost.addProperty("blueChute", state.blueChuteCount);
+        outpost.addProperty("redCorral", state.redCorralCount);
+        outpost.addProperty("blueCorral", state.blueCorralCount);
+        match.add("outpost", outpost);
+
+        // Ranking points
+        JsonObject rp = new JsonObject();
+        rp.addProperty("redEnergized", state.redEnergized);
+        rp.addProperty("blueEnergized", state.blueEnergized);
+        rp.addProperty("redTraversal", state.redTraversal);
+        rp.addProperty("blueTraversal", state.blueTraversal);
+        match.add("rankingPoints", rp);
+
+        return match;
+    }
+
+    /**
+     * Build FUEL state JSON.
+     */
+    private JsonObject buildFuelJson(FuelState state) {
+        JsonObject fuel = new JsonObject();
+
+        // Field FUEL (positions of all active FUEL)
+        JsonArray fieldFuel = new JsonArray();
+        for (Fuel f : state.getFieldFuel()) {
+            JsonObject fuelObj = new JsonObject();
+            fuelObj.addProperty("id", f.id);
+            fuelObj.addProperty("x", round(f.x, 3));
+            fuelObj.addProperty("y", round(f.y, 3));
+            fuelObj.addProperty("z", round(f.z, 3));
+            fuelObj.addProperty("moving", f.isMoving);
+            fieldFuel.add(fuelObj);
+        }
+        fuel.add("field", fieldFuel);
+
+        // Flight FUEL
+        JsonArray flightFuel = new JsonArray();
+        for (Fuel f : state.getFlightFuel()) {
+            JsonObject fuelObj = new JsonObject();
+            fuelObj.addProperty("id", f.id);
+            fuelObj.addProperty("x", round(f.x, 3));
+            fuelObj.addProperty("y", round(f.y, 3));
+            fuelObj.addProperty("z", round(f.z, 3));
+            fuelObj.addProperty("vx", round(f.vx, 2));
+            fuelObj.addProperty("vy", round(f.vy, 2));
+            fuelObj.addProperty("vz", round(f.vz, 2));
+            flightFuel.add(fuelObj);
+        }
+        fuel.add("flight", flightFuel);
+
+        // Counts
+        fuel.addProperty("totalOnField", state.getFieldFuel().size());
+        fuel.addProperty("totalInFlight", state.getFlightFuel().size());
+
+        return fuel;
+    }
+
+    /**
+     * Build control state JSON.
+     */
+    private JsonObject buildControlJson(RobotState state) {
         JsonObject control = new JsonObject();
         control.addProperty("fieldRelative", state.fieldRelative);
         control.addProperty("slowMode", state.slowMode);
-        control.addProperty("currentLevel", state.currentLevel);
         control.addProperty("command", state.currentCommand);
-        json.add("control", control);
-
-        // Game state
-        JsonObject game = new JsonObject();
-        game.addProperty("score", state.score);
-        game.addProperty("time", round(state.matchTime, 1));
-        game.addProperty("enabled", state.isEnabled);
-        json.add("game", game);
-
-        return json.toString();
+        control.addProperty("enabled", state.isEnabled);
+        return control;
     }
 
     /**
@@ -244,14 +370,23 @@ public class SimulatorServer {
             JsonObject json = gson.fromJson(message, JsonObject.class);
             String type = json.get("type").getAsString();
 
-            if ("input".equals(type)) {
-                InputState input = parseInput(json);
-                engine.updateInput(input);
-            } else if ("reset".equals(type)) {
-                engine.getState().reset();
-            } else if ("pickup".equals(type)) {
-                // Debug: instantly pick up coral
-                team3164.simulator.physics.ClawPhysics.pickupCoral(engine.getState());
+            switch (type) {
+                case "input":
+                    InputState input = parseInput(json);
+                    engine.updateInput(input);
+                    break;
+                case "reset":
+                    engine.getState().reset();
+                    engine.getMatchState().reset();
+                    engine.getFuelState().reset();
+                    break;
+                case "startMatch":
+                    engine.startMatch();
+                    break;
+                case "addFuel":
+                    // Debug: add FUEL to robot
+                    engine.getState().addFuel();
+                    break;
             }
         } catch (Exception e) {
             System.err.println("Error parsing message: " + e.getMessage());
@@ -264,27 +399,40 @@ public class SimulatorServer {
     private InputState parseInput(JsonObject json) {
         InputState input = new InputState();
 
+        // Continuous inputs
         if (json.has("forward")) input.forward = json.get("forward").getAsDouble();
         if (json.has("strafe")) input.strafe = json.get("strafe").getAsDouble();
         if (json.has("turn")) input.turn = json.get("turn").getAsDouble();
+        if (json.has("shooterAngle")) input.shooterAngle = json.get("shooterAngle").getAsDouble();
+        if (json.has("shooterPower")) input.shooterPower = json.get("shooterPower").getAsDouble();
 
-        if (json.has("level0")) input.level0 = json.get("level0").getAsBoolean();
-        if (json.has("level1")) input.level1 = json.get("level1").getAsBoolean();
-        if (json.has("level2")) input.level2 = json.get("level2").getAsBoolean();
-        if (json.has("level3")) input.level3 = json.get("level3").getAsBoolean();
-        if (json.has("level4")) input.level4 = json.get("level4").getAsBoolean();
-
+        // Button inputs
         if (json.has("intake")) input.intake = json.get("intake").getAsBoolean();
-        if (json.has("outtake")) input.outtake = json.get("outtake").getAsBoolean();
+        if (json.has("shoot")) input.shoot = json.get("shoot").getAsBoolean();
+        if (json.has("spinUp")) input.spinUp = json.get("spinUp").getAsBoolean();
 
         if (json.has("climberUp")) input.climberUp = json.get("climberUp").getAsBoolean();
         if (json.has("climberDown")) input.climberDown = json.get("climberDown").getAsBoolean();
+        if (json.has("level1")) input.level1 = json.get("level1").getAsBoolean();
+        if (json.has("level2")) input.level2 = json.get("level2").getAsBoolean();
+        if (json.has("level3")) input.level3 = json.get("level3").getAsBoolean();
 
+        if (json.has("toggleTrenchMode")) input.toggleTrenchMode = json.get("toggleTrenchMode").getAsBoolean();
         if (json.has("toggleSpeed")) input.toggleSpeed = json.get("toggleSpeed").getAsBoolean();
         if (json.has("toggleFieldRel")) input.toggleFieldRel = json.get("toggleFieldRel").getAsBoolean();
         if (json.has("resetGyro")) input.resetGyro = json.get("resetGyro").getAsBoolean();
         if (json.has("skiStop")) input.skiStop = json.get("skiStop").getAsBoolean();
         if (json.has("resetRobot")) input.resetRobot = json.get("resetRobot").getAsBoolean();
+
+        // HP inputs
+        if (json.has("redChuteRelease")) input.redChuteRelease = json.get("redChuteRelease").getAsBoolean();
+        if (json.has("blueChuteRelease")) input.blueChuteRelease = json.get("blueChuteRelease").getAsBoolean();
+        if (json.has("redCorralTransfer")) input.redCorralTransfer = json.get("redCorralTransfer").getAsBoolean();
+        if (json.has("blueCorralTransfer")) input.blueCorralTransfer = json.get("blueCorralTransfer").getAsBoolean();
+
+        // Match control
+        if (json.has("startMatch")) input.startMatch = json.get("startMatch").getAsBoolean();
+        if (json.has("pauseMatch")) input.pauseMatch = json.get("pauseMatch").getAsBoolean();
 
         return input;
     }

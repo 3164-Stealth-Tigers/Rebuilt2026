@@ -1,5 +1,5 @@
 /**
- * Reefscape 2025 Simulator - Web Frontend
+ * REBUILT 2026 Simulator - Web Frontend
  * Team 3164 Stealth Tigers
  */
 
@@ -8,16 +8,54 @@
 // ============================================================================
 
 const FIELD = {
-    LENGTH: 16.4592,  // meters (54 feet)
-    WIDTH: 8.2296,    // meters (27 feet)
-    REEF_CENTER_X: 16.4592 / 2,
-    REEF_CENTER_Y: 8.2296 / 2,
-    REEF_RADIUS: 0.9144  // 36 inches
+    LENGTH: 16.5405,  // meters (651.2 inches)
+    WIDTH: 8.0696,    // meters (317.7 inches)
+    CENTER_X: 16.5405 / 2,
+    CENTER_Y: 8.0696 / 2
 };
+
+// HUB positions
+const HUB = {
+    SIZE: 1.194,
+    RED_X: FIELD.LENGTH - 4.03,
+    RED_Y: FIELD.CENTER_Y,
+    BLUE_X: 4.03,
+    BLUE_Y: FIELD.CENTER_Y
+};
+
+// TOWER positions
+const TOWER = {
+    LENGTH: 1.251,
+    WIDTH: 1.143,
+    RED_X: FIELD.LENGTH - 2.5,
+    RED_Y: FIELD.CENTER_Y + 2.5,
+    BLUE_X: 2.5,
+    BLUE_Y: FIELD.CENTER_Y + 2.5
+};
+
+// BUMP positions
+const BUMPS = [
+    { x: FIELD.CENTER_X + 3.0, y: FIELD.CENTER_Y + 2.0 },
+    { x: FIELD.CENTER_X + 3.0, y: FIELD.CENTER_Y - 2.0 },
+    { x: FIELD.CENTER_X - 3.0, y: FIELD.CENTER_Y + 2.0 },
+    { x: FIELD.CENTER_X - 3.0, y: FIELD.CENTER_Y - 2.0 }
+];
+
+// TRENCH positions
+const TRENCHES = [
+    { x: FIELD.CENTER_X + 4.5, y: FIELD.CENTER_Y + 3.0 },
+    { x: FIELD.CENTER_X + 4.5, y: FIELD.CENTER_Y - 3.0 },
+    { x: FIELD.CENTER_X - 4.5, y: FIELD.CENTER_Y + 3.0 },
+    { x: FIELD.CENTER_X - 4.5, y: FIELD.CENTER_Y - 3.0 }
+];
 
 const ROBOT = {
     LENGTH: 0.9334,  // with bumpers
     WIDTH: 0.9334
+};
+
+const FUEL = {
+    RADIUS: 0.075  // 5.91 inches / 2
 };
 
 // ============================================================================
@@ -31,24 +69,33 @@ let canvas, ctx;
 
 // Input state
 const keys = {};
+let shooterAngle = 0;
+let shooterPower = 0;
+
 const input = {
     forward: 0,
     strafe: 0,
     turn: 0,
-    level0: false,
+    shooterAngle: 0,
+    shooterPower: 0,
+    intake: false,
+    shoot: false,
+    spinUp: false,
+    climberUp: false,
+    climberDown: false,
     level1: false,
     level2: false,
     level3: false,
-    level4: false,
-    intake: false,
-    outtake: false,
-    climberUp: false,
-    climberDown: false,
+    toggleTrenchMode: false,
     toggleSpeed: false,
     toggleFieldRel: false,
     resetGyro: false,
     skiStop: false,
-    resetRobot: false
+    resetRobot: false,
+    redChuteRelease: false,
+    blueChuteRelease: false,
+    startMatch: false,
+    pauseMatch: false
 };
 
 // ============================================================================
@@ -64,14 +111,13 @@ function connect() {
     ws.onopen = () => {
         connected = true;
         updateConnectionStatus(true);
-        console.log('Connected to simulator');
+        console.log('Connected to REBUILT 2026 simulator');
     };
 
     ws.onclose = () => {
         connected = false;
         updateConnectionStatus(false);
         console.log('Disconnected from simulator');
-        // Reconnect after delay
         setTimeout(connect, 2000);
     };
 
@@ -100,19 +146,31 @@ function sendInput() {
     input.strafe = (keys['KeyA'] ? 1 : 0) - (keys['KeyD'] ? 1 : 0);
     input.turn = (keys['KeyQ'] ? 1 : 0) - (keys['KeyE'] ? 1 : 0);
 
-    input.level0 = keys['KeyR'] || false;
+    // Shooter angle (R/F keys)
+    if (keys['KeyR']) shooterAngle = Math.min(1, shooterAngle + 0.02);
+    if (keys['KeyF']) shooterAngle = Math.max(0, shooterAngle - 0.02);
+    input.shooterAngle = shooterAngle;
+
+    // Shooter power (Up/Down arrows)
+    if (keys['ArrowUp']) shooterPower = Math.min(1, shooterPower + 0.02);
+    if (keys['ArrowDown']) shooterPower = Math.max(0, shooterPower - 0.02);
+    input.shooterPower = shooterPower;
+
+    // Button inputs
+    input.intake = keys['Space'] || false;
+    input.shoot = keys['ShiftLeft'] || keys['ShiftRight'] || false;
+
+    input.climberUp = keys['BracketRight'] || false;
+    input.climberDown = keys['BracketLeft'] || false;
     input.level1 = keys['Digit1'] || false;
     input.level2 = keys['Digit2'] || false;
     input.level3 = keys['Digit3'] || false;
-    input.level4 = keys['Digit4'] || false;
-
-    input.intake = keys['Space'] || false;
-    input.outtake = keys['ShiftLeft'] || keys['ShiftRight'] || false;
-
-    input.climberUp = keys['ArrowUp'] || false;
-    input.climberDown = keys['ArrowDown'] || false;
 
     input.skiStop = keys['KeyV'] || false;
+
+    // HP controls
+    input.redChuteRelease = keys['KeyZ'] || false;
+    input.blueChuteRelease = keys['Slash'] || false;
 
     try {
         ws.send(JSON.stringify({
@@ -126,8 +184,11 @@ function sendInput() {
     // Reset one-shot inputs
     input.toggleSpeed = false;
     input.toggleFieldRel = false;
+    input.toggleTrenchMode = false;
     input.resetGyro = false;
     input.resetRobot = false;
+    input.startMatch = false;
+    input.pauseMatch = false;
 }
 
 // ============================================================================
@@ -148,16 +209,22 @@ function setupInputHandlers() {
             case 'KeyC':
                 input.toggleFieldRel = true;
                 break;
+            case 'KeyT':
+                input.toggleTrenchMode = true;
+                break;
             case 'KeyG':
                 input.resetGyro = true;
                 break;
             case 'Escape':
                 input.resetRobot = true;
                 break;
+            case 'Enter':
+                input.startMatch = true;
+                break;
             case 'KeyP':
-                // Debug: pickup coral
+                // Debug: add FUEL
                 if (ws && connected) {
-                    ws.send(JSON.stringify({ type: 'pickup' }));
+                    ws.send(JSON.stringify({ type: 'addFuel' }));
                 }
                 break;
         }
@@ -172,9 +239,21 @@ function setupInputHandlers() {
         keys[e.code] = false;
     });
 
-    // Lose focus handler
     window.addEventListener('blur', () => {
         Object.keys(keys).forEach(k => keys[k] = false);
+    });
+
+    // Button handlers
+    document.getElementById('btn-start-match').addEventListener('click', () => {
+        if (ws && connected) {
+            ws.send(JSON.stringify({ type: 'startMatch' }));
+        }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+        if (ws && connected) {
+            ws.send(JSON.stringify({ type: 'reset' }));
+        }
     });
 }
 
@@ -196,45 +275,54 @@ function updateConnectionStatus(isConnected) {
 function updateUI() {
     if (!state) return;
 
-    // Match time
-    const time = state.game.time || 0;
-    const mins = Math.floor(time / 60);
-    const secs = Math.floor(time % 60);
-    document.getElementById('match-time').textContent =
-        `${mins}:${secs.toString().padStart(2, '0')}`;
+    // Match info
+    const remaining = state.match.remaining || 0;
+    const mins = Math.floor(remaining / 60);
+    const secs = Math.floor(remaining % 60);
+    document.getElementById('match-time').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    document.getElementById('match-phase').textContent = state.match.phaseName || 'Pre-Match';
 
-    // Score
-    document.getElementById('score').textContent = `Score: ${state.game.score}`;
+    // Scores
+    document.getElementById('red-score').textContent = state.match.scores.redTotal;
+    document.getElementById('blue-score').textContent = state.match.scores.blueTotal;
 
-    // Elevator
-    const elevHeight = state.elevator.height;
-    const elevGoal = state.elevator.goal;
-    const elevMin = 30.5;
-    const elevMax = 78.5;
-    const elevPercent = ((elevHeight - elevMin) / (elevMax - elevMin)) * 100;
-    const elevGoalPercent = ((elevGoal - elevMin) / (elevMax - elevMin)) * 100;
+    // HUB status
+    const redHub = document.getElementById('red-hub-status');
+    const blueHub = document.getElementById('blue-hub-status');
+    redHub.className = `hub-status ${state.match.redHubActive ? 'active' : 'inactive'}`;
+    blueHub.className = `hub-status ${state.match.blueHubActive ? 'active' : 'inactive'}`;
 
-    document.getElementById('elevator-value').textContent = `${elevHeight.toFixed(1)}"`;
-    document.getElementById('elevator-bar').style.width = `${elevPercent}%`;
-    document.getElementById('elevator-goal').style.left = `${elevGoalPercent}%`;
+    // Shooter
+    const anglePercent = (state.shooter.angle / 75) * 100;
+    const velocityPercent = (state.shooter.velocity / 20) * 100;
+    document.getElementById('shooter-angle').textContent = `${state.shooter.angle.toFixed(1)}°`;
+    document.getElementById('shooter-angle-bar').style.width = `${anglePercent}%`;
+    document.getElementById('shooter-velocity').textContent = `${state.shooter.velocity.toFixed(1)} m/s`;
+    document.getElementById('shooter-velocity-bar').style.width = `${velocityPercent}%`;
+    document.getElementById('fuel-count').textContent = `${state.shooter.fuelCount} / 8`;
+    document.getElementById('shooter-status').textContent = state.shooter.intakeState;
 
-    // Arm
-    const armAngle = state.arm.angle;
-    document.getElementById('arm-value').textContent = `${armAngle.toFixed(0)}°`;
-    document.getElementById('arm-indicator').style.transform =
-        `translateY(-50%) rotate(${-armAngle}deg)`;
-
-    // Claw
-    const clawState = state.claw.state.toLowerCase();
-    const clawEl = document.getElementById('claw-indicator');
-    clawEl.className = `claw-indicator ${clawState}`;
-    document.getElementById('claw-value').textContent = state.claw.state;
+    // FUEL indicator
+    const fuelIndicator = document.getElementById('fuel-indicator');
+    fuelIndicator.innerHTML = '';
+    for (let i = 0; i < 8; i++) {
+        const dot = document.createElement('div');
+        dot.className = `fuel-dot ${i < state.shooter.fuelCount ? 'filled' : ''}`;
+        fuelIndicator.appendChild(dot);
+    }
 
     // Climber
-    const climberPos = state.climber.position;
-    const climberPercent = (climberPos / 24) * 100;
-    document.getElementById('climber-value').textContent = `${climberPos.toFixed(1)}"`;
+    const climberPercent = (state.climber.position / 1.7) * 100;
+    document.getElementById('climber-position').textContent = `${state.climber.position.toFixed(2)}m`;
     document.getElementById('climber-bar').style.width = `${climberPercent}%`;
+
+    // Climb level indicators
+    for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById(`climb-l${i}`);
+        const isTarget = state.climber.level === i;
+        const isComplete = state.climber.complete && state.climber.level === i;
+        el.className = `climb-level ${isTarget ? 'target' : ''} ${isComplete ? 'complete' : ''}`;
+    }
 
     // Robot info
     document.getElementById('robot-position').textContent =
@@ -243,8 +331,6 @@ function updateUI() {
 
     const speed = Math.hypot(state.robot.vx, state.robot.vy);
     document.getElementById('robot-speed').textContent = `${speed.toFixed(1)} m/s`;
-
-    document.getElementById('current-level').textContent = `L${state.control.currentLevel}`;
     document.getElementById('current-command').textContent = state.control.command;
 
     // Mode indicators
@@ -252,6 +338,8 @@ function updateUI() {
         `mode-indicator ${state.control.fieldRelative ? 'active' : ''}`;
     document.getElementById('mode-slow').className =
         `mode-indicator ${state.control.slowMode ? 'active' : ''}`;
+    document.getElementById('mode-trench').className =
+        `mode-indicator ${state.robot.trenchMode ? 'active' : ''}`;
 
     // Render field
     renderField();
@@ -265,7 +353,6 @@ function initCanvas() {
     canvas = document.getElementById('field-canvas');
     ctx = canvas.getContext('2d');
 
-    // Handle resize
     function resize() {
         const container = canvas.parentElement;
         const width = container.clientWidth - 20;
@@ -286,19 +373,11 @@ function renderField() {
 
     const w = canvas.width;
     const h = canvas.height;
-
-    // Scale factor
     const scale = w / FIELD.LENGTH;
 
     // Clear
-    ctx.fillStyle = '#1e3a5f';
+    ctx.fillStyle = '#1a2634';
     ctx.fillRect(0, 0, w, h);
-
-    // Field carpet texture
-    ctx.fillStyle = '#2d4a6f';
-    for (let i = 0; i < 20; i++) {
-        ctx.fillRect(i * (w / 20), 0, 1, h);
-    }
 
     // Field border
     ctx.strokeStyle = '#fff';
@@ -314,71 +393,141 @@ function renderField() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Draw reef (hexagon)
-    const reefX = FIELD.REEF_CENTER_X * scale;
-    const reefY = h - (FIELD.REEF_CENTER_Y * scale);  // Flip Y
-    const reefR = FIELD.REEF_RADIUS * scale;
+    // Draw HUBs
+    drawHub(HUB.RED_X * scale, h - HUB.RED_Y * scale, HUB.SIZE * scale, 'red', state.match.redHubActive);
+    drawHub(HUB.BLUE_X * scale, h - HUB.BLUE_Y * scale, HUB.SIZE * scale, 'blue', state.match.blueHubActive);
 
-    ctx.fillStyle = 'rgba(0, 212, 255, 0.2)';
-    ctx.strokeStyle = '#00d4ff';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-        const angle = (i * 60 - 30) * Math.PI / 180;
-        const x = reefX + reefR * Math.cos(angle);
-        const y = reefY + reefR * Math.sin(angle);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    // Draw TOWERs
+    drawTower(TOWER.RED_X * scale, h - TOWER.RED_Y * scale, TOWER.LENGTH * scale, TOWER.WIDTH * scale, 'red');
+    drawTower(TOWER.BLUE_X * scale, h - TOWER.BLUE_Y * scale, TOWER.LENGTH * scale, TOWER.WIDTH * scale, 'blue');
 
-    // Reef center
-    ctx.fillStyle = '#00d4ff';
-    ctx.beginPath();
-    ctx.arc(reefX, reefY, 5, 0, Math.PI * 2);
-    ctx.fill();
+    // Draw BUMPs
+    BUMPS.forEach(bump => {
+        drawBump(bump.x * scale, h - bump.y * scale, 1.854 * scale, 1.128 * scale);
+    });
 
-    // Draw scoring positions (A-L)
-    const positions = 'ABCDEFGHIJKL'.split('');
-    for (let i = 0; i < 12; i++) {
-        const pipeOffset = (i % 2 === 0) ? 1 : -1;
-        const faceAngle = Math.floor(i / 2) * 60;
+    // Draw TRENCHes
+    TRENCHES.forEach(trench => {
+        drawTrench(trench.x * scale, h - trench.y * scale, 1.668 * scale, 1.194 * scale);
+    });
 
-        const baseAngle = (faceAngle - 90) * Math.PI / 180;
-        const perpAngle = baseAngle + Math.PI / 2;
-
-        const dist = reefR * 1.3;
-        const lateralOffset = 0.15 * scale * pipeOffset;
-
-        const px = reefX + dist * Math.cos(baseAngle) + lateralOffset * Math.cos(perpAngle);
-        const py = reefY + dist * Math.sin(baseAngle) + lateralOffset * Math.sin(perpAngle);
-
-        ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
-        ctx.beginPath();
-        ctx.arc(px, py, 8, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(positions[i], px, py);
+    // Draw FUEL on field
+    if (state.fuel && state.fuel.field) {
+        state.fuel.field.forEach(fuel => {
+            drawFuel(fuel.x * scale, h - fuel.y * scale, FUEL.RADIUS * scale, fuel.moving);
+        });
     }
 
-    // Draw coral stations
-    ctx.fillStyle = 'rgba(0, 168, 120, 0.3)';
-    ctx.fillRect(0, h - 2 * scale, 1 * scale, 2 * scale);
-    ctx.fillRect(0, 0, 1 * scale, 2 * scale);
+    // Draw FUEL in flight
+    if (state.fuel && state.fuel.flight) {
+        state.fuel.flight.forEach(fuel => {
+            drawFuel(fuel.x * scale, h - fuel.y * scale, FUEL.RADIUS * scale * (1 + fuel.z * 0.2), true);
+        });
+    }
 
     // Draw robot
-    drawRobot(state.robot.x * scale, h - (state.robot.y * scale),
-              -state.robot.heading * Math.PI / 180, scale);
+    drawRobot(
+        state.robot.x * scale,
+        h - state.robot.y * scale,
+        -state.robot.heading * Math.PI / 180,
+        scale
+    );
 
     // Draw swerve modules
-    drawSwerveModules(state.robot.x * scale, h - (state.robot.y * scale),
-                      -state.robot.heading * Math.PI / 180, scale);
+    drawSwerveModules(
+        state.robot.x * scale,
+        h - state.robot.y * scale,
+        -state.robot.heading * Math.PI / 180,
+        scale
+    );
+}
+
+function drawHub(x, y, size, alliance, isActive) {
+    const color = alliance === 'red' ? '#e94560' : '#3498db';
+    const halfSize = size / 2;
+
+    // HUB body
+    ctx.fillStyle = isActive ? color : 'rgba(100, 100, 100, 0.5)';
+    ctx.strokeStyle = isActive ? '#fff' : '#666';
+    ctx.lineWidth = isActive ? 3 : 1;
+
+    ctx.fillRect(x - halfSize, y - halfSize, size, size);
+    ctx.strokeRect(x - halfSize, y - halfSize, size, size);
+
+    // HUB label
+    ctx.fillStyle = isActive ? '#fff' : '#888';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('HUB', x, y);
+
+    // Glow effect when active
+    if (isActive) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 15;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x - halfSize - 2, y - halfSize - 2, size + 4, size + 4);
+        ctx.shadowBlur = 0;
+    }
+}
+
+function drawTower(x, y, length, width, alliance) {
+    const color = alliance === 'red' ? '#c0392b' : '#2980b9';
+    const halfL = length / 2;
+    const halfW = width / 2;
+
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+
+    ctx.fillRect(x - halfL, y - halfW, length, width);
+    ctx.strokeRect(x - halfL, y - halfW, length, width);
+
+    // TOWER label
+    ctx.fillStyle = '#fff';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TOWER', x, y);
+}
+
+function drawBump(x, y, length, width) {
+    const halfL = length / 2;
+    const halfW = width / 2;
+
+    ctx.fillStyle = 'rgba(255, 200, 100, 0.4)';
+    ctx.strokeStyle = '#ffc864';
+    ctx.lineWidth = 2;
+
+    ctx.fillRect(x - halfL, y - halfW, length, width);
+    ctx.strokeRect(x - halfL, y - halfW, length, width);
+}
+
+function drawTrench(x, y, length, width) {
+    const halfL = length / 2;
+    const halfW = width / 2;
+
+    ctx.fillStyle = 'rgba(100, 100, 100, 0.4)';
+    ctx.strokeStyle = '#888';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+
+    ctx.fillRect(x - halfL, y - halfW, length, width);
+    ctx.strokeRect(x - halfL, y - halfW, length, width);
+
+    ctx.setLineDash([]);
+}
+
+function drawFuel(x, y, radius, isMoving) {
+    ctx.fillStyle = isMoving ? '#ff9f1c' : '#f77f00';
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
 }
 
 function drawRobot(x, y, heading, scale) {
@@ -390,7 +539,8 @@ function drawRobot(x, y, heading, scale) {
     ctx.rotate(heading);
 
     // Robot body
-    ctx.fillStyle = state.claw.hasCoral ? '#00a878' : '#e94560';
+    const alliance = state.robot.alliance;
+    ctx.fillStyle = alliance === 'RED' ? '#e94560' : '#3498db';
     ctx.fillRect(-robotW / 2, -robotH / 2, robotW, robotH);
 
     // Robot outline
@@ -414,6 +564,13 @@ function drawRobot(x, y, heading, scale) {
     ctx.textBaseline = 'middle';
     ctx.fillText('3164', 0, 0);
 
+    // FUEL count indicator
+    if (state.shooter.fuelCount > 0) {
+        ctx.fillStyle = '#f77f00';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText(`${state.shooter.fuelCount}`, 0, 12);
+    }
+
     ctx.restore();
 }
 
@@ -424,10 +581,10 @@ function drawSwerveModules(x, y, heading, scale) {
     const halfH = ROBOT.LENGTH * scale / 2 - 5;
 
     const modulePositions = [
-        { x: halfH, y: halfW },   // FL
-        { x: halfH, y: -halfW },  // FR
-        { x: -halfH, y: halfW },  // RL
-        { x: -halfH, y: -halfW }  // RR
+        { x: halfH, y: halfW },
+        { x: halfH, y: -halfW },
+        { x: -halfH, y: halfW },
+        { x: -halfH, y: -halfW }
     ];
 
     const modules = ['fl', 'fr', 'rl', 'rr'];
@@ -444,14 +601,12 @@ function drawSwerveModules(x, y, heading, scale) {
         ctx.translate(pos.x, pos.y);
         ctx.rotate(-mod.angle * Math.PI / 180);
 
-        // Wheel
         const wheelLength = 15;
         const wheelWidth = 6;
 
         ctx.fillStyle = '#333';
         ctx.fillRect(-wheelLength / 2, -wheelWidth / 2, wheelLength, wheelWidth);
 
-        // Speed indicator
         const speedScale = Math.min(Math.abs(mod.speed) / 4, 1);
         ctx.strokeStyle = mod.speed >= 0 ? '#0f0' : '#f00';
         ctx.lineWidth = 2;
@@ -475,13 +630,11 @@ function init() {
     setupInputHandlers();
     connect();
 
-    // Send input at 50Hz
     setInterval(sendInput, 20);
 
-    console.log('Reefscape 2025 Simulator initialized');
+    console.log('REBUILT 2026 Simulator initialized');
 }
 
-// Start when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {

@@ -3,20 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reefscape 2025 Simulator - Team 3164</title>
+    <title>REBUILT 2026 Simulator - Team 3164</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1>REEFSCAPE 2025 SIMULATOR</h1>
+            <h1>REBUILT 2026 SIMULATOR</h1>
             <div class="header-info">
                 <span id="connection-status" class="status disconnected">Disconnected</span>
-                <span id="match-time">0:00</span>
-                <span id="score">Score: 0</span>
+                <span id="match-phase" class="phase">Pre-Match</span>
+                <span id="match-time">2:40</span>
             </div>
         </header>
+
+        <!-- Score display -->
+        <div class="score-bar">
+            <div class="alliance-score red">
+                <span class="alliance-name">RED</span>
+                <span id="red-score" class="score-value">0</span>
+                <span id="red-hub-status" class="hub-status inactive">HUB</span>
+            </div>
+            <div class="match-controls">
+                <button id="btn-start-match" class="btn btn-start">Start Match</button>
+                <button id="btn-reset" class="btn btn-reset">Reset</button>
+            </div>
+            <div class="alliance-score blue">
+                <span id="blue-hub-status" class="hub-status inactive">HUB</span>
+                <span id="blue-score" class="score-value">0</span>
+                <span class="alliance-name">BLUE</span>
+            </div>
+        </div>
 
         <!-- Main content -->
         <div class="main-content">
@@ -27,45 +45,61 @@
 
             <!-- Right panel -->
             <div class="side-panel">
-                <!-- Subsystem status -->
-                <div class="panel subsystem-panel">
-                    <h2>SUBSYSTEMS</h2>
+                <!-- Shooter status -->
+                <div class="panel shooter-panel">
+                    <h2>SHOOTER</h2>
 
                     <div class="subsystem">
                         <div class="subsystem-header">
-                            <span class="subsystem-name">Elevator</span>
-                            <span id="elevator-value" class="subsystem-value">30.5"</span>
+                            <span class="subsystem-name">Angle</span>
+                            <span id="shooter-angle" class="subsystem-value">0.0°</span>
                         </div>
                         <div class="progress-bar">
-                            <div id="elevator-bar" class="progress-fill" style="width: 0%"></div>
-                            <div id="elevator-goal" class="progress-goal"></div>
+                            <div id="shooter-angle-bar" class="progress-fill" style="width: 0%"></div>
+                            <div id="shooter-angle-goal" class="progress-goal"></div>
                         </div>
                     </div>
 
                     <div class="subsystem">
                         <div class="subsystem-header">
-                            <span class="subsystem-name">Arm</span>
-                            <span id="arm-value" class="subsystem-value">0°</span>
+                            <span class="subsystem-name">Velocity</span>
+                            <span id="shooter-velocity" class="subsystem-value">0.0 m/s</span>
                         </div>
-                        <div class="arm-visual">
-                            <div id="arm-indicator" class="arm-indicator"></div>
+                        <div class="progress-bar">
+                            <div id="shooter-velocity-bar" class="progress-fill" style="width: 0%"></div>
                         </div>
                     </div>
 
                     <div class="subsystem">
                         <div class="subsystem-header">
-                            <span class="subsystem-name">Claw</span>
-                            <span id="claw-value" class="subsystem-value">EMPTY</span>
+                            <span class="subsystem-name">FUEL</span>
+                            <span id="fuel-count" class="subsystem-value">3 / 8</span>
                         </div>
-                        <div id="claw-indicator" class="claw-indicator empty"></div>
+                        <div id="fuel-indicator" class="fuel-indicator"></div>
                     </div>
 
                     <div class="subsystem">
                         <div class="subsystem-header">
-                            <span class="subsystem-name">Climber</span>
-                            <span id="climber-value" class="subsystem-value">0"</span>
+                            <span class="subsystem-name">Status</span>
+                            <span id="shooter-status" class="subsystem-value">IDLE</span>
                         </div>
-                        <div class="progress-bar small">
+                    </div>
+                </div>
+
+                <!-- Climber status -->
+                <div class="panel climber-panel">
+                    <h2>CLIMBER</h2>
+                    <div class="climb-levels">
+                        <div id="climb-l3" class="climb-level">L3</div>
+                        <div id="climb-l2" class="climb-level">L2</div>
+                        <div id="climb-l1" class="climb-level">L1</div>
+                    </div>
+                    <div class="subsystem">
+                        <div class="subsystem-header">
+                            <span class="subsystem-name">Position</span>
+                            <span id="climber-position" class="subsystem-value">0.0m</span>
+                        </div>
+                        <div class="progress-bar">
                             <div id="climber-bar" class="progress-fill" style="width: 0%"></div>
                         </div>
                     </div>
@@ -88,11 +122,7 @@
                             <span id="robot-speed" class="info-value">0.0 m/s</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Level</span>
-                            <span id="current-level" class="info-value">L0</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Command</span>
+                            <span class="info-label">Status</span>
                             <span id="current-command" class="info-value">Idle</span>
                         </div>
                     </div>
@@ -101,8 +131,9 @@
                 <!-- Mode indicators -->
                 <div class="panel mode-panel">
                     <div class="mode-indicators">
-                        <div id="mode-field-rel" class="mode-indicator active">Field Relative</div>
-                        <div id="mode-slow" class="mode-indicator">Slow Mode</div>
+                        <div id="mode-field-rel" class="mode-indicator active">Field Rel</div>
+                        <div id="mode-slow" class="mode-indicator">Slow</div>
+                        <div id="mode-trench" class="mode-indicator">Trench</div>
                     </div>
                 </div>
             </div>
@@ -118,21 +149,24 @@
                     <div class="control-item"><kbd>Q</kbd><kbd>E</kbd> Rotate</div>
                     <div class="control-item"><kbd>X</kbd> Toggle Speed</div>
                     <div class="control-item"><kbd>C</kbd> Toggle Field Rel</div>
-                    <div class="control-item"><kbd>V</kbd> Ski Stop</div>
+                    <div class="control-item"><kbd>T</kbd> Toggle Trench</div>
                     <div class="control-item"><kbd>G</kbd> Reset Gyro</div>
                 </div>
                 <div class="control-group">
-                    <h3>Scoring</h3>
-                    <div class="control-item"><kbd>R</kbd> Loading (L0)</div>
-                    <div class="control-item"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> Levels</div>
+                    <h3>Shooter</h3>
+                    <div class="control-item"><kbd>R</kbd><kbd>F</kbd> Angle Up/Down</div>
+                    <div class="control-item"><kbd>↑</kbd><kbd>↓</kbd> Power Up/Down</div>
                     <div class="control-item"><kbd>Space</kbd> Intake</div>
-                    <div class="control-item"><kbd>Shift</kbd> Outtake</div>
+                    <div class="control-item"><kbd>Shift</kbd> Shoot</div>
                 </div>
                 <div class="control-group">
-                    <h3>Other</h3>
-                    <div class="control-item"><kbd>↑</kbd><kbd>↓</kbd> Climber</div>
-                    <div class="control-item"><kbd>P</kbd> Pickup Coral</div>
-                    <div class="control-item"><kbd>Esc</kbd> Reset Robot</div>
+                    <h3>Climber / HP</h3>
+                    <div class="control-item"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Climb Level</div>
+                    <div class="control-item"><kbd>[</kbd><kbd>]</kbd> Climber Up/Down</div>
+                    <div class="control-item"><kbd>Z</kbd> Red Chute</div>
+                    <div class="control-item"><kbd>/</kbd> Blue Chute</div>
+                    <div class="control-item"><kbd>Enter</kbd> Start Match</div>
+                    <div class="control-item"><kbd>Esc</kbd> Reset</div>
                 </div>
             </div>
         </div>
