@@ -8,9 +8,9 @@ public class Superstructure {
     private final SwerveDrive swerve;
     private final Shooter shooter;
 
-    public Superstructure(SwerveDrive swerve, Vision vision) {
+    public Superstructure(SwerveDrive swerve, Vision vision, Shooter shooter) {
         this.swerve = swerve;
-        this.shooter = new Shooter(vision);
+        this.shooter = shooter;
     }
 
     public SwerveDrive getSwerve() {

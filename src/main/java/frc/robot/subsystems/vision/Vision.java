@@ -14,11 +14,11 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.Constants.VisionConstants;
 
 public class Vision extends SubsystemBase {
@@ -30,14 +30,15 @@ public class Vision extends SubsystemBase {
   }
 
   public record VisionUpdate(
-      Pose2d pose,
+      Pose3d pose3d,
+      Pose2d pose2d,
       double timestampSeconds,
       int tagCount,
       double avgDistanceMeters,
       double avgAmbiguity) {
   }
 
-  /* BACKGROUND PROCESSES */
+  /* HIDDEN PROCESSES */
   private final AprilTagFieldLayout fieldLayout;
   private final List<PhotonCamera> cameras = new ArrayList<>();
   private final List<PhotonPoseEstimator> estimators = new ArrayList<>();
@@ -112,32 +113,32 @@ public class Vision extends SubsystemBase {
 
     // Are there enough tags for us to make a good guess?
     if (tagCount < VisionConstants.MIN_TAG_COUNT)
-    return Optional.empty();
-    
+      return Optional.empty();
+
     // Does data meet our custom, personal standards?
     if (avgAmbiguity > VisionConstants.AMBIGUITY_THRESHOLD) {
       return Optional.empty();
     }
-    
+
     estimator.setReferencePose(robotPose);
-    
+
     Optional<EstimatedRobotPose> estOpt = estimator.update(result);
 
     // Did the estimator get a result?
     if (estOpt.isEmpty()) {
       return Optional.empty();
     }
-    
+
     EstimatedRobotPose est = estOpt.get();
     Pose2d pose2d = est.estimatedPose.toPose2d();
-    
+
     // Did we do a crazy change from our last position?
     if (pose2d.getTranslation().getDistance(robotPose.getTranslation()) > VisionConstants.MAX_POSE_DIFFERENCE) {
       return Optional.empty();
     }
 
     double avgDistance = targets.stream().mapToDouble(t -> t.getBestCameraToTarget().getTranslation().getNorm())
-    .average().orElse(5.0);
+        .average().orElse(5.0);
     if (avgDistance > VisionConstants.MAX_TAG_DISTANCE)
       return Optional.empty();
 
@@ -148,7 +149,8 @@ public class Vision extends SubsystemBase {
         new double[] { pose2d.getX(), pose2d.getY(), pose2d.getRotation().getDegrees() });
 
     return Optional.of(new VisionUpdate(
-        pose2d,
+        est.estimatedPose,
+        est.estimatedPose.toPose2d(),
         est.timestampSeconds,
         tagCount,
         avgDistance,
@@ -176,7 +178,7 @@ public class Vision extends SubsystemBase {
       score += 1.5 * (1.0 / (update.avgDistanceMeters() + 0.1)); // less distance is good
       score += 1.0 * (1.0 - Math.min(update.avgAmbiguity(), 1.0)); // certainty is good
 
-      double odomDistance = update.pose()
+      double odomDistance = update.pose2d()
           .getTranslation()
           .getDistance(robotPose.getTranslation());
       score -= odomDistance / 2; // Difference when compared to 'official' odometry results
@@ -191,8 +193,13 @@ public class Vision extends SubsystemBase {
   }
 
   /* PUBLIC INTERFACE */
-  public Optional<Pose2d> getPoseEstimation(Pose2d robotPose) {
-    return getBestVisionUpdate(robotPose).map(VisionUpdate::pose);
+  public Optional<Pose2d> getPose2d(Pose2d robotPose) {
+    return getBestVisionUpdate(robotPose).map(VisionUpdate::pose2d);
+  }
+
+  public Optional<Pose3d> getPose3d(Pose2d robotPose) {
+    return getBestVisionUpdate(robotPose)
+        .map(update -> update.pose3d());
   }
 
   /**

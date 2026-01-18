@@ -36,7 +36,7 @@ public class RobotContainer {
         swerve = new SwerveDrive();
         vision = new Vision();
         shooter = new Shooter(vision, swerve);
-        superstructure = new Superstructure(swerve, vision);
+        superstructure = new Superstructure(swerve, vision, shooter);
 
         // This command reads joystick inputs and drives the robot
         Command teleopDriveCommand = swerve.teleopCommand(

@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -31,10 +32,11 @@ import frc.robot.subsystems.vision.Vision;
  * @apiNote shoot()
  */
 public class Shooter extends SubsystemBase {
-    private double x, y;
+    private double x, y, z;
+    private Rotation2d heading;
     private Alliance alliance;
     private double[] hub = new double[2];
-    
+
     private final Vision vision;
     private final SwerveDrive swerve;
 
@@ -105,7 +107,7 @@ public class Shooter extends SubsystemBase {
      * @return Current angle difference between the robot and the shooter
      */
     private Rotation2d robotToShooter() {
-        // Replace 0.0 w/ eqn
+        // Replace 0.0 w/ eqn (placeholder TODO)
         return Rotation2d.fromDegrees(0.0);
     }
 
@@ -118,14 +120,20 @@ public class Shooter extends SubsystemBase {
     private double robotToHub() {
         UpdateHubLocation();
 
-        Optional<Pose2d> poseOpt = vision.getPoseEstimation(getRobotPose());
+        Optional<Pose3d> poseOpt = vision.getPose3d(getRobotPose());
         if (poseOpt.isEmpty()) {
             return 0.0;
         }
 
+        Pose3d pose = poseOpt.get();
+        x = pose.getX();
+        y = pose.getY();
+        z = pose.getZ();
+        heading = pose.getRotation().toRotation2d();
+
         Rotation2d targetAngle = new Rotation2d(hub[0] - x, hub[1] - y); // dx, dy
 
-        return Vision.getAngle().minus(targetAngle).minus(robotToShooter()).getDegrees();
+        return heading.minus(targetAngle).minus(robotToShooter()).getDegrees();
     }
 
     /**
@@ -141,8 +149,16 @@ public class Shooter extends SubsystemBase {
             return Optional.empty();
         }
 
-        x = Vision.getX();
-        y = Vision.getY();
+        Optional<Pose3d> poseOpt = vision.getPose3d(getRobotPose());
+        if (poseOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Pose3d pose = poseOpt.get();
+        x = pose.getX();
+        y = pose.getY();
+        z = pose.getZ();
+        heading = pose.getRotation().toRotation2d();
 
         Translation2d a = new Translation2d(x, y);
         Translation2d b = new Translation2d(hub[0], hub[1]);
@@ -163,10 +179,20 @@ public class Shooter extends SubsystemBase {
         if (dx_proxy.isEmpty()) {
             return 0.0;
         }
+        Optional<Pose3d> poseOpt = vision.getPose3d(getRobotPose());
+        if (poseOpt.isEmpty()) {
+            return 0.0;
+        }
+
+        Pose3d pose = poseOpt.get();
+        x = pose.getX();
+        y = pose.getY();
+        z = pose.getZ();
+        heading = pose.getRotation().toRotation2d();
 
         double dx = dx_proxy.get();
         double dy = Constants.ShooterConstants.HUB_RIM_HEIGHT
-                - (Vision.getZ() + Constants.ShooterConstants.Z_OFFSET);
+                - (z + Constants.ShooterConstants.Z_OFFSET);
         double g = Constants.ShooterConstants.G_ACCEL; // acceleration due to gravity in meters per second squared
         double theta = Math.toRadians(Constants.ShooterConstants.LAUNCH_ANGLE);
 
@@ -205,7 +231,7 @@ public class Shooter extends SubsystemBase {
      * @apiNote A test method for calculating values off-handedly
      */
     protected static void shoot() {
-        Shooter shooter = new Shooter();
+        Shooter shooter = new Shooter(new Vision(), new SwerveDrive());
         System.out.println("Velocity Needed: " + shooter.getVelocity() + " meters per second.");
         System.out.println("Angle Change Needed: " + shooter.robotToHub() + " degrees.");
     }
