@@ -11,11 +11,15 @@ import frc.robot.commands.SwerveCommands;
 import frc.robot.Superstructure;
 import frc.robot.OI.DriverActionSet;
 import frc.robot.OI.XboxDriver;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.swerve.SwerveDrive;
+import frc.robot.subsystems.vision.Vision;
 
 public class RobotContainer {
     private final DriverActionSet driverJoystick;
     private final SwerveDrive swerve;
+    private final Vision vision;
+    private final Shooter shooter;
     private final Superstructure superstructure;
 
     private final SendableChooser<Command> autoChooser;
@@ -30,7 +34,9 @@ public class RobotContainer {
         SmartDashboard.putData("Auto Chooser", autoChooser); // Insert dropdown
 
         swerve = new SwerveDrive();
-        superstructure = new Superstructure(swerve);
+        vision = new Vision();
+        shooter = new Shooter(vision, swerve);
+        superstructure = new Superstructure(swerve, vision);
 
         // This command reads joystick inputs and drives the robot
         Command teleopDriveCommand = swerve.teleopCommand(

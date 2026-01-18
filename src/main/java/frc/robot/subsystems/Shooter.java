@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.util.Optional;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -9,6 +10,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.subsystems.swerve.SwerveDrive;
 import frc.robot.subsystems.vision.Vision;
 
 /**
@@ -32,6 +34,9 @@ public class Shooter extends SubsystemBase {
     private double x, y;
     private Alliance alliance;
     private double[] hub = new double[2];
+    
+    private final Vision vision;
+    private final SwerveDrive swerve;
 
     /**
      * <b> Shooter Class Constructor </b>
@@ -39,8 +44,20 @@ public class Shooter extends SubsystemBase {
      * 
      * @apiNote Constructor for initialization
      */
-    public Shooter() {
+    public Shooter(Vision vision, SwerveDrive swerve) {
+        this.vision = vision;
+        this.swerve = swerve;
         UpdateHubLocation();
+    }
+
+    /**
+     * <b> Get Robot Pose Method </b>
+     * <hr>
+     * 
+     * @return Robot's current position & heading from odometry
+     */
+    private Pose2d getRobotPose() {
+        return swerve.getPose();
     }
 
     /**
@@ -101,8 +118,10 @@ public class Shooter extends SubsystemBase {
     private double robotToHub() {
         UpdateHubLocation();
 
-        x = Vision.getX();
-        y = Vision.getY();
+        Optional<Pose2d> poseOpt = vision.getPoseEstimation(getRobotPose());
+        if (poseOpt.isEmpty()) {
+            return 0.0;
+        }
 
         Rotation2d targetAngle = new Rotation2d(hub[0] - x, hub[1] - y); // dx, dy
 
@@ -179,8 +198,9 @@ public class Shooter extends SubsystemBase {
 
     /**
      * <i> Shoot Method </i>
+     * 
      * @deprecated Use superstructure instead
-     * <hr>
+     *             <hr>
      * 
      * @apiNote A test method for calculating values off-handedly
      */

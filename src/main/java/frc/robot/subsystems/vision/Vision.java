@@ -14,8 +14,9 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.VisionConstants;
@@ -74,64 +75,132 @@ public class Vision extends SubsystemBase {
       PhotonCamera camera,
       PhotonPoseEstimator estimator,
       Pose2d robotPose) {
+
     PhotonPipelineResult result = camera.getLatestResult();
+
+    /* FILTERS */
+
+    // Is this result stale?
+    double age = Timer.getFPGATimestamp() - result.getTimestampSeconds();
+    if (age > VisionConstants.MAX_FRAME_AGE) {
+      return Optional.empty();
+    }
+
+    // Are there any tags?
     if (!result.hasTargets()) {
       return Optional.empty();
     }
 
     List<PhotonTrackedTarget> targets = result.getTargets();
-    if (targets.isEmpty()) {
-      return Optional.empty();
-    }
-
     int tagCount = targets.size();
     double avgAmbiguity = targets.stream()
         .mapToDouble(PhotonTrackedTarget::getPoseAmbiguity)
         .average()
         .orElse(1.0);
 
-    if (avgAmbiguity > Constants.VisionConstants.AMBIGUITY_THRESHOLD) {
+    // Is this tag legal?
+    for (PhotonTrackedTarget t : targets) {
+      if (fieldLayout.getTagPose(t.getFiducialId()).isEmpty()) {
+        return Optional.empty();
+      }
+    }
+
+    // Is this tag close enough for our liking?
+    if (targets.stream().anyMatch(t -> t.getArea() < VisionConstants.MIN_AREA)) {
       return Optional.empty();
     }
 
+    // Are there enough tags for us to make a good guess?
+    if (tagCount < VisionConstants.MIN_TAG_COUNT)
+    return Optional.empty();
+    
+    // Does data meet our custom, personal standards?
+    if (avgAmbiguity > VisionConstants.AMBIGUITY_THRESHOLD) {
+      return Optional.empty();
+    }
+    
     estimator.setReferencePose(robotPose);
-
+    
     Optional<EstimatedRobotPose> estOpt = estimator.update(result);
+
+    // Did the estimator get a result?
     if (estOpt.isEmpty()) {
       return Optional.empty();
     }
-
+    
     EstimatedRobotPose est = estOpt.get();
     Pose2d pose2d = est.estimatedPose.toPose2d();
+    
+    // Did we do a crazy change from our last position?
+    if (pose2d.getTranslation().getDistance(robotPose.getTranslation()) > VisionConstants.MAX_POSE_DIFFERENCE) {
+      return Optional.empty();
+    }
+
+    double avgDistance = targets.stream().mapToDouble(t -> t.getBestCameraToTarget().getTranslation().getNorm())
+    .average().orElse(5.0);
+    if (avgDistance > VisionConstants.MAX_TAG_DISTANCE)
+      return Optional.empty();
+
+    SmartDashboard.putNumber("Vision/" + camera.getName() + "/TagCount", tagCount);
+    SmartDashboard.putNumber("Vision/" + camera.getName() + "/AvgAmbiguity", avgAmbiguity);
+    SmartDashboard.putNumber("Vision/" + camera.getName() + "/AvgDistance", avgDistance);
+    SmartDashboard.putNumberArray("Vision/" + camera.getName() + "/Pose2d",
+        new double[] { pose2d.getX(), pose2d.getY(), pose2d.getRotation().getDegrees() });
 
     return Optional.of(new VisionUpdate(
         pose2d,
         est.timestampSeconds,
-        result.getTargets().size(),
-        /* avgDistance */ 0.0,
-        /* avgAmbiguity */ 0.0));
+        tagCount,
+        avgDistance,
+        avgAmbiguity));
+  }
+
+  public Optional<VisionUpdate> getBestVisionUpdate(Pose2d robotPose) {
+    VisionUpdate best = null;
+    double bestScore = Double.NEGATIVE_INFINITY;
+
+    // Rank estiamations from each camera
+    for (int i = 0; i < estimators.size(); i++) {
+      PhotonCamera cam = cameras.get(i);
+      PhotonPoseEstimator est = estimators.get(i);
+
+      Optional<VisionUpdate> updateOpt = getSingleCameraUpdate(cam, est, robotPose);
+      if (updateOpt.isEmpty()) {
+        continue;
+      }
+
+      VisionUpdate update = updateOpt.get();
+
+      double score = 0.0;
+      score += 2.0 * update.tagCount(); // more tags is good
+      score += 1.5 * (1.0 / (update.avgDistanceMeters() + 0.1)); // less distance is good
+      score += 1.0 * (1.0 - Math.min(update.avgAmbiguity(), 1.0)); // certainty is good
+
+      double odomDistance = update.pose()
+          .getTranslation()
+          .getDistance(robotPose.getTranslation());
+      score -= odomDistance / 2; // Difference when compared to 'official' odometry results
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = update;
+      }
+    }
+
+    return Optional.ofNullable(best);
   }
 
   /* PUBLIC INTERFACE */
-  private static double x, y, z;
-  private static Rotation2d angle;
+  public Optional<Pose2d> getPoseEstimation(Pose2d robotPose) {
+    return getBestVisionUpdate(robotPose).map(VisionUpdate::pose);
+  }
 
-  public static double getX() {
-    return x;
-  } // determine x coordinate of the robot, where x axis runs along long axis of
-    // field, in meters
+  /**
+   * @param robotPose
+   * @return raw data, as opposed to a Pose
+   */
+  public Optional<VisionUpdate> getBestVisionUpdateRaw(Pose2d robotPose) {
+    return getBestVisionUpdate(robotPose);
+  }
 
-  public static double getY() {
-    return y;
-  } // determine y coordinate of the robot, where y axis runs along short axis of
-    // field, in meters
-
-  public static double getZ() {
-    return z;
-  } // determine z coordinate of the robot, where z axis is vertical, in meters
-
-  public static Rotation2d getAngle() {
-    return angle;
-  } // determine angle that the robot is facing where 0 is facing away from the
-    // driver station, in degrees
 }
