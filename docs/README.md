@@ -2,6 +2,8 @@
 
 Welcome to the comprehensive documentation for Team 3164 Stealth Tigers' 2026 FRC Robot!
 
+<hr>
+
 ## Quick Navigation
 
 ### For New Team Members
@@ -17,13 +19,15 @@ Start here if you're new to the team or programming:
    - Common changes you'll make
    - Safety guidelines
 
-3**[General Notes](./general_notes.md)** - Quick reference notes
+3. **[General Notes](./general_notes.md)** - Quick reference notes
    - Important reminders
    - Known issues
    - Tips and tricks
 
-4**[Collision Detection](./collision_detection.md)** - Safety systems documentation
+4. **[Collision Detection](./collision_detection.md)** - Safety systems documentation
    - How collision detection works
    - Configuration and tuning
 
-**Team 3164 - Stealth Tigers** 🐯
+<hr>
+
+> **Team 3164 - Stealth Tigers** 🐯
