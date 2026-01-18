@@ -3,7 +3,7 @@ package team3164.simulator.engine;
 import team3164.simulator.Constants;
 
 /**
- * Complete state of the simulated robot.
+ * Complete state of the simulated robot for REBUILT 2026.
  * This is the single source of truth for all robot data.
  */
 public class RobotState {
@@ -12,7 +12,7 @@ public class RobotState {
     // POSE (Position on field)
     // ========================================================================
     public double x;         // meters from origin (blue alliance wall)
-    public double y;         // meters from origin (right side of field)
+    public double y;         // meters from origin (bottom of field)
     public double heading;   // radians, 0 = facing red alliance, CCW positive
 
     // ========================================================================
@@ -29,33 +29,38 @@ public class RobotState {
     public double[] moduleSpeeds = new double[4];    // m/s
 
     // ========================================================================
-    // ELEVATOR
+    // SHOOTER (replaces Elevator/Arm)
     // ========================================================================
-    public double elevatorHeight;       // meters
-    public double elevatorVelocity;     // m/s
-    public double elevatorGoal;         // target height in meters
-    public boolean elevatorAtGoal;
+    public double shooterAngle;         // degrees (0 = horizontal, 75 = max)
+    public double shooterAngleGoal;     // target angle in degrees
+    public double shooterVelocity;      // current wheel velocity (m/s)
+    public double shooterVelocityGoal;  // target ball exit velocity (m/s)
+    public boolean shooterAtAngle;      // angle reached goal
+    public boolean shooterAtSpeed;      // velocity reached goal
+    public boolean shooterSpinningUp;   // shooter wheels spinning up
 
     // ========================================================================
-    // CORAL ARM
+    // INTAKE
     // ========================================================================
-    public double armAngle;             // radians
-    public double armVelocity;          // rad/s
-    public double armGoal;              // target angle in radians
-    public boolean armAtGoal;
-
-    // ========================================================================
-    // CLAW
-    // ========================================================================
-    public ClawState clawState = ClawState.EMPTY;
-    public boolean hasCoral;
-    public double clawTimer;            // timer for intake/outtake animation
+    public IntakeState intakeState = IntakeState.IDLE;
+    public int fuelCount;               // Number of FUEL in robot
+    public double intakeTimer;          // timer for intake animation
 
     // ========================================================================
     // CLIMBER
     // ========================================================================
-    public double climberPosition;      // meters
+    public double climberPosition;      // meters (height)
     public double climberVelocity;      // m/s
+    public int climbLevel;              // 0 = not climbing, 1-3 = rung level
+    public boolean isClimbing;          // currently attached to tower
+    public boolean climbComplete;       // finished climbing
+
+    // ========================================================================
+    // ROBOT CONFIGURATION
+    // ========================================================================
+    public double robotHeight;          // current robot height (for trench)
+    public boolean trenchMode;          // robot configured for trench
+    public boolean onBump;              // robot currently on a bump
 
     // ========================================================================
     // CONTROL MODE
@@ -63,20 +68,21 @@ public class RobotState {
     public boolean fieldRelative = true;
     public boolean slowMode = false;
     public String currentCommand = "";
-    public int currentLevel = 0;        // 0 = loading, 1-4 = scoring levels
+    public MatchState.Alliance alliance = MatchState.Alliance.BLUE;
 
     // ========================================================================
     // GAME STATE
     // ========================================================================
-    public int score = 0;
-    public double matchTime = 0;
+    public int fuelScored = 0;          // Total FUEL scored by this robot
+    public int towerPoints = 0;         // Points from tower climbing
     public boolean isEnabled = true;
 
-    public enum ClawState {
-        EMPTY,
-        INTAKING,
-        HOLDING,
-        OUTTAKING
+    public enum IntakeState {
+        IDLE,           // Not doing anything
+        INTAKING,       // Collecting FUEL from ground
+        TRANSFERRING,   // Moving FUEL to shooter
+        READY_TO_SHOOT, // FUEL loaded, ready to fire
+        SHOOTING        // Currently shooting FUEL
     }
 
     /**
@@ -90,9 +96,9 @@ public class RobotState {
      * Reset to default starting state.
      */
     public void reset() {
-        // Start near blue alliance coral station
+        // Start near blue alliance wall
         x = 2.0;
-        y = Constants.Field.WIDTH / 2.0;
+        y = Constants.Field.CENTER_Y;
         heading = 0;
 
         vx = 0;
@@ -104,52 +110,72 @@ public class RobotState {
             moduleSpeeds[i] = 0;
         }
 
-        elevatorHeight = Constants.Elevator.MIN_HEIGHT;
-        elevatorVelocity = 0;
-        elevatorGoal = Constants.Elevator.MIN_HEIGHT;
-        elevatorAtGoal = true;
+        // Shooter
+        shooterAngle = 0;
+        shooterAngleGoal = 0;
+        shooterVelocity = 0;
+        shooterVelocityGoal = 0;
+        shooterAtAngle = true;
+        shooterAtSpeed = false;
+        shooterSpinningUp = false;
 
-        armAngle = 0;
-        armVelocity = 0;
-        armGoal = 0;
-        armAtGoal = true;
+        // Intake
+        intakeState = IntakeState.IDLE;
+        fuelCount = Constants.Fuel.PRELOAD_PER_ROBOT;  // Start with preload
+        intakeTimer = 0;
 
-        clawState = ClawState.EMPTY;
-        hasCoral = false;
-        clawTimer = 0;
-
+        // Climber
         climberPosition = 0;
         climberVelocity = 0;
+        climbLevel = 0;
+        isClimbing = false;
+        climbComplete = false;
 
+        // Configuration
+        robotHeight = Constants.Robot.MAX_HEIGHT;
+        trenchMode = false;
+        onBump = false;
+
+        // Control
         fieldRelative = true;
         slowMode = false;
         currentCommand = "";
-        currentLevel = 0;
+        alliance = MatchState.Alliance.BLUE;
 
-        score = 0;
-        matchTime = 0;
+        // Game state
+        fuelScored = 0;
+        towerPoints = 0;
         isEnabled = true;
     }
 
     /**
-     * Check if robot is ready to score (elevator and arm at goal).
+     * Check if robot can intake more FUEL.
      */
-    public boolean isReadyToScore() {
-        return elevatorAtGoal && armAtGoal && hasCoral && currentLevel > 0;
+    public boolean canIntakeFuel() {
+        return fuelCount < Constants.Intake.MAX_CAPACITY &&
+               intakeState == IntakeState.IDLE;
     }
 
     /**
-     * Get height in inches for display.
+     * Check if robot has FUEL to shoot.
      */
-    public double getElevatorHeightInches() {
-        return elevatorHeight * 39.37;
+    public boolean hasFuelToShoot() {
+        return fuelCount > 0 &&
+               (intakeState == IntakeState.READY_TO_SHOOT || intakeState == IntakeState.IDLE);
     }
 
     /**
-     * Get arm angle in degrees for display.
+     * Check if shooter is ready to fire.
      */
-    public double getArmAngleDegrees() {
-        return Math.toDegrees(armAngle);
+    public boolean isReadyToShoot() {
+        return shooterAtAngle && shooterAtSpeed && hasFuelToShoot();
+    }
+
+    /**
+     * Get shooter angle in radians.
+     */
+    public double getShooterAngleRadians() {
+        return Math.toRadians(shooterAngle);
     }
 
     /**
@@ -157,5 +183,90 @@ public class RobotState {
      */
     public double getHeadingDegrees() {
         return Math.toDegrees(heading);
+    }
+
+    /**
+     * Get speed magnitude for display.
+     */
+    public double getSpeed() {
+        return Math.hypot(vx, vy);
+    }
+
+    /**
+     * Check if robot can pass under trench.
+     */
+    public boolean canPassTrench() {
+        return robotHeight <= Constants.Field.TRENCH_CLEARANCE || trenchMode;
+    }
+
+    /**
+     * Set robot alliance.
+     */
+    public void setAlliance(MatchState.Alliance alliance) {
+        this.alliance = alliance;
+        // Reposition robot based on alliance
+        if (alliance == MatchState.Alliance.RED) {
+            x = Constants.Field.LENGTH - 2.0;
+            heading = Math.PI;  // Facing blue alliance
+        } else {
+            x = 2.0;
+            heading = 0;  // Facing red alliance
+        }
+        y = Constants.Field.CENTER_Y;
+    }
+
+    /**
+     * Add a FUEL to the robot's storage.
+     *
+     * @return true if FUEL was added, false if at capacity
+     */
+    public boolean addFuel() {
+        if (fuelCount < Constants.Intake.MAX_CAPACITY) {
+            fuelCount++;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Remove a FUEL from the robot (for shooting).
+     *
+     * @return true if FUEL was removed, false if empty
+     */
+    public boolean removeFuel() {
+        if (fuelCount > 0) {
+            fuelCount--;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Record scoring a FUEL.
+     */
+    public void recordFuelScored() {
+        fuelScored++;
+    }
+
+    /**
+     * Get climb level string for display.
+     */
+    public String getClimbLevelString() {
+        if (!isClimbing && climbLevel == 0) return "Not Climbing";
+        if (isClimbing && !climbComplete) return "Climbing L" + climbLevel;
+        if (climbComplete) return "L" + climbLevel + " Complete";
+        return "L" + climbLevel;
+    }
+
+    /**
+     * Get the height the robot needs to reach for current climb level.
+     */
+    public double getTargetClimbHeight() {
+        switch (climbLevel) {
+            case 1: return Constants.Field.RUNG_LOW;
+            case 2: return Constants.Field.RUNG_MID;
+            case 3: return Constants.Field.RUNG_HIGH;
+            default: return 0;
+        }
     }
 }

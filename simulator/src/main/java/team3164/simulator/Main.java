@@ -7,10 +7,10 @@ import java.awt.Desktop;
 import java.net.URI;
 
 /**
- * Main entry point for the Reefscape 2025 Simulator.
+ * Main entry point for the REBUILT 2026 Simulator.
  *
  * Usage:
- *   java -jar reefscape-sim.jar [options]
+ *   java -jar rebuilt-sim.jar [options]
  *
  * Options:
  *   --port <port>    Server port (default: 8080)
@@ -23,14 +23,14 @@ public class Main {
 
     ╔═══════════════════════════════════════════════════════════════════╗
     ║                                                                   ║
-    ║   ██████╗ ███████╗███████╗███████╗███████╗ ██████╗ █████╗ ██████╗ ███████╗  ║
-    ║   ██╔══██╗██╔════╝██╔════╝██╔════╝██╔════╝██╔════╝██╔══██╗██╔══██╗██╔════╝  ║
-    ║   ██████╔╝█████╗  █████╗  █████╗  ███████╗██║     ███████║██████╔╝█████╗    ║
-    ║   ██╔══██╗██╔══╝  ██╔══╝  ██╔══╝  ╚════██║██║     ██╔══██║██╔═══╝ ██╔══╝    ║
-    ║   ██║  ██║███████╗███████╗██║     ███████║╚██████╗██║  ██║██║     ███████╗  ║
-    ║   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝     ╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝     ╚══════╝  ║
+    ║   ██████╗ ███████╗██████╗ ██╗   ██╗██╗██╗  ████████╗              ║
+    ║   ██╔══██╗██╔════╝██╔══██╗██║   ██║██║██║  ╚══██╔══╝              ║
+    ║   ██████╔╝█████╗  ██████╔╝██║   ██║██║██║     ██║                 ║
+    ║   ██╔══██╗██╔══╝  ██╔══██╗██║   ██║██║██║     ██║                 ║
+    ║   ██║  ██║███████╗██████╔╝╚██████╔╝██║███████╗██║                 ║
+    ║   ╚═╝  ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═╝                 ║
     ║                                                                   ║
-    ║                    2025 SIMULATOR - TEAM 3164                     ║
+    ║                    2026 SIMULATOR - TEAM 3164                     ║
     ║                       STEALTH TIGERS                              ║
     ║                                                                   ║
     ╚═══════════════════════════════════════════════════════════════════╝
@@ -152,9 +152,9 @@ public class Main {
 
     private static void printHelp() {
         System.out.println("""
-            Reefscape 2025 Simulator - Team 3164 Stealth Tigers
+            REBUILT 2026 Simulator - Team 3164 Stealth Tigers
 
-            Usage: java -jar reefscape-sim.jar [options]
+            Usage: java -jar rebuilt-sim.jar [options]
 
             Options:
               --port, -p <port>   Server port (default: 8080)
@@ -164,17 +164,20 @@ public class Main {
             Controls (in browser):
               WASD        - Drive robot
               Q/E         - Rotate
-              1-4         - Set scoring level
-              R           - Loading position
-              Space       - Intake coral
-              Shift       - Outtake/score
+              R/F         - Shooter angle up/down
+              Up/Down     - Shooter power up/down
+              Space       - Intake FUEL
+              Shift       - Shoot FUEL
+              1/2/3       - Select climb level
+              [/]         - Climber up/down
               X           - Toggle slow mode
               C           - Toggle field-relative
+              T           - Toggle trench mode
               G           - Reset gyro
-              V           - Ski stop (lock wheels)
-              Arrow Up/Down - Climber
-              P           - Debug: pickup coral
-              Escape      - Reset robot
+              Z           - Red HP chute release
+              /           - Blue HP chute release
+              Enter       - Start match
+              Escape      - Reset
 
             """);
     }
