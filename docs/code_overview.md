@@ -1,14 +1,14 @@
-# Reefscape 2025 - Complete Codebase Documentation
+# Rebuilt 2026 - Complete Codebase Documentation
 
 ## 🤖 What is This Project?
 
-This is the robot code for Team 3164 Stealth Tigers' 2025 FRC (FIRST Robotics Competition) robot! The game this year is called **REEFSCAPE**, where robots compete to place CORAL pieces on a hexagonal REEF structure and perform other tasks. Think of it like a really advanced remote-controlled robot that can drive itself and score game pieces!
+This is the robot code for Team 3164 Stealth Tigers' 2026 FRC (FIRST Robotics Competition) robot! The game this year is called **REEFSCAPE**, where robots compete to place CORAL pieces on a hexagonal REEF structure and perform other tasks. Think of it like a really advanced remote-controlled robot that can drive itself and score game pieces!
 
 ## 📁 Project Structure Overview
 
 ```mermaid
 graph TD
-    A[Reefscape2025 Root] --> B[src/]
+    A[Rebuilt2026 Root] --> B[src/]
     A --> C[docs/]
     A --> D[downloads/]
     

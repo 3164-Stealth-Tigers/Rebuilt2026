@@ -1,6 +1,6 @@
 # Rebuilt 2026 - Documentation Hub
 
-Welcome to the comprehensive documentation for Team 3164 Stealth Tigers' 2025 FRC Robot!
+Welcome to the comprehensive documentation for Team 3164 Stealth Tigers' 2026 FRC Robot!
 
 ## Quick Navigation
 

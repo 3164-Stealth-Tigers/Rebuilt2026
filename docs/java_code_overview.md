@@ -1,8 +1,8 @@
-# Reefscape 2025 Java - Complete Codebase Documentation
+# Rebuilt 2026 Java - Complete Codebase Documentation
 
 ## 🤖 What is This Project?
 
-This is the robot code for Team 3164 Stealth Tigers' 2025 FRC (FIRST Robotics Competition) robot! The game this year is called **REEFSCAPE**, where robots compete to place CORAL pieces on a hexagonal REEF structure and perform other tasks. Think of it like a really advanced remote-controlled robot that can drive itself and score game pieces!
+This is the robot code for Team 3164 Stealth Tigers' 2026 FRC (FIRST Robotics Competition) robot! The game this year is called **REEFSCAPE**, where robots compete to place CORAL pieces on a hexagonal REEF structure and perform other tasks. Think of it like a really advanced remote-controlled robot that can drive itself and score game pieces!
 
 This is the **Java version** of the codebase, using WPILib's native swerve implementation.
 

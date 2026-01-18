@@ -2013,4 +2013,4 @@ public Command fullScoringSequence(int level) {
 
 ---
 
-*This guide is specific to Team 3164's 2025 robot code. Good luck learning Java!*
+*This guide is specific to Team 3164's 2026 robot code. Good luck learning Java!*

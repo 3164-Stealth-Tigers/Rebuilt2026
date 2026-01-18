@@ -761,5 +761,5 @@ omega_rad = 6.28 * (u.rad / u.s)       # radians per second
 
 ---
 
-*Last Updated: November 2025*
+*Last Updated: January 2026*
 *Team 3164 Stealth Tigers*
