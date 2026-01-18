@@ -1,0 +1,9 @@
+.venv/
+
+.idea/
+
+networktables.json
+simgui*.json
+ctre_sim/
+swervepy
+deploy/
