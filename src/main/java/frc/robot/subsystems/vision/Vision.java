@@ -1,11 +1,18 @@
 package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class Vision {
+public class Vision extends SubsystemBase {
+  // Background Work
+
+  
+  
+  
+  // Public Interface
   private static double x, y, z;
   private static Rotation2d angle;
-
+  
   public static double getX() {
     return x; 
   } // determine x coordinate of the robot, where x axis runs along long axis of field, in meters

@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.vision.Vision;
@@ -27,7 +28,7 @@ import frc.robot.subsystems.vision.Vision;
  * @apiNote shootHub()
  * @apiNote shoot()
  */
-public class Shooter {
+public class Shooter extends SubsystemBase {
     private double x, y;
     private Alliance alliance;
     private double[] hub = new double[2];
