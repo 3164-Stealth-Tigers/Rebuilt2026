@@ -119,7 +119,7 @@ public class Shooter extends SubsystemBase {
         UpdateHubLocation();
 
         if (!canScore()) {
-            return null;
+            return Optional.empty();
         }
 
         x = Vision.getX();

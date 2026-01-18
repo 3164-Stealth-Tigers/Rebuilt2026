@@ -26,7 +26,7 @@ public final class Constants {
     public static final class VisionConstants {
         // Camera names (must match what's in PhotonVision)
         public static final String[] CAMERA_NAMES = { "front_camera", "back_camera" };
-
+        public static final double AMBIGUITY_THRESHOLD = 0.4;
         /**
          * Camera positions relative to robot center.
          * Transform3d(x, y, z, rotation)
@@ -34,12 +34,12 @@ public final class Constants {
          * - y: left/right from center (positive = left)
          * - z: up/down from ground (positive = up)
          */
-        public static final Transform3d FRONT_CAMERA_TRANSFORM = new Transform3d(
+        public static final Transform3d EXAMPLE_CAMERA_TRANSFORM_1 = new Transform3d(
                 new Translation3d(Units.inchesToMeters(12.0), 0.0, Units.inchesToMeters(24.0)),
-                new Rotation3d(0.0, Math.toRadians(-15.0), 0.0) // Tilted down 15°
+                new Rotation3d(0.0, Math.toRadians(-15.0), 0.0) // Roll, Pitch, and Yaw = X, Y, Z axis rotations
         );
 
-        public static final Transform3d BACK_CAMERA_TRANSFORM = new Transform3d(
+        public static final Transform3d EXAMPLE_CAMERA_TRANSFORM_2 = new Transform3d(
                 new Translation3d(Units.inchesToMeters(-12.0), 0.0, Units.inchesToMeters(24.0)),
                 new Rotation3d(0.0, Math.toRadians(-15.0), Math.toRadians(180.0)) // Facing backward
         );
