@@ -1,5 +1,8 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
@@ -20,6 +23,28 @@ public final class Constants {
         public static final double ANGLE_TOLERANCE = 10.0; // degrees
     }
 
+    public static final class VisionConstants {
+        // Camera names (must match what's in PhotonVision)
+        public static final String[] CAMERA_NAMES = { "front_camera", "back_camera" };
+
+        /**
+         * Camera positions relative to robot center.
+         * Transform3d(x, y, z, rotation)
+         * - x: forward/back from center (positive = forward)
+         * - y: left/right from center (positive = left)
+         * - z: up/down from ground (positive = up)
+         */
+        public static final Transform3d FRONT_CAMERA_TRANSFORM = new Transform3d(
+                new Translation3d(Units.inchesToMeters(12.0), 0.0, Units.inchesToMeters(24.0)),
+                new Rotation3d(0.0, Math.toRadians(-15.0), 0.0) // Tilted down 15°
+        );
+
+        public static final Transform3d BACK_CAMERA_TRANSFORM = new Transform3d(
+                new Translation3d(Units.inchesToMeters(-12.0), 0.0, Units.inchesToMeters(24.0)),
+                new Rotation3d(0.0, Math.toRadians(-15.0), Math.toRadians(180.0)) // Facing backward
+        );
+    }
+
     public static final class DrivingConstants {
         public static final int CONTROLLER_PORT = 0;
 
@@ -29,8 +54,9 @@ public final class Constants {
     }
 
     public static final class FieldConstants {
-        public static final double FIELD_LENGTH = 0.0; // meters (placeholder TODO)
-        public static final double FIELD_WIDTH = 0.0; // meters (placeholder TODO)
+        // Standard FRC field size
+        public static final double FIELD_LENGTH = Units.feetToMeters(54.0);
+        public static final double FIELD_WIDTH = Units.feetToMeters(27.0);
     }
 
     public static final class RobotPhysicalConstants {
