@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Constants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.subsystems.vision.Vision;
 
 /**
  * <h2>Shooter Class</h2>
