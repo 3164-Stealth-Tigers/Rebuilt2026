@@ -111,6 +111,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 
 // WPILib math and kinematics
@@ -118,8 +119,6 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-
-// Our constants
 import frc.robot.Constants.SwerveConstants;
 
 /**
@@ -147,9 +146,9 @@ import frc.robot.Constants.SwerveConstants;
  */
 public class SwerveModule {
 
-    // ========================================================================
+  
     // IDENTIFICATION
-    // ========================================================================
+  
 
     /**
      * Which module this is (0=FL, 1=FR, 2=RL, 3=RR).
@@ -157,9 +156,9 @@ public class SwerveModule {
      */
     private final int moduleNumber;
 
-    // ========================================================================
+  
     // MOTORS - The muscle of the module
-    // ========================================================================
+  
 
     /**
      * DRIVE MOTOR - Controls wheel speed.
@@ -189,9 +188,9 @@ public class SwerveModule {
      */
     private final SparkMax azimuthMotor;
 
-    // ========================================================================
+  
     // ENCODERS - Position/velocity feedback
-    // ========================================================================
+  
 
     /**
      * Drive motor's built-in encoder.
@@ -231,9 +230,9 @@ public class SwerveModule {
      */
     private final CANcoder canCoder;
 
-    // ========================================================================
+  
     // CONTROLLERS - PID control
-    // ========================================================================
+  
 
     /**
      * PID controller for drive motor velocity.
@@ -257,9 +256,9 @@ public class SwerveModule {
      */
     private final SparkClosedLoopController azimuthController;
 
-    // ========================================================================
+  
     // FEEDFORWARD - Physics-based control
-    // ========================================================================
+  
 
     /**
      * Feedforward calculator for drive motor.
@@ -277,9 +276,9 @@ public class SwerveModule {
      */
     private final SimpleMotorFeedforward driveFeedforward;
 
-    // ========================================================================
+  
     // CALIBRATION
-    // ========================================================================
+  
 
     /**
      * Offset to correct CANCoder reading to "true forward."
@@ -295,9 +294,9 @@ public class SwerveModule {
      */
     private final Rotation2d encoderOffset;
 
-    // ========================================================================
+  
     // STATE TRACKING
-    // ========================================================================
+  
 
     /**
      * The last state we commanded (for optimization).
@@ -305,9 +304,9 @@ public class SwerveModule {
      */
     private SwerveModuleState lastState = new SwerveModuleState();
 
-    // ========================================================================
+  
     // CONSTRUCTOR
-    // ========================================================================
+  
 
     /**
      * Creates a new SwerveModule.
@@ -370,9 +369,9 @@ public class SwerveModule {
         resetToAbsolute();     // Sync relative encoder to absolute position
     }
 
-    // ========================================================================
+  
     // CONFIGURATION METHODS
-    // ========================================================================
+  
 
     /**
      * Configure motor controllers with appropriate settings.
@@ -507,9 +506,9 @@ public class SwerveModule {
         azimuthEncoder.setPosition(absolutePosition);
     }
 
-    // ========================================================================
+  
     // GETTER METHODS - Read current state
-    // ========================================================================
+  
 
     /**
      * Get the absolute angle from the CANCoder, accounting for offset.
@@ -600,9 +599,9 @@ public class SwerveModule {
         return new SwerveModulePosition(getPosition(), getAngle());
     }
 
-    // ========================================================================
+  
     // CONTROL METHODS - Set desired state
-    // ========================================================================
+  
 
     /**
      * Set the desired state of the swerve module.
@@ -681,7 +680,7 @@ public class SwerveModule {
             driveController.setReference(
                 desiredState.speedMetersPerSecond,    // Target velocity
                 SparkMax.ControlType.kVelocity,       // Velocity control mode
-                0,                                     // PID slot 0
+                ClosedLoopSlot.kSlot0,                                     // PID slot 0
                 feedforward                            // Add feedforward to output
             );
         }

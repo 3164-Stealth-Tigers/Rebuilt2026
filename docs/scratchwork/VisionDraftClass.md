@@ -1,8 +1,9 @@
-package frc.robot.subsystems;
+```java
+package frc.robot.scratchwork;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 
-public class Vision {
+public class VisionDraftClass {
   private static double x, y, z;
   private static Rotation2d angle;
 
@@ -22,3 +23,4 @@ public class Vision {
     return angle;
   } // determine angle that the robot is facing where 0 is facing away from the driver station, in degrees
 }
+```

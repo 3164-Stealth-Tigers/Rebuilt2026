@@ -1,85 +1,10 @@
 package frc.robot.subsystems.swerve;
 
 /*
- * ========================================================================
- * SWERVE DRIVE SUBSYSTEM - The Robot's Driving System
- * ========================================================================
- *
- * WHAT THIS FILE DOES:
- * --------------------
- * Controls the robot's swerve drive - a special type of drivetrain where
- * each wheel can rotate independently AND steer independently. This allows
- * the robot to move in ANY direction while facing ANY direction!
- *
- * WHAT IS SWERVE DRIVE?
- * ---------------------
- * Traditional drivetrains (like a tank drive) can only go forward/backward
- * and turn by spinning the wheels at different speeds.
- *
- * Swerve drive is like having 4 shopping cart wheels that can each:
- *   1. SPIN (drive motor) - Move the robot
- *   2. ROTATE (azimuth motor) - Point in any direction
- *
- *   Traditional Tank Drive:        Swerve Drive:
- *   ┌─────────────┐                ┌─────────────┐
- *   │ ║         ║ │                │  ⟲       ⟲  │  ← Each wheel can
- *   │ ║   →→→   ║ │  Only forward  │      →      │    point any direction
- *   │ ║         ║ │                │  ⟲       ⟲  │
- *   └─────────────┘                └─────────────┘
- *
- * With swerve, you can:
- *   - Drive forward while facing sideways (strafing)
- *   - Spin in place while moving
- *   - Move diagonally
- *   - "Crab walk" sideways
- *
- * KEY CONCEPTS:
- * -------------
- *
- * 1. SWERVE MODULE - One wheel unit with 2 motors
- *    - Drive motor: Spins the wheel (makes it go)
- *    - Azimuth motor: Rotates the wheel direction (steering)
- *    - Absolute encoder: Knows wheel angle even after power off
- *
- * 2. KINEMATICS - Math that converts robot motion into wheel motions
- *    - Input: "Go forward at 2 m/s while rotating 1 rad/s"
- *    - Output: "FL wheel: 30°, 2.1 m/s | FR wheel: -30°, 2.1 m/s | ..."
- *
- * 3. FIELD-RELATIVE vs ROBOT-RELATIVE
- *    - Field-relative: "Forward" means toward the far end of the field
- *    - Robot-relative: "Forward" means wherever the robot is facing
- *
- *    Example: Robot is facing left, driver pushes "forward"
- *    - Field-relative: Robot moves toward far end (actually right from robot's view)
- *    - Robot-relative: Robot moves left (where it's facing)
- *
- * 4. POSE ESTIMATION - Tracking robot position on the field
- *    - Combines wheel odometry (distance traveled)
- *    - With gyro readings (rotation)
- *    - And optional vision measurements (AprilTags)
- *
- * 5. ODOMETRY - Calculating position from wheel movements
- *    - If wheels moved X distance at Y angle, robot moved to Z position
- *
- * MODULE LAYOUT:
- * --------------
- *       Front
- *   FL ─────── FR     FL = Front Left (index 0)
- *    │         │      FR = Front Right (index 1)
- *    │    ↑    │      RL = Rear Left (index 2)
- *    │  Robot  │      RR = Rear Right (index 3)
- *    │         │
- *   RL ─────── RR
- *        Back
- *
- * HOW TO MODIFY:
- * --------------
  * - Change max speed: Constants.java → SwerveConstants.MAX_SPEED
  * - Change wheel positions: SwerveConstants.WHEEL_BASE / TRACK_WIDTH
  * - Tune module angles: SwerveConstants.XX_ENCODER_OFFSET
  *
- * QUICK REFERENCE:
- * ----------------
  * → Drive the robot: swerve.drive(translation, rotation, fieldRelative, openLoop)
  * → Get current position: swerve.getPose()
  * → Reset gyro: swerve.resetYaw(angle)
@@ -90,10 +15,8 @@ package frc.robot.subsystems.swerve;
 
 import java.util.function.DoubleSupplier;
 
-// CTRE library for Pigeon2 gyroscope
 import com.ctre.phoenix6.hardware.Pigeon2;
 
-// WPILib math classes for swerve calculations
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -103,12 +26,10 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
-// NetworkTables for logging data
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 
-// WPILib utilities
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -117,25 +38,11 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SwerveConstants;
 
-/**
- * ========================================================================
- * SWERVE DRIVE SUBSYSTEM
- * ========================================================================
- *
- * Controls the robot's four-wheel swerve drivetrain. Each wheel (module)
- * can independently spin and steer, allowing omnidirectional movement.
- *
- * This is the most complex subsystem - it coordinates 8 motors
- * (2 per wheel × 4 wheels) plus a gyroscope to move the robot.
- *
- * @see SwerveModule for individual wheel control
- * @see Constants.SwerveConstants for tunable values
- */
 public class SwerveDrive extends SubsystemBase {
 
-    // ========================================================================
+  
     // HARDWARE - The four swerve modules (wheels)
-    // ========================================================================
+  
 
     /**
      * Array of all four swerve modules.
@@ -148,68 +55,17 @@ public class SwerveDrive extends SubsystemBase {
      */
     private final SwerveModule[] modules;
 
-    // ========================================================================
-    // SENSORS - Gyroscope for rotation tracking
-    // ========================================================================
-
-    /**
-     * Pigeon2 gyroscope - Measures the robot's rotation.
-     *
-     * [WHAT IS A GYRO?]
-     * A gyroscope measures angular velocity and orientation.
-     * It tells us which way the robot is facing.
-     *
-     * [WHY WE NEED IT]
-     * For field-relative driving: When driver pushes "forward",
-     * we need to know which way the robot is facing to calculate
-     * which direction is actually "forward" on the field.
-     *
-     * [HARDWARE] CTRE Pigeon 2.0 (connected via CAN bus)
-     */
     private final Pigeon2 gyro;
 
-    // ========================================================================
+  
     // MATH - Kinematics and pose estimation
-    // ========================================================================
-
-    /**
-     * Kinematics - Converts desired robot motion into individual wheel motions.
-     *
-     * [WHAT KINEMATICS DOES]
-     * Input: "Move robot at 2 m/s forward, 1 m/s left, rotating 0.5 rad/s"
-     * Output: Speed and angle for each of the 4 wheels
-     *
-     * [THE MATH]
-     * Each wheel's position relative to the robot center affects how it
-     * needs to move. Outer wheels travel farther when turning.
-     *
-     *     FL ← needs to travel farther       FR
-     *      │         ↺                        │
-     *      │    (robot turns)                 │
-     *     RL                                 RR
-     */
+  
     private final SwerveDriveKinematics kinematics;
-
-    /**
-     * Pose Estimator - Tracks the robot's position on the field.
-     *
-     * [WHAT IS POSE?]
-     * Pose = Position (X, Y) + Rotation (angle)
-     * It tells us exactly where the robot is on the field.
-     *
-     * [HOW IT WORKS]
-     * Combines multiple sources of information:
-     *   1. Wheel odometry - How far each wheel has traveled
-     *   2. Gyroscope - Which way we're facing
-     *   3. Vision (optional) - Camera sees AprilTags
-     *
-     * The estimator "fuses" these together for a best guess.
-     */
     private final SwerveDrivePoseEstimator poseEstimator;
 
-    // ========================================================================
+  
     // VISUALIZATION - Dashboard displays
-    // ========================================================================
+  
 
     /**
      * Field2d - Displays robot position on a field diagram in Shuffleboard.
@@ -231,9 +87,9 @@ public class SwerveDrive extends SubsystemBase {
     private final StructPublisher<Pose2d> posePublisher;
     private final StructArrayPublisher<SwerveModuleState> statePublisher;
 
-    // ========================================================================
+  
     // STATE - Current driving mode
-    // ========================================================================
+  
 
     /**
      * Field-relative mode flag.
@@ -261,9 +117,9 @@ public class SwerveDrive extends SubsystemBase {
      */
     private boolean openLoop = SwerveConstants.DRIVE_OPEN_LOOP_RAMP > 0;
 
-    // ========================================================================
+  
     // CONSTRUCTOR - Initialize all swerve drive components
-    // ========================================================================
+  
 
     /**
      * Creates a new SwerveDrive subsystem.
@@ -372,9 +228,9 @@ public class SwerveDrive extends SubsystemBase {
         statePublisher = table.getStructArrayTopic("ModuleStates", SwerveModuleState.struct).publish();
     }
 
-    // ========================================================================
+  
     // PERIODIC - Updates every robot loop (50 times per second)
-    // ========================================================================
+  
 
     /**
      * Called periodically (every 20ms) to update odometry and logging.
@@ -406,9 +262,9 @@ public class SwerveDrive extends SubsystemBase {
         }
     }
 
-    // ========================================================================
+  
     // DRIVE METHODS - Control robot movement
-    // ========================================================================
+  
 
     /**
      * Drive the robot with the given velocities.
@@ -512,9 +368,9 @@ public class SwerveDrive extends SubsystemBase {
         }
     }
 
-    // ========================================================================
+  
     // GYRO METHODS - Read and control robot rotation
-    // ========================================================================
+  
 
     /**
      * Get the current yaw angle from the gyro.
@@ -545,9 +401,9 @@ public class SwerveDrive extends SubsystemBase {
         gyro.setYaw(angle.getDegrees());
     }
 
-    // ========================================================================
+  
     // POSE METHODS - Robot position on the field
-    // ========================================================================
+  
 
     /**
      * Get the current estimated pose (position + rotation).
@@ -597,9 +453,9 @@ public class SwerveDrive extends SubsystemBase {
         poseEstimator.addVisionMeasurement(pose, timestampSeconds);
     }
 
-    // ========================================================================
+  
     // MODULE STATE GETTERS - Read wheel data
-    // ========================================================================
+  
 
     /**
      * Get the positions of all modules.
@@ -646,9 +502,9 @@ public class SwerveDrive extends SubsystemBase {
         return kinematics;
     }
 
-    // ========================================================================
+  
     // DRIVE MODE CONTROL
-    // ========================================================================
+  
 
     /**
      * Toggle field-relative driving mode.
@@ -668,9 +524,9 @@ public class SwerveDrive extends SubsystemBase {
         return fieldRelative;
     }
 
-    // ========================================================================
+  
     // COMMANDS - Actions for teleop and auto
-    // ========================================================================
+  
 
     /**
      * Create a teleop drive command.
