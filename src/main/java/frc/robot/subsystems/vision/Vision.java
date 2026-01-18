@@ -1,5 +1,7 @@
 package frc.robot.subsystems.vision;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +18,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -57,7 +60,12 @@ public class Vision extends SubsystemBase {
 
   // Constructor
   public Vision() {
-    fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+    try {
+      fieldLayout = new AprilTagFieldLayout(
+          Filesystem.getDeployDirectory().toPath().resolve("apriltags/2026_field.json"));
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load AprilTag layout", e);
+    }
 
     // Initialize cameras & estimators w/ config data
     for (CameraConfig cfg : cameraConfigs) {
