@@ -182,7 +182,7 @@ public class Shooter {
      * 
      * @apiNote A test method for calculating values off-handedly
      */
-    private static void shoot() {
+    protected static void shoot() {
         Shooter shooter = new Shooter();
         System.out.println("Velocity Needed: " + shooter.getVelocity() + " meters per second.");
         System.out.println("Angle Change Needed: " + shooter.robotToHub() + " degrees.");
