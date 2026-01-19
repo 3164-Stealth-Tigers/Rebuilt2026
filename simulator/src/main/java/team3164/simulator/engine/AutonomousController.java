@@ -159,35 +159,19 @@ public class AutonomousController {
                 currentPhase = AutoPhase.SCORING_PRELOAD;
                 break;
             case AUTO_QUICK_CLIMB:
-                currentPhase = AutoPhase.DRIVING_TO_TOWER;
-                // Target tower position (use correct alliance tower)
-                if (state.alliance == MatchState.Alliance.RED) {
-                    targetX = Constants.Field.RED_TOWER_X - 1.0;
-                    targetY = Constants.Field.RED_TOWER_Y;
-                } else {
-                    targetX = Constants.Field.BLUE_TOWER_X + 1.0;
-                    targetY = Constants.Field.BLUE_TOWER_Y;
-                }
+                // FIX: Score preload first, then climb
+                currentPhase = AutoPhase.SCORING_PRELOAD;
                 break;
             case AUTO_SCORE_THEN_CLIMB:
                 currentPhase = AutoPhase.SCORING_PRELOAD;
                 break;
             case AUTO_DEPOT_RAID:
-                currentPhase = AutoPhase.DRIVING_TO_DEPOT;
-                // Target alliance depot (based on robot's alliance)
-                if (state.alliance == MatchState.Alliance.RED) {
-                    targetX = Constants.Field.RED_DEPOT_X;
-                    targetY = Constants.Field.RED_DEPOT_Y;
-                } else {
-                    targetX = Constants.Field.BLUE_DEPOT_X;
-                    targetY = Constants.Field.BLUE_DEPOT_Y;
-                }
+                // FIX: Score preload first, then collect from depot
+                currentPhase = AutoPhase.SCORING_PRELOAD;
                 break;
             case AUTO_FAR_NEUTRAL:
-                currentPhase = AutoPhase.DRIVING_TO_FAR_NEUTRAL;
-                // Target far side of neutral zone
-                targetX = Constants.Field.CENTER_X + 3.0;
-                targetY = Constants.Field.CENTER_Y;
+                // FIX: Score preload first, then collect from neutral zone
+                currentPhase = AutoPhase.SCORING_PRELOAD;
                 break;
             case AUTO_PRELOAD_ONLY:
                 currentPhase = AutoPhase.SCORING_PRELOAD;
@@ -196,15 +180,8 @@ public class AutonomousController {
                 currentPhase = AutoPhase.SCORING_PRELOAD;
                 break;
             case AUTO_CLIMB_SUPPORT:
-                currentPhase = AutoPhase.DRIVING_TO_TOWER;
-                // Position near tower for teleop (use correct alliance tower)
-                if (state.alliance == MatchState.Alliance.RED) {
-                    targetX = Constants.Field.RED_TOWER_X - 2.0;
-                    targetY = Constants.Field.RED_TOWER_Y;
-                } else {
-                    targetX = Constants.Field.BLUE_TOWER_X + 2.0;
-                    targetY = Constants.Field.BLUE_TOWER_Y;
-                }
+                // FIX: Score preload first, then position for climb support
+                currentPhase = AutoPhase.SCORING_PRELOAD;
                 break;
             case AUTO_WIN_AUTO:
                 currentPhase = AutoPhase.RAPID_SCORING;
@@ -434,10 +411,46 @@ public class AutonomousController {
     }
 
     // ========================================================================
-    // AUTO MODE 2: Quick Climb
+    // AUTO MODE 2: Quick Climb (FIXED - now scores preload first)
     // ========================================================================
     private void updateQuickClimb(RobotState state, InputState input, double dt) {
         switch (currentPhase) {
+            case SCORING_PRELOAD:
+                // FIX: Score preload first before climbing
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                if (state.fuelCount > 0) {
+                    input.spinUp = true;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
+                } else {
+                    // Done shooting, head to tower
+                    transitionToPhase(AutoPhase.DRIVING_TO_TOWER);
+                    if (state.alliance == MatchState.Alliance.RED) {
+                        targetX = Constants.Field.RED_TOWER_X - 1.0;
+                        targetY = Constants.Field.RED_TOWER_Y;
+                    } else {
+                        targetX = Constants.Field.BLUE_TOWER_X + 1.0;
+                        targetY = Constants.Field.BLUE_TOWER_Y;
+                    }
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                // Drive to shooting position while avoiding bumps
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.SCORING_PRELOAD);
+                }
+                break;
+
             case DRIVING_TO_TOWER:
                 // Drive directly to tower
                 driveToTarget(state, input, targetX, targetY);
@@ -537,16 +550,29 @@ public class AutonomousController {
     }
 
     // ========================================================================
-    // AUTO MODE 4: Depot Raid
-    // Strategy: Drive to alliance depot, collect FUEL, drive back to score
+    // AUTO MODE 4: Depot Raid (REVERTED - collect from depot first, then score all)
+    // Strategy: Drive to alliance depot, collect FUEL, drive back to score ALL (preload + depot)
+    // Note: This mode skips initial preload scoring to maximize depot collection time
     // ========================================================================
     private void updateDepotRaid(RobotState state, InputState input, double dt) {
         switch (currentPhase) {
+            case SCORING_PRELOAD:
+                // REVERTED: Go to depot first (no preload scoring to save time)
+                transitionToPhase(AutoPhase.DRIVING_TO_DEPOT);
+                if (state.alliance == MatchState.Alliance.RED) {
+                    targetX = Constants.Field.RED_DEPOT_X;
+                    targetY = Constants.Field.RED_DEPOT_Y;
+                } else {
+                    targetX = Constants.Field.BLUE_DEPOT_X;
+                    targetY = Constants.Field.BLUE_DEPOT_Y;
+                }
+                break;
+
             case DRIVING_TO_DEPOT:
-                // Drive to alliance depot
+                // Drive to alliance depot (no bump avoidance needed - depot is in alliance zone)
                 driveToTarget(state, input, targetX, targetY);
 
-                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
                     transitionToPhase(AutoPhase.COLLECTING_FROM_DEPOT);
                 }
                 break;
@@ -560,7 +586,8 @@ public class AutonomousController {
                     input.forward = 0.2 * Math.sin(phaseTimer * 2);
                 }
 
-                if (phaseTimer > 5.0 || state.fuelCount >= 4) {
+                // Shorter collection time to leave time for scoring
+                if (phaseTimer > 4.0 || state.fuelCount >= 5) {
                     transitionToPhase(AutoPhase.DRIVING_TO_SCORE);
                     // Target own alliance hub for scoring
                     if (state.alliance == MatchState.Alliance.RED) {
@@ -573,24 +600,16 @@ public class AutonomousController {
                 break;
 
             case DRIVING_TO_SCORE:
-                // Drive to scoring position
+                // Drive to scoring position (no bump avoidance - staying in alliance zone)
                 driveToTarget(state, input, targetX, targetY);
 
-                if (isAtTarget(state, targetX, targetY, 1.5)) {
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 1.5)) {
                     transitionToPhase(AutoPhase.SCORING_COLLECTED);
                 }
                 break;
 
             case SCORING_COLLECTED:
-                // Check if we need to reposition first
-                if (!isInShootingPosition(state)) {
-                    double[] shootPos = getShootingPosition(state);
-                    targetX = shootPos[0];
-                    targetY = shootPos[1];
-                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
-                    return;
-                }
-                // Score all collected FUEL with proper aiming
+                // Score all FUEL (preload + collected from depot)
                 if (state.fuelCount > 0) {
                     input.spinUp = true;
                     boolean readyToShoot = aimAtHub(state, input);
@@ -605,7 +624,7 @@ public class AutonomousController {
             case POSITIONING_TO_SHOOT:
                 // Drive to shooting position
                 driveToTarget(state, input, targetX, targetY);
-                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
                     transitionToPhase(AutoPhase.SCORING_COLLECTED);
                 }
                 break;
@@ -617,16 +636,52 @@ public class AutonomousController {
     }
 
     // ========================================================================
-    // AUTO MODE 5: Far Neutral
-    // Strategy: Drive to far side of neutral zone, collect, score
+    // AUTO MODE 5: Far Neutral (FIXED - now scores preload first, uses closer target)
+    // Strategy: Score preload, drive to neutral zone, collect, score
     // ========================================================================
     private void updateFarNeutral(RobotState state, InputState input, double dt) {
         switch (currentPhase) {
-            case DRIVING_TO_FAR_NEUTRAL:
-                // Drive to far neutral zone
-                driveToTarget(state, input, targetX, targetY);
+            case SCORING_PRELOAD:
+                // FIX: Score preload first before going to neutral zone
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                if (state.fuelCount > 0) {
+                    input.spinUp = true;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
+                } else {
+                    // Done with preload, now go to neutral zone (CLOSER target for reliability)
+                    transitionToPhase(AutoPhase.DRIVING_TO_FAR_NEUTRAL);
+                    targetX = Constants.Field.CENTER_X - 1.0;  // CLOSER target instead of +3.0
+                    targetY = Constants.Field.CENTER_Y;
+                }
+                break;
 
-                if (phaseTimer > 5.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+            case POSITIONING_TO_SHOOT:
+                // Drive to shooting position while avoiding bumps
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    // Return to appropriate phase based on whether we have FUEL
+                    if (state.fuelCount > 0) {
+                        transitionToPhase(AutoPhase.SCORING_COLLECTED);
+                    } else {
+                        transitionToPhase(AutoPhase.SCORING_PRELOAD);
+                    }
+                }
+                break;
+
+            case DRIVING_TO_FAR_NEUTRAL:
+                // Drive to neutral zone, avoiding bumps
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+
+                if (phaseTimer > 6.0 || isAtTarget(state, targetX, targetY, 0.5)) {
                     transitionToPhase(AutoPhase.INTAKING_FAR);
                 }
                 break;
@@ -636,7 +691,8 @@ public class AutonomousController {
                 input.intake = true;
                 input.forward = 0.3;
 
-                if (phaseTimer > 4.0 || state.fuelCount >= Constants.Intake.MAX_CAPACITY) {
+                // FIX: Shorter intake time to leave time for scoring
+                if (phaseTimer > 3.0 || state.fuelCount >= 4) {
                     transitionToPhase(AutoPhase.RETURNING_TO_SCORE);
                     // Target own alliance hub for scoring
                     if (state.alliance == MatchState.Alliance.RED) {
@@ -649,10 +705,10 @@ public class AutonomousController {
                 break;
 
             case RETURNING_TO_SCORE:
-                // Return to hub
-                driveToTarget(state, input, targetX, targetY);
+                // Return to hub, avoiding bumps
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
 
-                if (isAtTarget(state, targetX, targetY, 1.5)) {
+                if (phaseTimer > 5.0 || isAtTarget(state, targetX, targetY, 1.5)) {
                     transitionToPhase(AutoPhase.SCORING_COLLECTED);
                 }
                 break;
@@ -675,14 +731,6 @@ public class AutonomousController {
                     }
                 } else {
                     transitionToPhase(AutoPhase.COMPLETE);
-                }
-                break;
-
-            case POSITIONING_TO_SHOOT:
-                // Drive to shooting position
-                driveToTarget(state, input, targetX, targetY);
-                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
-                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
                 }
                 break;
 
@@ -736,12 +784,98 @@ public class AutonomousController {
     }
 
     // ========================================================================
-    // AUTO MODE 7: Max Cycles
+    // AUTO MODE 7: Max Cycles (OPTIMIZED - same as Mode 1 Score & Collect)
     // Strategy: Pure scoring - shoot, collect, shoot, repeat
     // ========================================================================
     private void updateMaxCycles(RobotState state, InputState input, double dt) {
+        // Use same logic as Score & Collect mode which works well
         switch (currentPhase) {
             case SCORING_PRELOAD:
+                // Check if we need to reposition first
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                // Shoot all preloaded FUEL with proper aiming
+                if (state.fuelCount > 0) {
+                    input.spinUp = true;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
+                } else {
+                    // All FUEL shot, move to neutral zone
+                    transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
+                    targetX = Constants.Field.CENTER_X - 2.0;  // Closer target for faster cycle
+                    targetY = Constants.Field.CENTER_Y;
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                // Use same positioning logic as Score & Collect
+                double posHubX = (state.alliance == MatchState.Alliance.RED)
+                    ? Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+                double posDangerZoneHalfX = Constants.Field.BUMP_LENGTH / 2.0 + Constants.Robot.LENGTH_WITH_BUMPERS / 2.0 + 1.0;
+                boolean posInDangerZone = Math.abs(state.x - posHubX) < posDangerZoneHalfX;
+                boolean posGoAbove = state.y >= Constants.Field.CENTER_Y;
+                double posSafeY = getSafeYPosition(state, posGoAbove);
+                boolean posOnSafePath = posGoAbove ? (state.y >= posSafeY - 0.5) : (state.y <= posSafeY + 0.5);
+
+                if (posInDangerZone && !posOnSafePath && state.x > posHubX) {
+                    driveToTarget(state, input, state.x - 0.3, posSafeY);
+                } else if (posInDangerZone && state.x > posHubX) {
+                    driveToTarget(state, input, posHubX - posDangerZoneHalfX - 0.5, posSafeY);
+                } else {
+                    driveToTarget(state, input, targetX, targetY);
+                }
+
+                if (phaseTimer > 6.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
+                }
+                break;
+
+            case DRIVING_TO_NEUTRAL:
+                // Use same driving logic as Score & Collect
+                double hubX = (state.alliance == MatchState.Alliance.RED)
+                    ? Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+                double dangerZoneHalfX = Constants.Field.BUMP_LENGTH / 2.0 + Constants.Robot.LENGTH_WITH_BUMPERS / 2.0 + 1.0;
+                boolean inDangerZone = Math.abs(state.x - hubX) < dangerZoneHalfX;
+                boolean goAbove = state.y >= Constants.Field.CENTER_Y;
+                double safeY = getSafeYPosition(state, goAbove);
+                boolean onSafePath = goAbove ? (state.y >= safeY - 0.5) : (state.y <= safeY + 0.5);
+
+                if (inDangerZone && !onSafePath && state.x < hubX) {
+                    driveToTarget(state, input, state.x + 0.3, safeY);
+                } else if (inDangerZone && state.x < hubX) {
+                    driveToTarget(state, input, hubX + dangerZoneHalfX + 0.5, safeY);
+                } else {
+                    driveToTarget(state, input, targetX, targetY);
+                }
+
+                if (phaseTimer > DRIVE_TO_NEUTRAL_TIME || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.INTAKING);
+                }
+                break;
+
+            case INTAKING:
+                input.intake = true;
+                input.forward = 0.4;
+
+                boolean hasEnoughFuel = state.fuelCount >= 4;
+                boolean timeoutReached = phaseTimer > INTAKE_TIMEOUT;
+
+                if (hasEnoughFuel || timeoutReached) {
+                    if (state.fuelCount > 0) {
+                        transitionToPhase(AutoPhase.SCORING_COLLECTED);
+                    } else {
+                        transitionToPhase(AutoPhase.COMPLETE);
+                    }
+                }
+                break;
+
             case SCORING_COLLECTED:
                 // Check if we need to reposition first
                 if (!isInShootingPosition(state)) {
@@ -751,7 +885,7 @@ public class AutonomousController {
                     transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
                     return;
                 }
-                // Shoot all FUEL with proper aiming
+                // Shoot collected FUEL
                 if (state.fuelCount > 0) {
                     input.spinUp = true;
                     boolean readyToShoot = aimAtHub(state, input);
@@ -759,37 +893,7 @@ public class AutonomousController {
                         input.shoot = true;
                     }
                 } else {
-                    // Go collect more
-                    transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
-                    targetX = Constants.Field.CENTER_X + (Math.random() - 0.5) * 4.0;
-                    targetY = Constants.Field.CENTER_Y + (Math.random() - 0.5) * 2.0;
-                }
-                break;
-
-            case POSITIONING_TO_SHOOT:
-                // Drive to shooting position
-                driveToTarget(state, input, targetX, targetY);
-                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
-                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
-                }
-                break;
-
-            case DRIVING_TO_NEUTRAL:
-                // Drive to neutral zone
-                driveToTarget(state, input, targetX, targetY);
-
-                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
-                    transitionToPhase(AutoPhase.INTAKING);
-                }
-                break;
-
-            case INTAKING:
-                // Intake FUEL
-                input.intake = true;
-                input.forward = 0.25;
-
-                if (phaseTimer > 4.0 || state.fuelCount >= 3) {
-                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
+                    transitionToPhase(AutoPhase.COMPLETE);
                 }
                 break;
 
@@ -800,11 +904,47 @@ public class AutonomousController {
     }
 
     // ========================================================================
-    // AUTO MODE 8: Climb Support
-    // Strategy: Minimal scoring, position for TELEOP climb assist
+    // AUTO MODE 8: Climb Support (FIXED - scores preload first)
+    // Strategy: Score preload, then position for TELEOP climb assist
     // ========================================================================
     private void updateClimbSupport(RobotState state, InputState input, double dt) {
         switch (currentPhase) {
+            case SCORING_PRELOAD:
+                // FIX: Score preload first before positioning
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                if (state.fuelCount > 0) {
+                    input.spinUp = true;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
+                } else {
+                    // Done shooting, position near tower for teleop
+                    transitionToPhase(AutoPhase.DRIVING_TO_TOWER);
+                    if (state.alliance == MatchState.Alliance.RED) {
+                        targetX = Constants.Field.RED_TOWER_X - 2.0;
+                        targetY = Constants.Field.RED_TOWER_Y;
+                    } else {
+                        targetX = Constants.Field.BLUE_TOWER_X + 2.0;
+                        targetY = Constants.Field.BLUE_TOWER_Y;
+                    }
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                // Drive to shooting position while avoiding bumps
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.SCORING_PRELOAD);
+                }
+                break;
+
             case DRIVING_TO_TOWER:
                 // Drive to position near tower
                 driveToTarget(state, input, targetX, targetY);
@@ -823,7 +963,7 @@ public class AutonomousController {
     }
 
     // ========================================================================
-    // AUTO MODE 9: Win AUTO
+    // AUTO MODE 9: Win AUTO (FIXED - closer targets, bump avoidance, faster returns)
     // Strategy: Aggressive rapid fire to maximize AUTO period score
     // ========================================================================
     private void updateWinAuto(RobotState state, InputState input, double dt) {
@@ -846,28 +986,34 @@ public class AutonomousController {
                         input.shoot = true;
                     }
                 } else {
-                    // Immediately go for more FUEL
-                    transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
-                    targetX = Constants.Field.CENTER_X;
-                    targetY = Constants.Field.CENTER_Y;
+                    // FIX: Check if enough time left for another cycle (need ~8s for drive+intake+return+score)
+                    if (totalAutoTime < 11.0) {  // Only go if < 11 seconds elapsed
+                        // FIX: Use CLOSER target for faster cycle
+                        transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
+                        targetX = Constants.Field.CENTER_X - 2.0;  // Closer target
+                        targetY = Constants.Field.CENTER_Y;
+                    } else {
+                        // Not enough time, end auto
+                        transitionToPhase(AutoPhase.COMPLETE);
+                    }
                 }
                 break;
 
             case POSITIONING_TO_SHOOT:
-                // Drive to shooting position (fast for Win AUTO)
-                driveToTarget(state, input, targetX, targetY);
-                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                // FIX: Drive to shooting position while avoiding bumps (faster timeout)
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 2.5 || isAtTarget(state, targetX, targetY, 0.5)) {
                     transitionToPhase(AutoPhase.RAPID_SCORING);
                 }
                 break;
 
             case DRIVING_TO_NEUTRAL:
-                // Fast drive to neutral
-                driveToTarget(state, input, targetX, targetY);
+                // FIX: Fast drive to neutral with bump avoidance
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
                 // Run intake while driving
                 input.intake = true;
 
-                if (phaseTimer > 2.5 || isAtTarget(state, targetX, targetY, 0.5)) {
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
                     transitionToPhase(AutoPhase.INTAKING);
                 }
                 break;
@@ -877,7 +1023,8 @@ public class AutonomousController {
                 input.intake = true;
                 input.forward = 0.4;  // Faster movement
 
-                if (phaseTimer > 3.0 || state.fuelCount >= 2) {
+                // FIX: Shorter intake time to leave time for scoring
+                if (phaseTimer > 2.0 || state.fuelCount >= 3) {
                     // Score quickly, don't wait for full load
                     transitionToPhase(AutoPhase.RAPID_SCORING);
                 }
