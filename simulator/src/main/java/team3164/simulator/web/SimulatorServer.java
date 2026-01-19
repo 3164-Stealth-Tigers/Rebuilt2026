@@ -175,16 +175,16 @@ public class SimulatorServer {
         JsonObject json = new JsonObject();
         json.addProperty("type", "state");
 
-        // Robot state
+        // Robot state (player's robot for backward compatibility)
         json.add("robot", buildRobotJson(robotState));
 
-        // Swerve modules
+        // Swerve modules (player's robot)
         json.add("swerve", buildSwerveJson(robotState));
 
-        // Shooter
+        // Shooter (player's robot)
         json.add("shooter", buildShooterJson(robotState));
 
-        // Climber
+        // Climber (player's robot)
         json.add("climber", buildClimberJson(robotState));
 
         // Match state
@@ -193,10 +193,59 @@ public class SimulatorServer {
         // FUEL on field
         json.add("fuel", buildFuelJson(fuelState));
 
-        // Control state
+        // Control state (player's robot)
         json.add("control", buildControlJson(robotState));
 
+        // Multi-robot state
+        json.addProperty("multiRobotEnabled", engine.isMultiRobotEnabled());
+        if (engine.isMultiRobotEnabled()) {
+            json.add("allRobots", buildAllRobotsJson());
+        }
+
         return json.toString();
+    }
+
+    /**
+     * Build JSON for all robots in multi-robot mode.
+     */
+    private JsonArray buildAllRobotsJson() {
+        JsonArray robotsArray = new JsonArray();
+        RobotState[] allRobots = engine.getAllRobots();
+        MultiRobotManager robotManager = engine.getRobotManager();
+
+        for (RobotState robot : allRobots) {
+            JsonObject robotJson = new JsonObject();
+            robotJson.addProperty("id", robot.robotId);
+            robotJson.addProperty("teamNumber", robot.teamNumber);
+            robotJson.addProperty("alliance", robot.alliance.name());
+            robotJson.addProperty("isPlayer", robot.isPlayerControlled);
+            robotJson.addProperty("x", round(robot.x, 3));
+            robotJson.addProperty("y", round(robot.y, 3));
+            robotJson.addProperty("heading", round(Math.toDegrees(robot.heading), 1));
+            robotJson.addProperty("vx", round(robot.vx, 2));
+            robotJson.addProperty("vy", round(robot.vy, 2));
+            robotJson.addProperty("fuelCount", robot.fuelCount);
+            robotJson.addProperty("isClimbing", robot.isClimbing);
+            robotJson.addProperty("climbLevel", robot.climbLevel);
+            robotJson.addProperty("climbComplete", robot.climbComplete);
+            robotJson.addProperty("command", robot.currentCommand);
+
+            // Add auto mode name for AI robots
+            if (!robot.isPlayerControlled && robotManager != null) {
+                AIRobotController aiController = robotManager.getAIController(robot.robotId);
+                if (aiController != null) {
+                    robotJson.addProperty("autoMode", aiController.getAutoModeName());
+                    robotJson.addProperty("teleopBehavior", aiController.getTeleopBehavior().name());
+                }
+            } else {
+                robotJson.addProperty("autoMode", "PLAYER");
+                robotJson.addProperty("teleopBehavior", "PLAYER");
+            }
+
+            robotsArray.add(robotJson);
+        }
+
+        return robotsArray;
     }
 
     /**
@@ -383,7 +432,12 @@ public class SimulatorServer {
                     engine.updateInput(input);
                     break;
                 case "reset":
-                    engine.getState().reset();
+                    // Reset all components including multi-robot manager
+                    if (engine.isMultiRobotEnabled()) {
+                        engine.getRobotManager().reset();
+                    } else {
+                        engine.getState().reset();
+                    }
                     engine.getMatchState().reset();
                     engine.getFuelState().reset();
                     engine.getAutoController().reset();

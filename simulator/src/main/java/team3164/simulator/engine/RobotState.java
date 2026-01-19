@@ -9,6 +9,16 @@ import team3164.simulator.Constants;
 public class RobotState {
 
     // ========================================================================
+    // ROBOT IDENTITY
+    // ========================================================================
+    public int robotId = 0;           // Unique robot ID (0-5)
+    public int teamNumber = 3164;     // Team number for display
+    public boolean isPlayerControlled = true;  // Player vs AI controlled
+
+    // Robot alliance (use MatchState.Alliance)
+    public MatchState.Alliance alliance = MatchState.Alliance.BLUE;
+
+    // ========================================================================
     // POSE (Position on field)
     // ========================================================================
     public double x;         // meters from origin (blue alliance wall)
@@ -68,7 +78,6 @@ public class RobotState {
     public boolean fieldRelative = true;
     public boolean slowMode = false;
     public String currentCommand = "";
-    public MatchState.Alliance alliance = MatchState.Alliance.BLUE;
 
     // ========================================================================
     // GAME STATE
@@ -140,7 +149,6 @@ public class RobotState {
         fieldRelative = true;
         slowMode = false;
         currentCommand = "";
-        alliance = MatchState.Alliance.BLUE;
 
         // Game state
         fuelScored = 0;
@@ -213,6 +221,49 @@ public class RobotState {
             heading = 0;  // Facing red alliance
         }
         y = Constants.Field.CENTER_Y;
+    }
+
+    /**
+     * Set starting position based on robot slot (0-2) within alliance.
+     * Slot 0 = center, 1 = top, 2 = bottom
+     */
+    public void setStartingPosition(int slot) {
+        double startX;
+        double startY;
+        double startHeading;
+
+        // Y positions: spread out along alliance wall
+        double[] yPositions = {
+            Constants.Field.CENTER_Y,              // Center (slot 0)
+            Constants.Field.CENTER_Y + 2.5,        // Top (slot 1)
+            Constants.Field.CENTER_Y - 2.5         // Bottom (slot 2)
+        };
+
+        if (alliance == MatchState.Alliance.RED) {
+            startX = Constants.Field.LENGTH - 2.0;
+            startHeading = Math.PI;  // Facing blue
+        } else {
+            startX = 2.0;
+            startHeading = 0;  // Facing red
+        }
+
+        startY = yPositions[Math.min(slot, 2)];
+
+        this.x = startX;
+        this.y = startY;
+        this.heading = startHeading;
+    }
+
+    /**
+     * Initialize robot with ID, team number, and alliance.
+     */
+    public void initialize(int robotId, int teamNumber, MatchState.Alliance alliance, int slot, boolean isPlayer) {
+        this.robotId = robotId;
+        this.teamNumber = teamNumber;
+        this.alliance = alliance;
+        this.isPlayerControlled = isPlayer;
+        reset();
+        setStartingPosition(slot);
     }
 
     /**

@@ -20,6 +20,9 @@ public final class Constants {
         public static final double CENTER_X = LENGTH / 2.0;
         public static final double CENTER_Y = WIDTH / 2.0;
 
+        // Alliance Zone boundary (158.6 inches from each alliance wall)
+        public static final double ALLIANCE_ZONE_DEPTH = 4.03;
+
         // ====================================================================
         // HUB (2 per field, one per alliance)
         // ====================================================================
@@ -45,21 +48,18 @@ public final class Constants {
         public static final double BUMP_HEIGHT = 0.165;
         public static final double BUMP_RAMP_ANGLE = 15.0;    // degrees
 
-        // BUMP positions (2 per alliance side)
-        public static final double BUMP_OFFSET_X = 3.0;       // From center
-        public static final double BUMP_OFFSET_Y = 2.0;       // From center Y
+        // BUMP positions (flanking HUBs on either side in Y direction)
+        // Red side bumps (flanking red HUB)
+        public static final double RED_BUMP_1_X = RED_HUB_X;
+        public static final double RED_BUMP_1_Y = CENTER_Y + HUB_SIZE/2 + BUMP_WIDTH/2 + 0.3;
+        public static final double RED_BUMP_2_X = RED_HUB_X;
+        public static final double RED_BUMP_2_Y = CENTER_Y - HUB_SIZE/2 - BUMP_WIDTH/2 - 0.3;
 
-        // Red side bumps
-        public static final double RED_BUMP_1_X = CENTER_X + BUMP_OFFSET_X;
-        public static final double RED_BUMP_1_Y = CENTER_Y + BUMP_OFFSET_Y;
-        public static final double RED_BUMP_2_X = CENTER_X + BUMP_OFFSET_X;
-        public static final double RED_BUMP_2_Y = CENTER_Y - BUMP_OFFSET_Y;
-
-        // Blue side bumps
-        public static final double BLUE_BUMP_1_X = CENTER_X - BUMP_OFFSET_X;
-        public static final double BLUE_BUMP_1_Y = CENTER_Y + BUMP_OFFSET_Y;
-        public static final double BLUE_BUMP_2_X = CENTER_X - BUMP_OFFSET_X;
-        public static final double BLUE_BUMP_2_Y = CENTER_Y - BUMP_OFFSET_Y;
+        // Blue side bumps (flanking blue HUB)
+        public static final double BLUE_BUMP_1_X = BLUE_HUB_X;
+        public static final double BLUE_BUMP_1_Y = CENTER_Y + HUB_SIZE/2 + BUMP_WIDTH/2 + 0.3;
+        public static final double BLUE_BUMP_2_X = BLUE_HUB_X;
+        public static final double BLUE_BUMP_2_Y = CENTER_Y - HUB_SIZE/2 - BUMP_WIDTH/2 - 0.3;
 
         // ====================================================================
         // TRENCH (4 per field)
@@ -70,19 +70,18 @@ public final class Constants {
         public static final double TRENCH_HEIGHT = 1.022;
         public static final double TRENCH_CLEARANCE = 0.565;  // Robot must be under this
 
-        // TRENCH positions (2 per alliance side, near field edges)
-        public static final double TRENCH_OFFSET_X = 4.5;     // From center
-        public static final double TRENCH_OFFSET_Y = 3.0;     // From center Y (near walls)
+        // TRENCH positions (at field edges near guardrails)
+        // Red side trenches
+        public static final double RED_TRENCH_1_X = RED_HUB_X - 1.5;
+        public static final double RED_TRENCH_1_Y = WIDTH - TRENCH_WIDTH/2 - 0.1;
+        public static final double RED_TRENCH_2_X = RED_HUB_X - 1.5;
+        public static final double RED_TRENCH_2_Y = TRENCH_WIDTH/2 + 0.1;
 
-        public static final double RED_TRENCH_1_X = CENTER_X + TRENCH_OFFSET_X;
-        public static final double RED_TRENCH_1_Y = CENTER_Y + TRENCH_OFFSET_Y;
-        public static final double RED_TRENCH_2_X = CENTER_X + TRENCH_OFFSET_X;
-        public static final double RED_TRENCH_2_Y = CENTER_Y - TRENCH_OFFSET_Y;
-
-        public static final double BLUE_TRENCH_1_X = CENTER_X - TRENCH_OFFSET_X;
-        public static final double BLUE_TRENCH_1_Y = CENTER_Y + TRENCH_OFFSET_Y;
-        public static final double BLUE_TRENCH_2_X = CENTER_X - TRENCH_OFFSET_X;
-        public static final double BLUE_TRENCH_2_Y = CENTER_Y - TRENCH_OFFSET_Y;
+        // Blue side trenches
+        public static final double BLUE_TRENCH_1_X = BLUE_HUB_X + 1.5;
+        public static final double BLUE_TRENCH_1_Y = WIDTH - TRENCH_WIDTH/2 - 0.1;
+        public static final double BLUE_TRENCH_2_X = BLUE_HUB_X + 1.5;
+        public static final double BLUE_TRENCH_2_Y = TRENCH_WIDTH/2 + 0.1;
 
         // ====================================================================
         // TOWER (2 per field, one per alliance)
@@ -97,14 +96,14 @@ public final class Constants {
         public static final double RUNG_MID = 1.143;          // 45 inches
         public static final double RUNG_HIGH = 1.60;          // 63 inches
 
-        // TOWER positions (centered on alliance side)
-        public static final double TOWER_DISTANCE_FROM_WALL = 2.5;
+        // TOWER positions (at alliance walls, integrated into wall structure)
+        public static final double TOWER_DISTANCE_FROM_WALL = 0.625;  // Half tower length
 
         public static final double RED_TOWER_X = LENGTH - TOWER_DISTANCE_FROM_WALL;
-        public static final double RED_TOWER_Y = CENTER_Y + 2.5;
+        public static final double RED_TOWER_Y = CENTER_Y + 2.0;
 
         public static final double BLUE_TOWER_X = TOWER_DISTANCE_FROM_WALL;
-        public static final double BLUE_TOWER_Y = CENTER_Y + 2.5;
+        public static final double BLUE_TOWER_Y = CENTER_Y + 2.0;
 
         // ====================================================================
         // DEPOT (2 per field, one per alliance)

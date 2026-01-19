@@ -512,3 +512,97 @@ kbd {
         order: -1;
     }
 }
+
+/* Robot Lineup Panel */
+.robot-lineup {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.lineup-alliance {
+    flex: 1;
+    background: #161b22;
+    border-radius: 10px;
+    padding: 10px 15px;
+    border: 1px solid #30363d;
+}
+
+.lineup-alliance.blue {
+    border-left: 3px solid #58a6ff;
+}
+
+.lineup-alliance.red {
+    border-left: 3px solid #e94560;
+}
+
+.lineup-title {
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.lineup-robots {
+    display: flex;
+    gap: 10px;
+}
+
+.lineup-robot {
+    flex: 1;
+    background: #21262d;
+    border-radius: 5px;
+    padding: 8px;
+    text-align: center;
+}
+
+.lineup-robot.player {
+    border: 2px solid #f77f00;
+    box-shadow: 0 0 8px rgba(247, 127, 0, 0.3);
+}
+
+.lineup-robot .team-number {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #e6edf3;
+    display: block;
+}
+
+.lineup-robot.blue .team-number {
+    color: #58a6ff;
+}
+
+.lineup-robot.red .team-number {
+    color: #e94560;
+}
+
+.lineup-robot .auto-mode {
+    font-size: 0.7em;
+    color: #8b949e;
+    display: block;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lineup-robot .teleop-behavior {
+    font-size: 0.65em;
+    color: #6e7681;
+    display: block;
+    margin-top: 2px;
+}
+
+.lineup-robot .player-badge {
+    font-size: 0.6em;
+    background: #f77f00;
+    color: #0d1117;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+    margin-top: 4px;
+    display: inline-block;
+}

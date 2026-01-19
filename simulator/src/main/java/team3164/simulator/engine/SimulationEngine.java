@@ -2,6 +2,7 @@ package team3164.simulator.engine;
 
 import team3164.simulator.Constants;
 import team3164.simulator.physics.*;
+import team3164.simulator.physics.CollisionPhysics;
 import team3164.simulator.engine.FuelState.Fuel;
 
 import java.util.concurrent.Executors;
@@ -17,11 +18,18 @@ import java.util.function.Consumer;
  */
 public class SimulationEngine {
 
-    private final RobotState state;
-    private final InputState input;
+    // Multi-robot support
+    private final MultiRobotManager robotManager;
+
+    // Keep references for backward compatibility
+    private final RobotState state;      // Player's robot
+    private final InputState input;      // Player's input
     private final MatchState matchState;
     private final FuelState fuelState;
-    private final AutonomousController autoController;
+    private final AutonomousController autoController;  // Player's auto controller
+
+    // Multi-robot enabled flag
+    private boolean multiRobotEnabled = true;
 
     private ScheduledExecutorService executor;
     private Consumer<RobotState> stateListener;
@@ -38,8 +46,9 @@ public class SimulationEngine {
      * Create a new simulation engine.
      */
     public SimulationEngine() {
-        this.state = new RobotState();
-        this.input = new InputState();
+        this.robotManager = new MultiRobotManager();
+        this.state = robotManager.getPlayerRobot();
+        this.input = robotManager.getPlayerInput();
         this.matchState = new MatchState();
         this.fuelState = new FuelState();
         this.autoController = new AutonomousController();
@@ -98,10 +107,18 @@ public class SimulationEngine {
         matchState.startMatch();
         startTimeMs = System.currentTimeMillis();
 
-        // Start autonomous controller
+        // Start autonomous controller for player
         autoController.startAuto(state);
-        log("MATCH STARTED - AUTO PERIOD");
-        log("Auto Mode: " + autoController.getSelectedModeName());
+
+        // Start autonomous for all AI robots
+        if (multiRobotEnabled) {
+            robotManager.startAuto();
+            log("MATCH STARTED - AUTO PERIOD (6 robots)");
+            log(robotManager.getAutoModesSummary());
+        } else {
+            log("MATCH STARTED - AUTO PERIOD");
+        }
+        log("Player Auto Mode: " + autoController.getSelectedModeName());
     }
 
     /**
@@ -137,8 +154,17 @@ public class SimulationEngine {
             // Process match control
             processMatchControl();
 
+            // Update AI robots
+            if (multiRobotEnabled) {
+                robotManager.update(input, matchState, dt);
+            }
+
             // Update all physics
-            updatePhysics(dt);
+            if (multiRobotEnabled) {
+                updateAllRobotsPhysics(dt);
+            } else {
+                updatePhysics(dt);
+            }
 
             // Update command name based on current actions
             updateCommandName();
@@ -158,6 +184,15 @@ public class SimulationEngine {
     private void updatePhysics(double dt) {
         // Update swerve drive
         SwervePhysics.update(state, input, dt);
+
+        // Check collisions with field elements (HUBs, TOWERs, DEPOTs)
+        CollisionPhysics.CollisionResult collision = CollisionPhysics.checkAndResolveCollisions(state);
+        if (collision.collided && collision.obstacleName != null) {
+            // Log collision only occasionally to avoid spam
+            if (tickCount % 25 == 0) {
+                log("Collision with " + collision.obstacleName);
+            }
+        }
 
         // Update bump physics (affects robot height)
         BumpPhysics.update(state, dt);
@@ -202,6 +237,71 @@ public class SimulationEngine {
     }
 
     /**
+     * Update physics for all robots in multi-robot mode.
+     */
+    private void updateAllRobotsPhysics(double dt) {
+        RobotState[] allRobots = robotManager.getAllRobots();
+        InputState[] allInputs = robotManager.getAllInputs();
+
+        // Update each robot's physics
+        for (int i = 0; i < allRobots.length; i++) {
+            RobotState robot = allRobots[i];
+            InputState robotInput = allInputs[i];
+
+            // Update swerve drive
+            SwervePhysics.update(robot, robotInput, dt);
+
+            // Check collisions with field elements
+            CollisionPhysics.checkAndResolveCollisions(robot);
+
+            // Update bump physics
+            BumpPhysics.update(robot, dt);
+
+            // Check trench traversal
+            if (!TrenchPhysics.update(robot, dt)) {
+                double[] pushOut = TrenchPhysics.getPushOutVector(robot.x, robot.y);
+                if (pushOut != null) {
+                    robot.x += pushOut[0];
+                    robot.y += pushOut[1];
+                    robot.vx = 0;
+                    robot.vy = 0;
+                }
+            }
+
+            // Update shooter physics
+            Fuel launchedFuel = ShooterPhysics.update(robot, robotInput, fuelState, matchState, dt);
+            if (launchedFuel != null && robot.isPlayerControlled) {
+                log("FUEL launched at " + String.format("%.1f m/s, %.0f°",
+                    robot.shooterVelocity, robot.shooterAngle));
+            }
+
+            // Update intake physics
+            if (IntakePhysics.update(robot, robotInput, fuelState, dt)) {
+                if (robot.isPlayerControlled) {
+                    log("FUEL collected! (" + robot.fuelCount + "/" + Constants.Intake.MAX_CAPACITY + ")");
+                }
+            }
+
+            // Update climber/tower physics
+            TowerPhysics.update(robot, robotInput, matchState, dt);
+
+            // Check robot collision with FUEL
+            for (Fuel fuel : fuelState.getFieldFuel()) {
+                FuelPhysics.checkRobotCollision(fuel, robot);
+            }
+        }
+
+        // Resolve robot-robot collisions
+        robotManager.resolveRobotCollisions();
+
+        // Update FUEL physics (all balls on field and in flight)
+        FuelPhysics.update(fuelState, matchState, dt);
+
+        // Update outpost physics (HP controls) - only player can control
+        OutpostPhysics.update(fuelState, matchState, input, dt);
+    }
+
+    /**
      * Process toggle button inputs.
      */
     private void processToggles() {
@@ -230,7 +330,11 @@ public class SimulationEngine {
         }
 
         if (input.resetRobot) {
-            state.reset();
+            if (multiRobotEnabled) {
+                robotManager.reset();
+            } else {
+                state.reset();
+            }
             matchState.reset();
             fuelState.reset();
             autoController.reset();
@@ -530,5 +634,38 @@ public class SimulationEngine {
      */
     public String getAutoModeName() {
         return autoController.getSelectedModeName();
+    }
+
+    /**
+     * Get the multi-robot manager.
+     */
+    public MultiRobotManager getRobotManager() {
+        return robotManager;
+    }
+
+    /**
+     * Check if multi-robot mode is enabled.
+     */
+    public boolean isMultiRobotEnabled() {
+        return multiRobotEnabled;
+    }
+
+    /**
+     * Enable or disable multi-robot mode.
+     */
+    public void setMultiRobotEnabled(boolean enabled) {
+        this.multiRobotEnabled = enabled;
+        log("Multi-robot mode: " + (enabled ? "ON (6 robots)" : "OFF (1 robot)"));
+    }
+
+    /**
+     * Get all robot states (for broadcasting).
+     */
+    public RobotState[] getAllRobots() {
+        if (multiRobotEnabled) {
+            return robotManager.getAllRobots();
+        } else {
+            return new RobotState[] { state };
+        }
     }
 }

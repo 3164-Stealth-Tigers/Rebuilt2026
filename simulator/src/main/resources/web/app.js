@@ -11,10 +11,12 @@ const FIELD = {
     LENGTH: 16.5405,  // meters (651.2 inches)
     WIDTH: 8.0696,    // meters (317.7 inches)
     CENTER_X: 16.5405 / 2,
-    CENTER_Y: 8.0696 / 2
+    CENTER_Y: 8.0696 / 2,
+    // Alliance Zone boundary (158.6 inches from wall)
+    ALLIANCE_ZONE_DEPTH: 4.03
 };
 
-// HUB positions
+// HUB positions (centered in Alliance Zone, 4.03m from wall)
 const HUB = {
     SIZE: 1.194,
     RED_X: FIELD.LENGTH - 4.03,
@@ -23,31 +25,55 @@ const HUB = {
     BLUE_Y: FIELD.CENTER_Y
 };
 
-// TOWER positions
+// TOWER positions (at alliance walls, offset in Y)
 const TOWER = {
     LENGTH: 1.251,
     WIDTH: 1.143,
-    RED_X: FIELD.LENGTH - 2.5,
-    RED_Y: FIELD.CENTER_Y + 2.5,
-    BLUE_X: 2.5,
-    BLUE_Y: FIELD.CENTER_Y + 2.5
+    RED_X: FIELD.LENGTH - 0.625,  // Against wall
+    RED_Y: FIELD.CENTER_Y + 2.0,
+    BLUE_X: 0.625,                 // Against wall
+    BLUE_Y: FIELD.CENTER_Y + 2.0
 };
 
-// BUMP positions
+// BUMP positions (flanking HUBs on either side in Y)
+// BUMPs are 1.854m x 1.128m
+const BUMP = {
+    LENGTH: 1.854,
+    WIDTH: 1.128
+};
 const BUMPS = [
-    { x: FIELD.CENTER_X + 3.0, y: FIELD.CENTER_Y + 2.0 },
-    { x: FIELD.CENTER_X + 3.0, y: FIELD.CENTER_Y - 2.0 },
-    { x: FIELD.CENTER_X - 3.0, y: FIELD.CENTER_Y + 2.0 },
-    { x: FIELD.CENTER_X - 3.0, y: FIELD.CENTER_Y - 2.0 }
+    // Red side bumps (flanking red HUB)
+    { x: HUB.RED_X, y: HUB.RED_Y + HUB.SIZE/2 + BUMP.WIDTH/2 + 0.3, alliance: 'red' },
+    { x: HUB.RED_X, y: HUB.RED_Y - HUB.SIZE/2 - BUMP.WIDTH/2 - 0.3, alliance: 'red' },
+    // Blue side bumps (flanking blue HUB)
+    { x: HUB.BLUE_X, y: HUB.BLUE_Y + HUB.SIZE/2 + BUMP.WIDTH/2 + 0.3, alliance: 'blue' },
+    { x: HUB.BLUE_X, y: HUB.BLUE_Y - HUB.SIZE/2 - BUMP.WIDTH/2 - 0.3, alliance: 'blue' }
 ];
 
-// TRENCH positions
+// TRENCH positions (at field edges near guardrails)
+// TRENCHes are 1.668m x 1.194m
+const TRENCH = {
+    LENGTH: 1.668,
+    WIDTH: 1.194
+};
 const TRENCHES = [
-    { x: FIELD.CENTER_X + 4.5, y: FIELD.CENTER_Y + 3.0 },
-    { x: FIELD.CENTER_X + 4.5, y: FIELD.CENTER_Y - 3.0 },
-    { x: FIELD.CENTER_X - 4.5, y: FIELD.CENTER_Y + 3.0 },
-    { x: FIELD.CENTER_X - 4.5, y: FIELD.CENTER_Y - 3.0 }
+    // Red side trenches (near field edges)
+    { x: HUB.RED_X - 1.5, y: FIELD.WIDTH - TRENCH.WIDTH/2 - 0.1, alliance: 'red' },
+    { x: HUB.RED_X - 1.5, y: TRENCH.WIDTH/2 + 0.1, alliance: 'red' },
+    // Blue side trenches (near field edges)
+    { x: HUB.BLUE_X + 1.5, y: FIELD.WIDTH - TRENCH.WIDTH/2 - 0.1, alliance: 'blue' },
+    { x: HUB.BLUE_X + 1.5, y: TRENCH.WIDTH/2 + 0.1, alliance: 'blue' }
 ];
+
+// DEPOT positions (near alliance walls)
+const DEPOT = {
+    LENGTH: 1.07,
+    WIDTH: 0.686,
+    RED_X: FIELD.LENGTH - 1.0,
+    RED_Y: 1.5,
+    BLUE_X: 1.0,
+    BLUE_Y: 1.5
+};
 
 const ROBOT = {
     LENGTH: 0.9334,  // with bumpers
@@ -373,8 +399,66 @@ function updateUI() {
     document.getElementById('mode-trench').className =
         `mode-indicator ${state.robot.trenchMode ? 'active' : ''}`;
 
+    // Update robot lineup
+    updateRobotLineup();
+
     // Render field
     renderField();
+}
+
+/**
+ * Update the robot lineup panels with auto mode info.
+ */
+function updateRobotLineup() {
+    if (!state || !state.multiRobotEnabled || !state.allRobots) return;
+
+    const blueLineup = document.getElementById('blue-lineup');
+    const redLineup = document.getElementById('red-lineup');
+
+    // Clear existing content
+    blueLineup.innerHTML = '';
+    redLineup.innerHTML = '';
+
+    // Sort robots by alliance
+    const blueRobots = state.allRobots.filter(r => r.alliance === 'BLUE');
+    const redRobots = state.allRobots.filter(r => r.alliance === 'RED');
+
+    // Create lineup cards for blue alliance
+    blueRobots.forEach(robot => {
+        blueLineup.appendChild(createRobotCard(robot, 'blue'));
+    });
+
+    // Create lineup cards for red alliance
+    redRobots.forEach(robot => {
+        redLineup.appendChild(createRobotCard(robot, 'red'));
+    });
+}
+
+/**
+ * Create a robot card for the lineup.
+ */
+function createRobotCard(robot, alliance) {
+    const card = document.createElement('div');
+    card.className = `lineup-robot ${alliance}${robot.isPlayer ? ' player' : ''}`;
+
+    let html = `<span class="team-number">${robot.teamNumber}</span>`;
+
+    if (robot.isPlayer) {
+        html += `<span class="player-badge">YOU</span>`;
+    } else {
+        // Show auto mode name (truncate if too long)
+        const autoMode = robot.autoMode || 'Unknown';
+        html += `<span class="auto-mode" title="${autoMode}">${autoMode}</span>`;
+
+        // Show teleop behavior
+        const behavior = robot.teleopBehavior || '';
+        if (behavior && behavior !== 'PLAYER') {
+            html += `<span class="teleop-behavior">${behavior}</span>`;
+        }
+    }
+
+    card.innerHTML = html;
+    return card;
 }
 
 // ============================================================================
@@ -407,17 +491,49 @@ function renderField() {
     const h = canvas.height;
     const scale = w / FIELD.LENGTH;
 
-    // Clear
-    ctx.fillStyle = '#1a2634';
+    // Clear with neutral zone color
+    ctx.fillStyle = '#2d3a4a';  // Neutral zone (darker)
     ctx.fillRect(0, 0, w, h);
+
+    // Draw Alliance Zones (colored backgrounds)
+    const allianceZoneWidth = FIELD.ALLIANCE_ZONE_DEPTH * scale;
+
+    // Blue Alliance Zone (left side)
+    ctx.fillStyle = 'rgba(52, 152, 219, 0.15)';  // Light blue tint
+    ctx.fillRect(0, 0, allianceZoneWidth, h);
+
+    // Red Alliance Zone (right side)
+    ctx.fillStyle = 'rgba(231, 76, 60, 0.15)';  // Light red tint
+    ctx.fillRect(w - allianceZoneWidth, 0, allianceZoneWidth, h);
+
+    // Neutral Zone (center) - slightly different shade
+    ctx.fillStyle = 'rgba(241, 196, 15, 0.08)';  // Very light yellow/tan
+    ctx.fillRect(allianceZoneWidth, 0, w - 2 * allianceZoneWidth, h);
+
+    // Alliance Zone boundary lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 4]);
+    // Blue zone line
+    ctx.beginPath();
+    ctx.moveTo(allianceZoneWidth, 0);
+    ctx.lineTo(allianceZoneWidth, h);
+    ctx.stroke();
+    // Red zone line
+    ctx.beginPath();
+    ctx.moveTo(w - allianceZoneWidth, 0);
+    ctx.lineTo(w - allianceZoneWidth, h);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
     // Field border
     ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.strokeRect(2, 2, w - 4, h - 4);
 
     // Center line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 2;
     ctx.setLineDash([10, 5]);
     ctx.beginPath();
     ctx.moveTo(w / 2, 0);
@@ -425,23 +541,27 @@ function renderField() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Draw HUBs
-    drawHub(HUB.RED_X * scale, h - HUB.RED_Y * scale, HUB.SIZE * scale, 'red', state.match.redHubActive);
-    drawHub(HUB.BLUE_X * scale, h - HUB.BLUE_Y * scale, HUB.SIZE * scale, 'blue', state.match.blueHubActive);
+    // Draw TRENCHes (under other elements)
+    TRENCHES.forEach(trench => {
+        drawTrench(trench.x * scale, h - trench.y * scale, TRENCH.LENGTH * scale, TRENCH.WIDTH * scale, trench.alliance);
+    });
+
+    // Draw BUMPs
+    BUMPS.forEach(bump => {
+        drawBump(bump.x * scale, h - bump.y * scale, BUMP.LENGTH * scale, BUMP.WIDTH * scale, bump.alliance);
+    });
 
     // Draw TOWERs
     drawTower(TOWER.RED_X * scale, h - TOWER.RED_Y * scale, TOWER.LENGTH * scale, TOWER.WIDTH * scale, 'red');
     drawTower(TOWER.BLUE_X * scale, h - TOWER.BLUE_Y * scale, TOWER.LENGTH * scale, TOWER.WIDTH * scale, 'blue');
 
-    // Draw BUMPs
-    BUMPS.forEach(bump => {
-        drawBump(bump.x * scale, h - bump.y * scale, 1.854 * scale, 1.128 * scale);
-    });
+    // Draw HUBs
+    drawHub(HUB.RED_X * scale, h - HUB.RED_Y * scale, HUB.SIZE * scale, 'red', state.match.redHubActive);
+    drawHub(HUB.BLUE_X * scale, h - HUB.BLUE_Y * scale, HUB.SIZE * scale, 'blue', state.match.blueHubActive);
 
-    // Draw TRENCHes
-    TRENCHES.forEach(trench => {
-        drawTrench(trench.x * scale, h - trench.y * scale, 1.668 * scale, 1.194 * scale);
-    });
+    // Draw DEPOTs
+    drawDepot(DEPOT.RED_X * scale, h - DEPOT.RED_Y * scale, DEPOT.LENGTH * scale, DEPOT.WIDTH * scale, 'red');
+    drawDepot(DEPOT.BLUE_X * scale, h - DEPOT.BLUE_Y * scale, DEPOT.LENGTH * scale, DEPOT.WIDTH * scale, 'blue');
 
     // Draw FUEL on field
     if (state.fuel && state.fuel.field) {
@@ -457,21 +577,35 @@ function renderField() {
         });
     }
 
-    // Draw robot
-    drawRobot(
-        state.robot.x * scale,
-        h - state.robot.y * scale,
-        -state.robot.heading * Math.PI / 180,
-        scale
-    );
+    // Draw all robots
+    if (state.multiRobotEnabled && state.allRobots) {
+        // Draw all robots in multi-robot mode
+        state.allRobots.forEach(robot => {
+            drawMultiRobot(
+                robot.x * scale,
+                h - robot.y * scale,
+                -robot.heading * Math.PI / 180,
+                scale,
+                robot
+            );
+        });
+    } else {
+        // Single robot mode - draw player's robot
+        drawRobot(
+            state.robot.x * scale,
+            h - state.robot.y * scale,
+            -state.robot.heading * Math.PI / 180,
+            scale
+        );
 
-    // Draw swerve modules
-    drawSwerveModules(
-        state.robot.x * scale,
-        h - state.robot.y * scale,
-        -state.robot.heading * Math.PI / 180,
-        scale
-    );
+        // Draw swerve modules for player
+        drawSwerveModules(
+            state.robot.x * scale,
+            h - state.robot.y * scale,
+            -state.robot.heading * Math.PI / 180,
+            scale
+        );
+    }
 }
 
 function drawHub(x, y, size, alliance, isActive) {
@@ -524,24 +658,39 @@ function drawTower(x, y, length, width, alliance) {
     ctx.fillText('TOWER', x, y);
 }
 
-function drawBump(x, y, length, width) {
+function drawBump(x, y, length, width, alliance) {
     const halfL = length / 2;
     const halfW = width / 2;
 
-    ctx.fillStyle = 'rgba(255, 200, 100, 0.4)';
-    ctx.strokeStyle = '#ffc864';
+    // Color based on alliance zone
+    const fillColor = alliance === 'red' ? 'rgba(255, 180, 100, 0.5)' : 'rgba(100, 180, 255, 0.5)';
+    const strokeColor = alliance === 'red' ? '#ffa500' : '#5dade2';
+
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 2;
 
     ctx.fillRect(x - halfL, y - halfW, length, width);
     ctx.strokeRect(x - halfL, y - halfW, length, width);
+
+    // Label
+    ctx.fillStyle = '#fff';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('BUMP', x, y);
 }
 
-function drawTrench(x, y, length, width) {
+function drawTrench(x, y, length, width, alliance) {
     const halfL = length / 2;
     const halfW = width / 2;
 
-    ctx.fillStyle = 'rgba(100, 100, 100, 0.4)';
-    ctx.strokeStyle = '#888';
+    // Darker color to show it's a structure to drive under
+    const fillColor = alliance === 'red' ? 'rgba(139, 69, 19, 0.6)' : 'rgba(70, 130, 180, 0.6)';
+    const strokeColor = alliance === 'red' ? '#8b4513' : '#4682b4';
+
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 3]);
 
@@ -549,6 +698,35 @@ function drawTrench(x, y, length, width) {
     ctx.strokeRect(x - halfL, y - halfW, length, width);
 
     ctx.setLineDash([]);
+
+    // Label
+    ctx.fillStyle = '#fff';
+    ctx.font = '8px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TRENCH', x, y);
+}
+
+function drawDepot(x, y, length, width, alliance) {
+    const halfL = length / 2;
+    const halfW = width / 2;
+
+    const fillColor = alliance === 'red' ? 'rgba(231, 76, 60, 0.4)' : 'rgba(52, 152, 219, 0.4)';
+    const strokeColor = alliance === 'red' ? '#e74c3c' : '#3498db';
+
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2;
+
+    ctx.fillRect(x - halfL, y - halfW, length, width);
+    ctx.strokeRect(x - halfL, y - halfW, length, width);
+
+    // Label
+    ctx.fillStyle = '#fff';
+    ctx.font = '8px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DEPOT', x, y);
 }
 
 function drawFuel(x, y, radius, isMoving) {
@@ -601,6 +779,81 @@ function drawRobot(x, y, heading, scale) {
         ctx.fillStyle = '#f77f00';
         ctx.font = 'bold 10px sans-serif';
         ctx.fillText(`${state.shooter.fuelCount}`, 0, 12);
+    }
+
+    ctx.restore();
+}
+
+/**
+ * Draw a robot in multi-robot mode with team number and status.
+ */
+function drawMultiRobot(x, y, heading, scale, robotData) {
+    const robotW = ROBOT.WIDTH * scale;
+    const robotH = ROBOT.LENGTH * scale;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(heading);
+
+    // Robot body color based on alliance
+    let fillColor;
+    let strokeColor;
+
+    if (robotData.alliance === 'RED') {
+        fillColor = robotData.isPlayer ? '#ff6b6b' : '#c0392b';
+        strokeColor = robotData.isPlayer ? '#fff' : '#e74c3c';
+    } else {
+        fillColor = robotData.isPlayer ? '#5dade2' : '#2980b9';
+        strokeColor = robotData.isPlayer ? '#fff' : '#3498db';
+    }
+
+    // Draw robot body
+    ctx.fillStyle = fillColor;
+    ctx.fillRect(-robotW / 2, -robotH / 2, robotW, robotH);
+
+    // Robot outline (thicker for player)
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = robotData.isPlayer ? 3 : 2;
+    ctx.strokeRect(-robotW / 2, -robotH / 2, robotW, robotH);
+
+    // Player indicator glow
+    if (robotData.isPlayer) {
+        ctx.shadowColor = '#fff';
+        ctx.shadowBlur = 10;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-robotW / 2 - 2, -robotH / 2 - 2, robotW + 4, robotH + 4);
+        ctx.shadowBlur = 0;
+    }
+
+    // Direction arrow
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.moveTo(0, -robotH / 2 - 4);
+    ctx.lineTo(-6, -robotH / 2 + 8);
+    ctx.lineTo(6, -robotH / 2 + 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Team number
+    ctx.fillStyle = '#fff';
+    ctx.font = robotData.isPlayer ? 'bold 11px sans-serif' : '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(robotData.teamNumber.toString(), 0, -2);
+
+    // FUEL count indicator
+    if (robotData.fuelCount > 0) {
+        ctx.fillStyle = '#f77f00';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.fillText(`${robotData.fuelCount}`, 0, 10);
+    }
+
+    // Climbing indicator
+    if (robotData.isClimbing || robotData.climbComplete) {
+        ctx.fillStyle = robotData.climbComplete ? '#2ecc71' : '#f39c12';
+        ctx.font = 'bold 8px sans-serif';
+        ctx.fillText(`L${robotData.climbLevel}`, 0, robotH / 2 + 10);
     }
 
     ctx.restore();
