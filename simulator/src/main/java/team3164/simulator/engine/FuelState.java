@@ -138,46 +138,72 @@ public class FuelState {
 
     /**
      * Create initial FUEL distribution on field.
-     * Based on typical FRC game field setup with:
-     * - Neutral zone FUEL (center of field)
+     * Based on REBUILT 2026 game manual section 6.3.4.1:
+     * - Neutral zone FUEL in dense rectangular grid (206in x 72in bounding box)
      * - Alliance depot FUEL (near each alliance wall)
-     * - Near-hub FUEL (for quick scoring)
      */
     private void initializeFieldFuel() {
         // ====================================================================
-        // NEUTRAL ZONE FUEL (center of field - contested area)
-        // Two rows of FUEL across the neutral zone
+        // NEUTRAL ZONE FUEL (Game Manual Section 6.3.4.1)
+        // Bounding box: 206.0in (5.23m) wide x 72.0in (1.83m) deep
+        // Solid divider in middle: 2.0in (0.0508m) wide
+        // FUEL arranged in dense grid pattern
         // ====================================================================
         double centerX = Constants.Field.CENTER_X;
         double centerY = Constants.Field.CENTER_Y;
 
-        // Center line FUEL - 5 balls spread across center
-        double[] centerYPositions = {
-            centerY - 2.5,
-            centerY - 1.25,
-            centerY,
-            centerY + 1.25,
-            centerY + 2.5
-        };
-        for (double y : centerYPositions) {
-            Fuel fuel = createFuel();
-            fuel.location = FuelLocation.ON_FIELD;
-            fuel.x = centerX + (Math.random() - 0.5) * 0.3;  // Slight randomness
-            fuel.y = y + (Math.random() - 0.5) * 0.3;
-            fuel.z = Constants.Fuel.RADIUS;
-            fieldFuel.add(fuel);
+        // Neutral zone dimensions from game manual
+        final double NEUTRAL_BOX_WIDTH = 5.23;   // 206.0 inches in meters (Y direction)
+        final double NEUTRAL_BOX_DEPTH = 1.83;   // 72.0 inches in meters (X direction)
+        final double DIVIDER_WIDTH = 0.0508;     // 2.0 inches in meters
+
+        // FUEL spacing (touching, with slight gap for realism)
+        final double FUEL_SPACING = Constants.Fuel.DIAMETER * 1.05;  // ~0.1575m
+
+        // Calculate grid dimensions
+        // Y direction (width): split by divider
+        double halfWidth = (NEUTRAL_BOX_WIDTH - DIVIDER_WIDTH) / 2.0;
+        int fuelPerSideY = (int) Math.floor(halfWidth / FUEL_SPACING);
+
+        // X direction (depth): full depth
+        int fuelCountX = (int) Math.floor(NEUTRAL_BOX_DEPTH / FUEL_SPACING);
+
+        // Starting positions (centered on field center)
+        double startX = centerX - (NEUTRAL_BOX_DEPTH / 2.0) + (FUEL_SPACING / 2.0);
+
+        // Create FUEL grid - LEFT side of divider (negative Y offset)
+        double leftStartY = centerY - (DIVIDER_WIDTH / 2.0) - (FUEL_SPACING / 2.0);
+        for (int row = 0; row < fuelCountX; row++) {
+            double x = startX + row * FUEL_SPACING;
+            for (int col = 0; col < fuelPerSideY; col++) {
+                double y = leftStartY - col * FUEL_SPACING;
+                // Keep within field bounds
+                if (y > 0.5 && y < Constants.Field.WIDTH - 0.5) {
+                    Fuel fuel = createFuel();
+                    fuel.location = FuelLocation.ON_FIELD;
+                    fuel.x = x;
+                    fuel.y = y;
+                    fuel.z = Constants.Fuel.RADIUS;
+                    fieldFuel.add(fuel);
+                }
+            }
         }
 
-        // Additional neutral zone FUEL (offset from center)
-        double[] offsetX = {-2.0, 2.0};  // 2 meters on each side of center
-        for (double ox : offsetX) {
-            for (int i = 0; i < 3; i++) {
-                Fuel fuel = createFuel();
-                fuel.location = FuelLocation.ON_FIELD;
-                fuel.x = centerX + ox + (Math.random() - 0.5) * 0.5;
-                fuel.y = centerY + (i - 1) * 2.0 + (Math.random() - 0.5) * 0.5;
-                fuel.z = Constants.Fuel.RADIUS;
-                fieldFuel.add(fuel);
+        // Create FUEL grid - RIGHT side of divider (positive Y offset)
+        double rightStartY = centerY + (DIVIDER_WIDTH / 2.0) + (FUEL_SPACING / 2.0);
+        for (int row = 0; row < fuelCountX; row++) {
+            double x = startX + row * FUEL_SPACING;
+            for (int col = 0; col < fuelPerSideY; col++) {
+                double y = rightStartY + col * FUEL_SPACING;
+                // Keep within field bounds
+                if (y > 0.5 && y < Constants.Field.WIDTH - 0.5) {
+                    Fuel fuel = createFuel();
+                    fuel.location = FuelLocation.ON_FIELD;
+                    fuel.x = x;
+                    fuel.y = y;
+                    fuel.z = Constants.Fuel.RADIUS;
+                    fieldFuel.add(fuel);
+                }
             }
         }
 
@@ -206,58 +232,6 @@ public class FuelState {
             fuel.y = Constants.Field.BLUE_DEPOT_Y + (Math.random() - 0.5) * Constants.Field.DEPOT_WIDTH * 0.8;
             fuel.z = Constants.Fuel.RADIUS;
             blueDepotFuel.add(fuel);
-        }
-
-        // ====================================================================
-        // NEAR-HUB FUEL (quick scoring opportunities)
-        // FUEL scattered in the alliance zones near each hub
-        // ====================================================================
-
-        // Near RED HUB (in red alliance zone)
-        for (int i = 0; i < 4; i++) {
-            Fuel fuel = createFuel();
-            fuel.location = FuelLocation.ON_FIELD;
-            // Place in arc around hub, offset toward field center
-            double angle = Math.PI + (Math.random() - 0.5) * Math.PI * 0.6;
-            double dist = 2.0 + Math.random() * 1.5;
-            fuel.x = Constants.Field.RED_HUB_X + Math.cos(angle) * dist;
-            fuel.y = Constants.Field.RED_HUB_Y + Math.sin(angle) * dist;
-            fuel.z = Constants.Fuel.RADIUS;
-            // Keep in bounds
-            fuel.x = Math.min(fuel.x, Constants.Field.LENGTH - 1.0);
-            fuel.y = Math.max(1.0, Math.min(fuel.y, Constants.Field.WIDTH - 1.0));
-            fieldFuel.add(fuel);
-        }
-
-        // Near BLUE HUB (in blue alliance zone)
-        for (int i = 0; i < 4; i++) {
-            Fuel fuel = createFuel();
-            fuel.location = FuelLocation.ON_FIELD;
-            // Place in arc around hub, offset toward field center
-            double angle = (Math.random() - 0.5) * Math.PI * 0.6;
-            double dist = 2.0 + Math.random() * 1.5;
-            fuel.x = Constants.Field.BLUE_HUB_X + Math.cos(angle) * dist;
-            fuel.y = Constants.Field.BLUE_HUB_Y + Math.sin(angle) * dist;
-            fuel.z = Constants.Fuel.RADIUS;
-            // Keep in bounds
-            fuel.x = Math.max(1.0, fuel.x);
-            fuel.y = Math.max(1.0, Math.min(fuel.y, Constants.Field.WIDTH - 1.0));
-            fieldFuel.add(fuel);
-        }
-
-        // ====================================================================
-        // WING FUEL (along field edges in neutral zone)
-        // ====================================================================
-        double[] wingY = {1.5, Constants.Field.WIDTH - 1.5};  // Near top and bottom edges
-        for (double wy : wingY) {
-            for (int i = 0; i < 3; i++) {
-                Fuel fuel = createFuel();
-                fuel.location = FuelLocation.ON_FIELD;
-                fuel.x = centerX + (i - 1) * 2.5 + (Math.random() - 0.5) * 0.3;
-                fuel.y = wy + (Math.random() - 0.5) * 0.5;
-                fuel.z = Constants.Fuel.RADIUS;
-                fieldFuel.add(fuel);
-            }
         }
     }
 

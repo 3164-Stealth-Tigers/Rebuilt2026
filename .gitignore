@@ -11,5 +11,6 @@ deploy/
 docs/.DS_Store
 .DS_Store
 simulator/.gradle/
+simulator/.gradle*
 simulator/tmp/
 build/tmp/
