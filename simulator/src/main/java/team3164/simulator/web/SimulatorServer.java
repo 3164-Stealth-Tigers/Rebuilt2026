@@ -446,10 +446,25 @@ public class SimulatorServer {
                     engine.startMatch();
                     break;
                 case "setAutoMode":
-                    // Set the autonomous mode (0-3)
+                    // Set the autonomous mode (0-3) for player
                     if (json.has("mode")) {
                         int mode = json.get("mode").getAsInt();
                         engine.setAutoMode(mode);
+                    }
+                    break;
+                case "setAIAutoMode":
+                    // Set the autonomous mode for an AI robot
+                    if (json.has("robotId") && json.has("mode")) {
+                        int robotId = json.get("robotId").getAsInt();
+                        int mode = json.get("mode").getAsInt();
+                        MultiRobotManager robotManager = engine.getRobotManager();
+                        if (robotManager != null) {
+                            AIRobotController aiController = robotManager.getAIController(robotId);
+                            if (aiController != null) {
+                                aiController.setAutoMode(mode);
+                                System.out.println("[AI] Robot " + robotId + " auto mode set to: " + aiController.getAutoModeName());
+                            }
+                        }
                     }
                     break;
                 case "addFuel":

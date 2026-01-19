@@ -4,14 +4,16 @@ This document describes the autonomous modes available for competition and how t
 
 ## DIP Switch Configuration
 
-The robot uses a **2-bit DIP switch** connected to the roboRIO's Digital Input/Output (DIO) ports to select between 4 autonomous modes.
+The robot uses a **4-bit DIP switch** connected to the roboRIO's Digital Input/Output (DIO) ports to select between 10 autonomous modes (expandable to 16).
 
 ### Hardware Setup
 
 | DIP Switch | DIO Port | Function |
 |------------|----------|----------|
 | Bit 0 (SW1) | DIO 1 | Least Significant Bit (LSB) |
-| Bit 1 (SW2) | DIO 2 | Most Significant Bit (MSB) |
+| Bit 1 (SW2) | DIO 2 | |
+| Bit 2 (SW3) | DIO 3 | |
+| Bit 3 (SW4) | DIO 4 | Most Significant Bit (MSB) |
 
 ### Wiring
 
@@ -22,19 +24,25 @@ The robot uses a **2-bit DIP switch** connected to the roboRIO's Digital Input/O
 
 ### Switch Positions
 
-| Bit 1 (SW2) | Bit 0 (SW1) | Binary | Selection | Auto Mode |
-|:-----------:|:-----------:|:------:|:---------:|-----------|
-| OFF | OFF | 00 | 0 | Do Nothing |
-| OFF | ON | 01 | 1 | Score & Collect |
-| ON | OFF | 10 | 2 | Quick Climb |
-| ON | ON | 11 | 3 | Score Then Climb |
+| SW4 | SW3 | SW2 | SW1 | Binary | Selection | Auto Mode |
+|:---:|:---:|:---:|:---:|:------:|:---------:|-----------|
+| OFF | OFF | OFF | OFF | 0000 | 0 | Do Nothing |
+| OFF | OFF | OFF | ON | 0001 | 1 | Score & Collect |
+| OFF | OFF | ON | OFF | 0010 | 2 | Quick Climb |
+| OFF | OFF | ON | ON | 0011 | 3 | Score Then Climb |
+| OFF | ON | OFF | OFF | 0100 | 4 | Depot Raid |
+| OFF | ON | OFF | ON | 0101 | 5 | Far Neutral |
+| OFF | ON | ON | OFF | 0110 | 6 | Preload Only |
+| OFF | ON | ON | ON | 0111 | 7 | Max Cycles |
+| ON | OFF | OFF | OFF | 1000 | 8 | Climb Support |
+| ON | OFF | OFF | ON | 1001 | 9 | Win AUTO |
 
 ---
 
 ## Autonomous Modes
 
 ### Mode 0: Do Nothing (Safety Default)
-**DIP Switch: OFF-OFF (00)**
+**DIP Switch: 0000**
 
 The robot does nothing during autonomous. Use this when:
 - Testing other robot systems
@@ -47,7 +55,7 @@ The robot does nothing during autonomous. Use this when:
 ---
 
 ### Mode 1: Score & Collect (Offensive)
-**DIP Switch: OFF-ON (01)**
+**DIP Switch: 0001**
 
 **Goal:** Maximize FUEL scored to win the AUTO phase and control hub shift timing.
 
@@ -73,7 +81,7 @@ The robot does nothing during autonomous. Use this when:
 ---
 
 ### Mode 2: Quick Climb (Defensive/Guaranteed)
-**DIP Switch: ON-OFF (10)**
+**DIP Switch: 0010**
 
 **Goal:** Secure guaranteed 15 points by climbing to LEVEL 1.
 
@@ -104,7 +112,7 @@ The robot does nothing during autonomous. Use this when:
 ---
 
 ### Mode 3: Score Then Climb (Maximum Points)
-**DIP Switch: ON-ON (11)**
+**DIP Switch: 0011**
 
 **Goal:** Maximize total AUTO points by scoring FUEL AND climbing.
 
@@ -127,6 +135,169 @@ The robot does nothing during autonomous. Use this when:
 - Both shooter and climber are reliable
 - Going for maximum single-robot AUTO contribution
 - High-stakes match where every point matters
+
+---
+
+### Mode 4: Depot Raid (Protected FUEL Collection)
+**DIP Switch: 0100**
+
+**Goal:** Collect FUEL from the safer alliance depot area, then score.
+
+#### Sequence
+| Phase | Action | Time |
+|-------|--------|------|
+| 1 | Drive to alliance depot | ~4 sec |
+| 2 | Collect FUEL from depot | ~5 sec |
+| 3 | Drive to scoring position | ~4 sec |
+| 4 | Score collected FUEL | ~7 sec |
+
+**Expected Points:** 4-8 points from FUEL
+
+**Risk Level:** Low-Medium
+- FUEL in depot is less contested
+- Longer path means less time for scoring
+
+**Best When:**
+- Neutral zone will be congested
+- Alliance partners are grabbing neutral FUEL
+- You want reliable FUEL collection without defense
+
+---
+
+### Mode 5: Far Neutral (Territory Control)
+**DIP Switch: 0101**
+
+**Goal:** Drive to the far side of the neutral zone to collect FUEL and deny opponents.
+
+#### Sequence
+| Phase | Action | Time |
+|-------|--------|------|
+| 1 | Drive to far neutral zone | ~5 sec |
+| 2 | Intake FUEL while traversing | ~4 sec |
+| 3 | Return toward hub | ~4 sec |
+| 4 | Score collected FUEL | ~7 sec |
+
+**Expected Points:** 4-10 points from FUEL
+
+**Risk Level:** Medium-High
+- Long travel distance
+- Risk of collision with opponents
+- Time-critical
+
+**Best When:**
+- Alliance partners are handling near-side neutral
+- You want to control more of the field
+- Opponents are slow or passive
+
+---
+
+### Mode 6: Preload Only (Safe Scoring)
+**DIP Switch: 0110**
+
+**Goal:** Shoot only the preloaded FUEL, then hold position.
+
+#### Sequence
+| Phase | Action | Time |
+|-------|--------|------|
+| 1 | Shoot all preloaded FUEL | ~6-8 sec |
+| 2 | Hold position | remaining |
+
+**Expected Points:** 3-8 points from FUEL
+
+**Risk Level:** Very Low
+- No driving during AUTO
+- Predictable and reliable
+- No collision risk
+
+**Best When:**
+- Drivetrain issues
+- Uncertain field obstacles
+- Testing shooter in competition
+- Alliance partners need you to stay out of the way
+
+---
+
+### Mode 7: Max Cycles (Pure Scoring)
+**DIP Switch: 0111**
+
+**Goal:** Continuous shoot-collect-shoot cycles to maximize FUEL scored.
+
+#### Sequence
+| Phase | Action | Time |
+|-------|--------|------|
+| 1 | Score preloaded FUEL | ~4 sec |
+| 2 | Drive to neutral zone | ~3 sec |
+| 3 | Quick intake | ~4 sec |
+| 4 | Score collected FUEL | ~4 sec |
+| 5 | Repeat if time allows | - |
+
+**Expected Points:** 10-15+ points from FUEL
+
+**Risk Level:** High
+- Time pressure on every phase
+- No climbing points
+- Depends on shooter AND intake
+
+**Best When:**
+- Robot is fast and well-tuned
+- Prioritizing FUEL RPs (100+ for ENERGIZED RP)
+- Alliance partners are handling climbing
+- Going all-in on winning AUTO
+
+---
+
+### Mode 8: Climb Support (Teleop Setup)
+**DIP Switch: 1000**
+
+**Goal:** Position near the tower for easy teleop climbing without blocking allies.
+
+#### Sequence
+| Phase | Action | Time |
+|-------|--------|------|
+| 1 | Drive to position near tower | ~6 sec |
+| 2 | Hold position | remaining |
+
+**Expected Points:** 0 (during AUTO)
+
+**Risk Level:** Very Low
+- No shooting
+- Minimal movement
+- Strategic positioning
+
+**Best When:**
+- Climber is unreliable in AUTO but works in TELEOP
+- Alliance partner is already climbing in AUTO
+- You want to be ready for immediate TELEOP climb
+- Prioritizing TRAVERSAL RP
+
+---
+
+### Mode 9: Win AUTO (Aggressive Scoring)
+**DIP Switch: 1001**
+
+**Goal:** Score as much FUEL as possible as fast as possible to win the AUTO period.
+
+#### Sequence
+| Phase | Action | Time |
+|-------|--------|------|
+| 1 | Rapid-fire scoring | ~5 sec |
+| 2 | Fast drive while intaking | ~5 sec |
+| 3 | Quick intake | ~3 sec |
+| 4 | Rapid-fire again | ~5 sec |
+| 5 | Continue if time allows | - |
+
+**Expected Points:** 8-16+ points from FUEL
+
+**Risk Level:** Very High
+- Maximum speed on all actions
+- No time for corrections
+- Depends on flawless execution
+
+**Best When:**
+- Robot is perfectly tuned
+- Driver/auto has been extensively practiced
+- Winning AUTO is critical for strategy
+- Willing to accept higher failure risk
 
 ---
 
@@ -155,6 +326,19 @@ For reference, here are the RP thresholds:
 - **SUPERCHARGED RP:** 360+ FUEL scored
 - **TRAVERSAL RP:** 50+ TOWER points
 
+### Mode Selection Matrix
+
+| Situation | Recommended Modes |
+|-----------|-------------------|
+| Shooter reliable, climber unreliable | Mode 1, 7, or 9 |
+| Climber reliable, shooter unreliable | Mode 2 |
+| Both systems reliable | Mode 3 |
+| Testing in early quals | Mode 0 or 6 |
+| Partner already climbing in AUTO | Mode 1, 7, or 9 |
+| Contested neutral zone | Mode 4 |
+| Positioning for teleop climb | Mode 8 |
+| Critical match, need max points | Mode 3 or 9 |
+
 ---
 
 ## Pre-Match Checklist
@@ -173,11 +357,13 @@ The following values are displayed on SmartDashboard:
 
 | Key | Description |
 |-----|-------------|
-| `Auto/DIP Switch Value` | Current switch position (0-3) |
+| `Auto/DIP Switch Value` | Current switch position (0-9) |
 | `Auto/Selected Mode` | Name of selected auto mode |
 | `Auto/Selection Locked` | True when auto is running |
 | `Auto/DIP Bit 0 (LSB)` | State of switch 1 |
-| `Auto/DIP Bit 1 (MSB)` | State of switch 2 |
+| `Auto/DIP Bit 1` | State of switch 2 |
+| `Auto/DIP Bit 2` | State of switch 3 |
+| `Auto/DIP Bit 3 (MSB)` | State of switch 4 |
 | `Auto/Using DIP Switch` | True if DIP switch is enabled |
 
 ---
@@ -207,3 +393,4 @@ The following values are displayed on SmartDashboard:
 - DIP Switch Reader: `util/DipSwitchSelector.java`
 - Auto Routines: `auto/AutoRoutines.java`
 - Selection Logic: `RobotContainer.java` → `getAutonomousCommand()`
+- Simulator Controller: `simulator/engine/AutonomousController.java`
