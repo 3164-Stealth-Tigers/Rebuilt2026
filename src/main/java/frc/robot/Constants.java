@@ -34,7 +34,7 @@ public final class Constants {
         public static final double MIN_TAG_COUNT = 1; // (placeholder TODO)
         public static final double MIN_AREA = 1.0; // meters squared (placeholder TODO)
         public static final double MAX_POSE_DIFFERENCE = 1000.0; // meters (placeholder TODO)
-        
+
         /**
          * Camera positions relative to robot center.
          * Transform3d(x, y, z, rotation)

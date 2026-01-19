@@ -9,7 +9,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.swerve.SwerveDrive;
 
@@ -70,7 +69,7 @@ public class Shooter extends SubsystemBase {
      */
     @SuppressWarnings("unlikely-arg-type")
     private void UpdateHubLocation() {
-        hub[1] = Constants.ShooterConstants.UNIV_Y;
+        hub[1] = ShooterConstants.UNIV_Y;
 
         hub[0] = ((DriverStation.getAlliance().equals(Alliance.Blue)) ? ShooterConstants.BLUE_X // Hub X if on Blue
                 : ((DriverStation.getAlliance().equals(Alliance.Red)) ? ShooterConstants.RED_X // Hub X if on Red
@@ -190,10 +189,10 @@ public class Shooter extends SubsystemBase {
         heading = pose.getRotation().toRotation2d();
 
         double dx = dx_proxy.get();
-        double dy = Constants.ShooterConstants.HUB_RIM_HEIGHT
-                - (z + Constants.ShooterConstants.Z_OFFSET);
-        double g = Constants.ShooterConstants.G_ACCEL; // acceleration due to gravity in meters per second squared
-        double theta = Math.toRadians(Constants.ShooterConstants.LAUNCH_ANGLE);
+        double dy = ShooterConstants.HUB_RIM_HEIGHT
+                - (z + ShooterConstants.Z_OFFSET);
+        double g = ShooterConstants.G_ACCEL; // acceleration due to gravity in meters per second squared
+        double theta = Math.toRadians(ShooterConstants.LAUNCH_ANGLE);
 
         return dx / Math.cos(theta)
                 * Math.sqrt(g / 2
@@ -210,7 +209,8 @@ public class Shooter extends SubsystemBase {
         if (getVelocity() == 0) {
             return;
         }
-        while (Math.abs(robotToHub()) > Constants.ShooterConstants.ANGLE_TOLERANCE) {
+
+        while (Math.abs(robotToHub()) > ShooterConstants.ANGLE_TOLERANCE) {
             if (robotToHub() > 0) {
                 // rotate shooter clockwise??
             } else {
