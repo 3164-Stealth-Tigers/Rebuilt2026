@@ -30,8 +30,14 @@ public class AutonomousController {
     public static final int AUTO_MAX_CYCLES = 7;
     public static final int AUTO_CLIMB_SUPPORT = 8;
     public static final int AUTO_WIN_AUTO = 9;
+    // NEW OPTIMIZED MODES
+    public static final int AUTO_SCORE_COLLECT_CLIMB = 10;  // Score preload, collect, score, climb
+    public static final int AUTO_FAST_CLIMB = 11;           // Fastest climb (no scoring)
+    public static final int AUTO_BALANCED = 12;             // Balance FUEL + climb timing
+    public static final int AUTO_DEPOT_CLIMB = 13;          // Depot collection then climb
+    public static final int AUTO_MAX_POINTS = 14;           // Maximize total points
 
-    public static final int NUM_AUTO_MODES = 10;
+    public static final int NUM_AUTO_MODES = 15;
 
     // Auto mode names
     public static final String[] AUTO_MODE_NAMES = {
@@ -44,7 +50,12 @@ public class AutonomousController {
         "6: Preload Only",
         "7: Max Cycles",
         "8: Climb Support",
-        "9: Win AUTO"
+        "9: Win AUTO",
+        "10: Score+Collect+Climb",
+        "11: Fast Climb",
+        "12: Balanced",
+        "13: Depot+Climb",
+        "14: Max Points"
     };
 
     // Selected auto mode (simulates DIP switch)
@@ -186,6 +197,29 @@ public class AutonomousController {
             case AUTO_WIN_AUTO:
                 currentPhase = AutoPhase.RAPID_SCORING;
                 break;
+            // NEW OPTIMIZED MODES
+            case AUTO_SCORE_COLLECT_CLIMB:
+                currentPhase = AutoPhase.SCORING_PRELOAD;
+                break;
+            case AUTO_FAST_CLIMB:
+                currentPhase = AutoPhase.DRIVING_TO_TOWER;
+                if (state.alliance == MatchState.Alliance.RED) {
+                    targetX = Constants.Field.RED_TOWER_X - 0.5;
+                    targetY = Constants.Field.RED_TOWER_Y;
+                } else {
+                    targetX = Constants.Field.BLUE_TOWER_X + 0.5;
+                    targetY = Constants.Field.BLUE_TOWER_Y;
+                }
+                break;
+            case AUTO_BALANCED:
+                currentPhase = AutoPhase.SCORING_PRELOAD;
+                break;
+            case AUTO_DEPOT_CLIMB:
+                currentPhase = AutoPhase.SCORING_PRELOAD;
+                break;
+            case AUTO_MAX_POINTS:
+                currentPhase = AutoPhase.SCORING_PRELOAD;
+                break;
             case AUTO_DO_NOTHING:
             default:
                 currentPhase = AutoPhase.IDLE;
@@ -235,6 +269,22 @@ public class AutonomousController {
                 break;
             case AUTO_WIN_AUTO:
                 updateWinAuto(state, input, dt);
+                break;
+            // NEW OPTIMIZED MODES
+            case AUTO_SCORE_COLLECT_CLIMB:
+                updateScoreCollectClimb(state, input, dt);
+                break;
+            case AUTO_FAST_CLIMB:
+                updateFastClimb(state, input, dt);
+                break;
+            case AUTO_BALANCED:
+                updateBalanced(state, input, dt);
+                break;
+            case AUTO_DEPOT_CLIMB:
+                updateDepotClimb(state, input, dt);
+                break;
+            case AUTO_MAX_POINTS:
+                updateMaxPoints(state, input, dt);
                 break;
             case AUTO_DO_NOTHING:
             default:
@@ -1049,6 +1099,403 @@ public class AutonomousController {
             case COMPLETE:
             default:
                 break;
+        }
+    }
+
+    // ========================================================================
+    // AUTO MODE 10: Score + Collect + Climb
+    // Strategy: Score preload, quick collect, score, then climb if time permits
+    // Target: 5-6 FUEL + L1 climb = 20-21 points
+    // ========================================================================
+    private void updateScoreCollectClimb(RobotState state, InputState input, double dt) {
+        switch (currentPhase) {
+            case SCORING_PRELOAD:
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                if (state.fuelCount > 0) {
+                    input.spinUp = true;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
+                } else {
+                    // Quick collect phase - only if early enough
+                    if (totalAutoTime < 3.0) {
+                        transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
+                        targetX = Constants.Field.CENTER_X - 2.5;  // Very close target
+                        targetY = Constants.Field.CENTER_Y;
+                    } else {
+                        // Go straight to climb
+                        transitionToPhase(AutoPhase.DRIVING_TO_TOWER);
+                        setTowerTarget(state);
+                    }
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    if (state.fuelCount > 0) {
+                        transitionToPhase(AutoPhase.SCORING_COLLECTED);
+                    } else {
+                        transitionToPhase(AutoPhase.SCORING_PRELOAD);
+                    }
+                }
+                break;
+
+            case DRIVING_TO_NEUTRAL:
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.INTAKING);
+                }
+                break;
+
+            case INTAKING:
+                input.intake = true;
+                input.forward = 0.4;
+                // Quick intake - get 2-3 FUEL and go
+                if (phaseTimer > 2.0 || state.fuelCount >= 3) {
+                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
+                }
+                break;
+
+            case SCORING_COLLECTED:
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                if (state.fuelCount > 0) {
+                    input.spinUp = true;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
+                } else {
+                    // Check if time for climb (need ~4s)
+                    if (totalAutoTime < 16.0) {
+                        transitionToPhase(AutoPhase.DRIVING_TO_TOWER);
+                        setTowerTarget(state);
+                    } else {
+                        transitionToPhase(AutoPhase.COMPLETE);
+                    }
+                }
+                break;
+
+            case DRIVING_TO_TOWER:
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.CLIMBING);
+                }
+                break;
+
+            case CLIMBING:
+                input.level1 = true;
+                input.climberUp = true;
+                if (state.climbComplete || phaseTimer > 8.0) {
+                    transitionToPhase(AutoPhase.COMPLETE);
+                }
+                break;
+
+            case COMPLETE:
+            default:
+                break;
+        }
+    }
+
+    // ========================================================================
+    // AUTO MODE 11: Fast Climb
+    // Strategy: Drive directly to tower, climb immediately (15 points guaranteed)
+    // ========================================================================
+    private void updateFastClimb(RobotState state, InputState input, double dt) {
+        switch (currentPhase) {
+            case DRIVING_TO_TOWER:
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 2.5 || isAtTarget(state, targetX, targetY, 0.3)) {
+                    transitionToPhase(AutoPhase.CLIMBING);
+                }
+                break;
+
+            case CLIMBING:
+                input.level1 = true;
+                input.climberUp = true;
+                if (state.climbComplete || phaseTimer > 10.0) {
+                    transitionToPhase(AutoPhase.HOLDING);
+                }
+                break;
+
+            case HOLDING:
+            case COMPLETE:
+            default:
+                break;
+        }
+    }
+
+    // ========================================================================
+    // AUTO MODE 12: Balanced
+    // Strategy: Score preload (3 pts), then climb (15 pts) = 18 points
+    // Same as Mode 3 but optimized timing
+    // ========================================================================
+    private void updateBalanced(RobotState state, InputState input, double dt) {
+        switch (currentPhase) {
+            case SCORING_PRELOAD:
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                if (state.fuelCount > 0) {
+                    input.spinUp = true;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
+                } else {
+                    transitionToPhase(AutoPhase.DRIVING_TO_TOWER);
+                    setTowerTarget(state);
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.SCORING_PRELOAD);
+                }
+                break;
+
+            case DRIVING_TO_TOWER:
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.3)) {
+                    transitionToPhase(AutoPhase.CLIMBING);
+                }
+                break;
+
+            case CLIMBING:
+                input.level1 = true;
+                input.climberUp = true;
+                if (state.climbComplete || phaseTimer > 10.0) {
+                    transitionToPhase(AutoPhase.COMPLETE);
+                }
+                break;
+
+            case COMPLETE:
+            default:
+                break;
+        }
+    }
+
+    // ========================================================================
+    // AUTO MODE 13: Depot + Climb
+    // Strategy: Collect from depot (closer), score all, then climb
+    // ========================================================================
+    private void updateDepotClimb(RobotState state, InputState input, double dt) {
+        switch (currentPhase) {
+            case SCORING_PRELOAD:
+                // Go to depot first
+                transitionToPhase(AutoPhase.DRIVING_TO_DEPOT);
+                if (state.alliance == MatchState.Alliance.RED) {
+                    targetX = Constants.Field.RED_DEPOT_X;
+                    targetY = Constants.Field.RED_DEPOT_Y;
+                } else {
+                    targetX = Constants.Field.BLUE_DEPOT_X;
+                    targetY = Constants.Field.BLUE_DEPOT_Y;
+                }
+                break;
+
+            case DRIVING_TO_DEPOT:
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 2.5 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.COLLECTING_FROM_DEPOT);
+                }
+                break;
+
+            case COLLECTING_FROM_DEPOT:
+                input.intake = true;
+                input.forward = 0.2 * Math.sin(phaseTimer * 2);
+                if (phaseTimer > 3.0 || state.fuelCount >= 5) {
+                    transitionToPhase(AutoPhase.DRIVING_TO_SCORE);
+                    if (state.alliance == MatchState.Alliance.RED) {
+                        targetX = Constants.Field.RED_HUB_X - 2.5;
+                    } else {
+                        targetX = Constants.Field.BLUE_HUB_X + 2.5;
+                    }
+                    targetY = Constants.Field.CENTER_Y;
+                }
+                break;
+
+            case DRIVING_TO_SCORE:
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 1.0)) {
+                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
+                }
+                break;
+
+            case SCORING_COLLECTED:
+                if (state.fuelCount > 0) {
+                    input.spinUp = true;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
+                } else {
+                    // Check if time for climb
+                    if (totalAutoTime < 16.0) {
+                        transitionToPhase(AutoPhase.DRIVING_TO_TOWER);
+                        setTowerTarget(state);
+                    } else {
+                        transitionToPhase(AutoPhase.COMPLETE);
+                    }
+                }
+                break;
+
+            case DRIVING_TO_TOWER:
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.CLIMBING);
+                }
+                break;
+
+            case CLIMBING:
+                input.level1 = true;
+                input.climberUp = true;
+                if (state.climbComplete || phaseTimer > 8.0) {
+                    transitionToPhase(AutoPhase.COMPLETE);
+                }
+                break;
+
+            case COMPLETE:
+            default:
+                break;
+        }
+    }
+
+    // ========================================================================
+    // AUTO MODE 14: Max Points
+    // Strategy: Dynamically choose best path based on timing
+    // Target: Maximum possible points (FUEL + climb combo)
+    // ========================================================================
+    private void updateMaxPoints(RobotState state, InputState input, double dt) {
+        switch (currentPhase) {
+            case SCORING_PRELOAD:
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                if (state.fuelCount > 0) {
+                    input.spinUp = true;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
+                } else {
+                    // Quick decision: collect or climb?
+                    // If early, try to collect first
+                    if (totalAutoTime < 2.0) {
+                        transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
+                        targetX = Constants.Field.CENTER_X - 2.0;
+                        targetY = Constants.Field.CENTER_Y;
+                    } else {
+                        transitionToPhase(AutoPhase.DRIVING_TO_TOWER);
+                        setTowerTarget(state);
+                    }
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    if (state.fuelCount > 0) {
+                        transitionToPhase(AutoPhase.SCORING_COLLECTED);
+                    } else {
+                        transitionToPhase(AutoPhase.SCORING_PRELOAD);
+                    }
+                }
+                break;
+
+            case DRIVING_TO_NEUTRAL:
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 5.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.INTAKING);
+                }
+                break;
+
+            case INTAKING:
+                input.intake = true;
+                input.forward = 0.4;
+                // Collect 3-4 FUEL quickly
+                if (phaseTimer > 2.5 || state.fuelCount >= 4) {
+                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
+                }
+                break;
+
+            case SCORING_COLLECTED:
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                if (state.fuelCount > 0) {
+                    input.spinUp = true;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
+                } else {
+                    // After scoring, always try to climb
+                    if (totalAutoTime < 16.0) {
+                        transitionToPhase(AutoPhase.DRIVING_TO_TOWER);
+                        setTowerTarget(state);
+                    } else {
+                        transitionToPhase(AutoPhase.COMPLETE);
+                    }
+                }
+                break;
+
+            case DRIVING_TO_TOWER:
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.CLIMBING);
+                }
+                break;
+
+            case CLIMBING:
+                input.level1 = true;
+                input.climberUp = true;
+                if (state.climbComplete || phaseTimer > 8.0) {
+                    transitionToPhase(AutoPhase.COMPLETE);
+                }
+                break;
+
+            case COMPLETE:
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Helper to set tower target position for current alliance.
+     */
+    private void setTowerTarget(RobotState state) {
+        if (state.alliance == MatchState.Alliance.RED) {
+            targetX = Constants.Field.RED_TOWER_X - 0.5;
+            targetY = Constants.Field.RED_TOWER_Y;
+        } else {
+            targetX = Constants.Field.BLUE_TOWER_X + 0.5;
+            targetY = Constants.Field.BLUE_TOWER_Y;
         }
     }
 

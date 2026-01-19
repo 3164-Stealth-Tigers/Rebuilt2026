@@ -79,10 +79,29 @@ public class TowerPhysics {
      * Update climber arm/hook motion.
      */
     private static void updateClimberMotion(RobotState state, InputState input, double dt) {
+        double targetHeight = state.getTargetClimbHeight();
         double targetVelocity = 0;
 
         if (input.climberUp && !state.climbComplete) {
-            targetVelocity = Constants.Climber.MAX_VELOCITY;
+            // If we have a target rung height, slow down when approaching it
+            if (targetHeight > 0) {
+                double distanceToTarget = targetHeight - state.climberPosition;
+                if (distanceToTarget > 0.1) {
+                    // Still far from target, go full speed
+                    targetVelocity = Constants.Climber.MAX_VELOCITY;
+                } else if (distanceToTarget > 0.02) {
+                    // Approaching target, slow down
+                    targetVelocity = Constants.Climber.MAX_VELOCITY * 0.3;
+                } else if (distanceToTarget > 0) {
+                    // Very close, crawl to target
+                    targetVelocity = Constants.Climber.MAX_VELOCITY * 0.1;
+                } else {
+                    // At or past target, stop
+                    targetVelocity = 0;
+                }
+            } else {
+                targetVelocity = Constants.Climber.MAX_VELOCITY;
+            }
         } else if (input.climberDown) {
             targetVelocity = -Constants.Climber.MAX_VELOCITY;
         }
@@ -106,6 +125,12 @@ public class TowerPhysics {
             state.climberVelocity = 0;
         } else if (state.climberPosition > Constants.Climber.MAX_POSITION) {
             state.climberPosition = Constants.Climber.MAX_POSITION;
+            state.climberVelocity = 0;
+        }
+
+        // Also stop at target rung height
+        if (targetHeight > 0 && state.climberPosition >= targetHeight && state.climberVelocity > 0) {
+            state.climberPosition = targetHeight;
             state.climberVelocity = 0;
         }
     }

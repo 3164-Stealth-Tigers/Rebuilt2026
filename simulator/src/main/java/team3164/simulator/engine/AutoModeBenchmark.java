@@ -196,6 +196,7 @@ public class AutoModeBenchmark {
 
             ShooterPhysics.update(targetRobot, input, fuelState, matchState, dt);
             IntakePhysics.update(targetRobot, input, fuelState, dt);
+            TowerPhysics.update(targetRobot, input, matchState, dt);  // Enable climbing!
 
             // Track distance
             double dist = Math.hypot(targetRobot.x - lastX, targetRobot.y - lastY);
