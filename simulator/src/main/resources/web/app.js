@@ -446,9 +446,36 @@ function createRobotCard(robot, alliance) {
     if (robot.isPlayer) {
         html += `<span class="player-badge">YOU</span>`;
     } else {
-        // Show auto mode name (truncate if too long)
-        const autoMode = robot.autoMode || 'Unknown';
-        html += `<span class="auto-mode" title="${autoMode}">${autoMode}</span>`;
+        // Add auto mode dropdown for AI robots (10 modes with 4-bit DIP switch)
+        const autoModes = [
+            { value: 0, name: 'Do Nothing' },
+            { value: 1, name: 'Score & Collect' },
+            { value: 2, name: 'Quick Climb' },
+            { value: 3, name: 'Score Then Climb' },
+            { value: 4, name: 'Depot Raid' },
+            { value: 5, name: 'Far Neutral' },
+            { value: 6, name: 'Preload Only' },
+            { value: 7, name: 'Max Cycles' },
+            { value: 8, name: 'Climb Support' },
+            { value: 9, name: 'Win AUTO' }
+        ];
+
+        // Determine current mode index from name
+        let currentMode = 0;
+        const currentAutoName = robot.autoMode || '';
+        for (let i = 0; i < autoModes.length; i++) {
+            if (currentAutoName.includes(autoModes[i].name)) {
+                currentMode = i;
+                break;
+            }
+        }
+
+        html += `<select class="ai-auto-select" data-robot-id="${robot.id}" ${state.match.autoLocked ? 'disabled' : ''}>`;
+        autoModes.forEach(mode => {
+            const selected = mode.value === currentMode ? 'selected' : '';
+            html += `<option value="${mode.value}" ${selected}>${mode.name}</option>`;
+        });
+        html += `</select>`;
 
         // Show teleop behavior
         const behavior = robot.teleopBehavior || '';
@@ -458,7 +485,33 @@ function createRobotCard(robot, alliance) {
     }
 
     card.innerHTML = html;
+
+    // Add event listener for auto mode change
+    if (!robot.isPlayer) {
+        const select = card.querySelector('.ai-auto-select');
+        if (select) {
+            select.addEventListener('change', (e) => {
+                const robotId = parseInt(e.target.dataset.robotId);
+                const mode = parseInt(e.target.value);
+                setAIAutoMode(robotId, mode);
+            });
+        }
+    }
+
     return card;
+}
+
+/**
+ * Set the autonomous mode for an AI robot.
+ */
+function setAIAutoMode(robotId, mode) {
+    if (ws && connected) {
+        ws.send(JSON.stringify({
+            type: 'setAIAutoMode',
+            robotId: robotId,
+            mode: mode
+        }));
+    }
 }
 
 // ============================================================================

@@ -606,3 +606,32 @@ kbd {
     margin-top: 4px;
     display: inline-block;
 }
+
+.lineup-robot .ai-auto-select {
+    width: 100%;
+    padding: 4px 6px;
+    margin-top: 4px;
+    font-size: 0.65em;
+    background: #0d1117;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.lineup-robot .ai-auto-select:hover:not(:disabled) {
+    border-color: #58a6ff;
+}
+
+.lineup-robot .ai-auto-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.lineup-robot.blue .ai-auto-select {
+    border-color: #2980b9;
+}
+
+.lineup-robot.red .ai-auto-select {
+    border-color: #c0392b;
+}

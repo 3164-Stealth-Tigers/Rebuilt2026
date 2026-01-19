@@ -60,8 +60,8 @@ public class AIRobotController {
         this.teamNumber = teamNumber;
         this.autoController = new AutonomousController();
 
-        // Randomly select auto mode
-        this.selectedAutoMode = random.nextInt(4);
+        // Randomly select auto mode from all 10 modes
+        this.selectedAutoMode = random.nextInt(AutonomousController.NUM_AUTO_MODES);
         autoController.setSelectedMode(selectedAutoMode);
 
         // Randomly select teleop behavior
@@ -77,6 +77,17 @@ public class AIRobotController {
      */
     public int getSelectedAutoMode() {
         return selectedAutoMode;
+    }
+
+    /**
+     * Set the autonomous mode (0-9).
+     * Supports 10 auto modes via 4-bit DIP switch.
+     *
+     * @param mode The auto mode index
+     */
+    public void setAutoMode(int mode) {
+        this.selectedAutoMode = Math.max(0, Math.min(AutonomousController.NUM_AUTO_MODES - 1, mode));
+        autoController.setSelectedMode(this.selectedAutoMode);
     }
 
     /**
@@ -116,8 +127,8 @@ public class AIRobotController {
         hasTarget = false;
         actionTimer = 0;
 
-        // Re-randomize for next match
-        selectedAutoMode = random.nextInt(4);
+        // Re-randomize for next match (all 10 modes)
+        selectedAutoMode = random.nextInt(AutonomousController.NUM_AUTO_MODES);
         autoController.setSelectedMode(selectedAutoMode);
 
         AIBehavior[] behaviors = AIBehavior.values();
