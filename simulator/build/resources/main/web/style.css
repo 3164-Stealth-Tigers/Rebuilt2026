@@ -1,0 +1,949 @@
+/* REBUILT 2026 Simulator Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #30363d;
+}
+
+.header h1 {
+    font-size: 1.5em;
+    background: linear-gradient(90deg, #f77f00 0%, #ff9f1c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header-info {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.header-info span {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.status {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+}
+
+.status.connected {
+    background: #238636;
+    color: white;
+}
+
+.status.disconnected {
+    background: #da3633;
+    color: white;
+}
+
+.phase {
+    color: #f77f00;
+    padding: 5px 12px;
+    background: rgba(247, 127, 0, 0.2);
+    border-radius: 5px;
+}
+
+#match-time {
+    font-family: 'Consolas', monospace;
+    font-size: 1.3em;
+    color: #58a6ff;
+}
+
+/* Score bar */
+.score-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #161b22;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #30363d;
+}
+
+.alliance-score {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.alliance-score.red {
+    color: #e94560;
+}
+
+.alliance-score.blue {
+    color: #58a6ff;
+}
+
+.alliance-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.score-value {
+    font-size: 2.5em;
+    font-weight: bold;
+    font-family: 'Consolas', monospace;
+}
+
+.hub-status {
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.hub-status.active {
+    background: currentColor;
+    color: #0d1117;
+    animation: pulse 1s infinite;
+}
+
+.hub-status.inactive {
+    background: #30363d;
+    color: #8b949e;
+}
+
+/* Score breakdown */
+.score-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.score-detail {
+    font-size: 0.75em;
+    font-family: 'Consolas', monospace;
+    color: #8b949e;
+}
+
+.alliance-score.red .score-detail {
+    color: #f4a5a5;
+}
+
+.alliance-score.blue .score-detail {
+    color: #a5c8f4;
+}
+
+/* RP indicators */
+.rp-indicators {
+    display: flex;
+    gap: 5px;
+}
+
+.rp-badge {
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 0.7em;
+    font-weight: bold;
+    background: #30363d;
+    color: #8b949e;
+    text-transform: uppercase;
+}
+
+.rp-badge.earned {
+    background: #238636;
+    color: #fff;
+    animation: glow 1s infinite;
+}
+
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 5px rgba(35, 134, 54, 0.5); }
+    50% { box-shadow: 0 0 15px rgba(35, 134, 54, 0.8); }
+}
+
+.match-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Auto mode selector */
+.auto-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    background: #21262d;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.auto-selector label {
+    font-size: 0.9em;
+    color: #8b949e;
+    font-weight: bold;
+}
+
+.auto-dropdown {
+    padding: 6px 10px;
+    background: #0d1117;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 5px;
+    font-size: 0.9em;
+    cursor: pointer;
+    min-width: 180px;
+}
+
+.auto-dropdown:hover {
+    border-color: #58a6ff;
+}
+
+.auto-dropdown:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.auto-status {
+    font-size: 0.8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.auto-status.running {
+    background: #238636;
+    color: white;
+    animation: pulse 1s infinite;
+}
+
+.auto-status.locked {
+    background: #da3633;
+    color: white;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-start {
+    background: #238636;
+    color: white;
+}
+
+.btn-start:hover {
+    background: #2ea043;
+}
+
+.btn-reset {
+    background: #30363d;
+    color: #e6edf3;
+}
+
+.btn-reset:hover {
+    background: #484f58;
+}
+
+/* Main content layout */
+.main-content {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* Field container */
+.field-container {
+    flex: 1;
+    background: #161b22;
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid #30363d;
+}
+
+#field-canvas {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+/* Side panel */
+.side-panel {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.panel {
+    background: #161b22;
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #30363d;
+}
+
+.panel h2 {
+    font-size: 0.85em;
+    color: #8b949e;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Subsystems */
+.subsystem {
+    margin-bottom: 12px;
+}
+
+.subsystem:last-child {
+    margin-bottom: 0;
+}
+
+.subsystem-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.subsystem-name {
+    font-weight: 500;
+    color: #e6edf3;
+}
+
+.subsystem-value {
+    font-family: 'Consolas', monospace;
+    color: #58a6ff;
+}
+
+.progress-bar {
+    height: 18px;
+    background: #21262d;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f77f00, #ff9f1c);
+    transition: width 0.1s ease;
+}
+
+.progress-goal {
+    position: absolute;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: #da3633;
+    transition: left 0.1s ease;
+}
+
+/* FUEL indicator */
+.fuel-indicator {
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+    background: #21262d;
+    border-radius: 5px;
+}
+
+.fuel-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #30363d;
+    border: 2px solid #484f58;
+}
+
+.fuel-dot.filled {
+    background: #f77f00;
+    border-color: #ff9f1c;
+    box-shadow: 0 0 8px rgba(247, 127, 0, 0.5);
+}
+
+/* Climb levels */
+.climb-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+
+.climb-level {
+    padding: 8px;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 0.9em;
+    font-weight: bold;
+    background: #21262d;
+    color: #8b949e;
+    border: 2px solid transparent;
+}
+
+.climb-level.target {
+    border-color: #f77f00;
+    color: #f77f00;
+}
+
+.climb-level.complete {
+    background: #238636;
+    color: white;
+    border-color: #238636;
+}
+
+/* Info panel */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 0.7em;
+    color: #8b949e;
+    text-transform: uppercase;
+}
+
+.info-value {
+    font-family: 'Consolas', monospace;
+    font-size: 0.95em;
+    color: #58a6ff;
+}
+
+/* Mode indicators */
+.mode-indicators {
+    display: flex;
+    gap: 8px;
+}
+
+.mode-indicator {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 0.8em;
+    background: #21262d;
+    color: #8b949e;
+    transition: all 0.2s;
+}
+
+.mode-indicator.active {
+    background: #238636;
+    color: #fff;
+}
+
+/* Controls panel */
+.controls-panel {
+    background: #161b22;
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #30363d;
+}
+
+.controls-panel h2 {
+    font-size: 0.85em;
+    color: #8b949e;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.controls-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.control-group h3 {
+    font-size: 0.85em;
+    color: #f77f00;
+    margin-bottom: 8px;
+}
+
+.control-item {
+    font-size: 0.8em;
+    margin-bottom: 5px;
+    color: #8b949e;
+}
+
+kbd {
+    background: #21262d;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.9em;
+    margin-right: 3px;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .main-content {
+        flex-direction: column;
+    }
+
+    .side-panel {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .side-panel .panel {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .controls-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .controls-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .score-bar {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .match-controls {
+        order: -1;
+    }
+}
+
+/* Robot Lineup Panel */
+.robot-lineup {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.lineup-alliance {
+    flex: 1;
+    background: #161b22;
+    border-radius: 10px;
+    padding: 10px 15px;
+    border: 1px solid #30363d;
+}
+
+.lineup-alliance.blue {
+    border-left: 3px solid #58a6ff;
+}
+
+.lineup-alliance.red {
+    border-left: 3px solid #e94560;
+}
+
+.lineup-title {
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.lineup-robots {
+    display: flex;
+    gap: 10px;
+}
+
+.lineup-robot {
+    flex: 1;
+    background: #21262d;
+    border-radius: 5px;
+    padding: 8px;
+    text-align: center;
+}
+
+.lineup-robot.player {
+    border: 2px solid #f77f00;
+    box-shadow: 0 0 8px rgba(247, 127, 0, 0.3);
+}
+
+.lineup-robot .team-number {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #e6edf3;
+    display: block;
+}
+
+.lineup-robot.blue .team-number {
+    color: #58a6ff;
+}
+
+.lineup-robot.red .team-number {
+    color: #e94560;
+}
+
+.lineup-robot .auto-mode {
+    font-size: 0.7em;
+    color: #8b949e;
+    display: block;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lineup-robot .teleop-behavior {
+    font-size: 0.65em;
+    color: #6e7681;
+    display: block;
+    margin-top: 2px;
+}
+
+.lineup-robot .player-badge {
+    font-size: 0.6em;
+    background: #f77f00;
+    color: #0d1117;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+.lineup-robot .ai-auto-select {
+    width: 100%;
+    padding: 4px 6px;
+    margin-top: 4px;
+    font-size: 0.65em;
+    background: #0d1117;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.lineup-robot .ai-auto-select:hover:not(:disabled) {
+    border-color: #58a6ff;
+}
+
+.lineup-robot .ai-auto-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.lineup-robot.blue .ai-auto-select {
+    border-color: #2980b9;
+}
+
+.lineup-robot.red .ai-auto-select {
+    border-color: #c0392b;
+}
+
+/* ========================================================================
+   FIRST PERSON VIEW (FPV) CAMERA
+   ======================================================================== */
+
+.fpv-container {
+    background: #0d1117;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #30363d;
+    margin-top: 15px;
+    position: relative;
+}
+
+/* Multi-camera container */
+.fpv-multi-container {
+    background: #0d1117;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #30363d;
+    margin-top: 15px;
+}
+
+.fpv-cameras {
+    display: flex;
+    gap: 5px;
+    padding: 10px;
+    background: #161b22;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.fpv-camera {
+    position: relative;
+    background: #000;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 2px solid #30363d;
+}
+
+.fpv-camera-main {
+    flex: 0 0 auto;
+}
+
+.fpv-camera-side {
+    flex: 0 0 auto;
+}
+
+.fpv-camera-label {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #f77f00;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 3px;
+    z-index: 10;
+    font-family: 'Consolas', monospace;
+    letter-spacing: 1px;
+}
+
+.fpv-camera canvas {
+    display: block;
+}
+
+#fpv-canvas-left,
+#fpv-canvas-right {
+    width: 250px;
+    height: 200px;
+}
+
+.fpv-hud-mini {
+    position: absolute;
+    top: 25px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.fpv-crosshair-mini {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+}
+
+.fpv-crosshair-mini::before,
+.fpv-crosshair-mini::after {
+    content: '';
+    position: absolute;
+    background: rgba(247, 127, 0, 0.5);
+}
+
+.fpv-crosshair-mini::before {
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    transform: translateY(-50%);
+}
+
+.fpv-crosshair-mini::after {
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    transform: translateX(-50%);
+}
+
+/* AprilTag visibility indicators */
+.fpv-apriltags {
+    background: rgba(0, 0, 0, 0.85);
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    border-top: 1px solid #30363d;
+    min-height: 24px;
+}
+
+.apriltag-label {
+    color: #8b949e;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.apriltag-list {
+    color: #0f0;
+    flex: 1;
+}
+
+.apriltag-list.empty {
+    color: #484f58;
+}
+
+.apriltag-id {
+    display: inline-block;
+    background: #238636;
+    color: #fff;
+    padding: 2px 6px;
+    margin: 0 2px;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 10px;
+}
+
+.apriltag-id.hub-tag {
+    background: #3498db;
+}
+
+.apriltag-id.tower-tag {
+    background: #9b59b6;
+}
+
+.apriltag-id.wall-tag {
+    background: #7f8c8d;
+}
+
+.fpv-header {
+    background: linear-gradient(90deg, #161b22 0%, #21262d 100%);
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #30363d;
+}
+
+.fpv-header h2 {
+    font-size: 0.9em;
+    color: #f77f00;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.fpv-info {
+    display: flex;
+    gap: 20px;
+}
+
+.fpv-info span {
+    font-family: 'Consolas', monospace;
+    font-size: 0.85em;
+    color: #58a6ff;
+}
+
+#fpv-canvas {
+    display: block;
+    width: 100%;
+    height: 300px;
+    background: #000;
+}
+
+.fpv-hud {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.fpv-crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+}
+
+.fpv-crosshair::before,
+.fpv-crosshair::after {
+    content: '';
+    position: absolute;
+    background: rgba(247, 127, 0, 0.7);
+}
+
+.fpv-crosshair::before {
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: translateY(-50%);
+}
+
+.fpv-crosshair::after {
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    transform: translateX(-50%);
+}
+
+/* HUD overlay elements */
+.fpv-horizon {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 50%;
+    height: 1px;
+    background: rgba(88, 166, 255, 0.3);
+    transform: translateY(-50%);
+}
+
+.fpv-compass {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Consolas', monospace;
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 3px 10px;
+    border-radius: 3px;
+}
