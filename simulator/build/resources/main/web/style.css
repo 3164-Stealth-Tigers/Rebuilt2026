@@ -139,6 +139,64 @@ body {
 .match-controls {
     display: flex;
     gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Auto mode selector */
+.auto-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    background: #21262d;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.auto-selector label {
+    font-size: 0.9em;
+    color: #8b949e;
+    font-weight: bold;
+}
+
+.auto-dropdown {
+    padding: 6px 10px;
+    background: #0d1117;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 5px;
+    font-size: 0.9em;
+    cursor: pointer;
+    min-width: 180px;
+}
+
+.auto-dropdown:hover {
+    border-color: #58a6ff;
+}
+
+.auto-dropdown:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.auto-status {
+    font-size: 0.8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.auto-status.running {
+    background: #238636;
+    color: white;
+    animation: pulse 1s infinite;
+}
+
+.auto-status.locked {
+    background: #da3633;
+    color: white;
 }
 
 .btn {

@@ -255,6 +255,14 @@ function setupInputHandlers() {
             ws.send(JSON.stringify({ type: 'reset' }));
         }
     });
+
+    // Auto mode selector
+    document.getElementById('auto-mode').addEventListener('change', (e) => {
+        if (ws && connected) {
+            const mode = parseInt(e.target.value);
+            ws.send(JSON.stringify({ type: 'setAutoMode', mode: mode }));
+        }
+    });
 }
 
 // ============================================================================
@@ -281,6 +289,30 @@ function updateUI() {
     const secs = Math.floor(remaining % 60);
     document.getElementById('match-time').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
     document.getElementById('match-phase').textContent = state.match.phaseName || 'Pre-Match';
+
+    // Auto mode info
+    const autoSelect = document.getElementById('auto-mode');
+    const autoStatus = document.getElementById('auto-status');
+
+    // Update dropdown value if not locked (and not currently focused)
+    if (!state.match.autoLocked && document.activeElement !== autoSelect) {
+        autoSelect.value = state.match.autoMode;
+    }
+
+    // Disable dropdown when locked (match started)
+    autoSelect.disabled = state.match.autoLocked;
+
+    // Show auto phase during AUTO
+    if (state.match.phase === 'AUTO') {
+        autoStatus.textContent = state.match.autoPhase || '';
+        autoStatus.className = 'auto-status running';
+    } else if (state.match.autoLocked) {
+        autoStatus.textContent = 'Locked';
+        autoStatus.className = 'auto-status locked';
+    } else {
+        autoStatus.textContent = '';
+        autoStatus.className = 'auto-status';
+    }
 
     // Scores
     document.getElementById('red-score').textContent = state.match.scores.redTotal;

@@ -276,6 +276,13 @@ public class SimulatorServer {
         match.addProperty("started", state.matchStarted);
         match.addProperty("ended", state.matchEnded);
 
+        // Auto mode info
+        AutonomousController autoController = engine.getAutoController();
+        match.addProperty("autoMode", autoController.getSelectedMode());
+        match.addProperty("autoModeName", autoController.getSelectedModeName());
+        match.addProperty("autoLocked", autoController.isLocked());
+        match.addProperty("autoPhase", autoController.getCurrentPhaseName());
+
         // HUB status
         match.addProperty("redHubActive", state.redHubStatus == MatchState.HubStatus.ACTIVE);
         match.addProperty("blueHubActive", state.blueHubStatus == MatchState.HubStatus.ACTIVE);
@@ -379,9 +386,17 @@ public class SimulatorServer {
                     engine.getState().reset();
                     engine.getMatchState().reset();
                     engine.getFuelState().reset();
+                    engine.getAutoController().reset();
                     break;
                 case "startMatch":
                     engine.startMatch();
+                    break;
+                case "setAutoMode":
+                    // Set the autonomous mode (0-3)
+                    if (json.has("mode")) {
+                        int mode = json.get("mode").getAsInt();
+                        engine.setAutoMode(mode);
+                    }
                     break;
                 case "addFuel":
                     // Debug: add FUEL to robot

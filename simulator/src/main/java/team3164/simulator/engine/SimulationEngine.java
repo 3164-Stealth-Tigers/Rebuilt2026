@@ -21,6 +21,7 @@ public class SimulationEngine {
     private final InputState input;
     private final MatchState matchState;
     private final FuelState fuelState;
+    private final AutonomousController autoController;
 
     private ScheduledExecutorService executor;
     private Consumer<RobotState> stateListener;
@@ -41,6 +42,7 @@ public class SimulationEngine {
         this.input = new InputState();
         this.matchState = new MatchState();
         this.fuelState = new FuelState();
+        this.autoController = new AutonomousController();
     }
 
     /**
@@ -95,7 +97,11 @@ public class SimulationEngine {
 
         matchState.startMatch();
         startTimeMs = System.currentTimeMillis();
+
+        // Start autonomous controller
+        autoController.startAuto(state);
         log("MATCH STARTED - AUTO PERIOD");
+        log("Auto Mode: " + autoController.getSelectedModeName());
     }
 
     /**
@@ -115,6 +121,14 @@ public class SimulationEngine {
 
                 // Log phase changes
                 logPhaseChange();
+
+                // Run autonomous controller during AUTO phase
+                if (matchState.currentPhase == MatchState.MatchPhase.AUTO) {
+                    autoController.update(state, input, dt);
+                } else if (matchState.currentPhase == MatchState.MatchPhase.TRANSITION) {
+                    // Unlock auto selection after AUTO ends
+                    autoController.unlockSelection();
+                }
             }
 
             // Process mode toggles
@@ -219,6 +233,7 @@ public class SimulationEngine {
             state.reset();
             matchState.reset();
             fuelState.reset();
+            autoController.reset();
             input.resetRobot = false;
             log("Simulation reset");
         }
@@ -483,5 +498,37 @@ public class SimulationEngine {
      */
     public long getTickCount() {
         return tickCount;
+    }
+
+    /**
+     * Get the autonomous controller.
+     */
+    public AutonomousController getAutoController() {
+        return autoController;
+    }
+
+    /**
+     * Set the selected auto mode (0-3).
+     * Only works before match starts.
+     *
+     * @param mode Auto mode (0=Do Nothing, 1=Score&Collect, 2=QuickClimb, 3=ScoreThenClimb)
+     */
+    public void setAutoMode(int mode) {
+        autoController.setSelectedMode(mode);
+        log("Auto mode set to: " + autoController.getSelectedModeName());
+    }
+
+    /**
+     * Get the currently selected auto mode.
+     */
+    public int getAutoMode() {
+        return autoController.getSelectedMode();
+    }
+
+    /**
+     * Get the name of the selected auto mode.
+     */
+    public String getAutoModeName() {
+        return autoController.getSelectedModeName();
     }
 }

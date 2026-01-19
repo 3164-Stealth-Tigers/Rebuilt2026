@@ -26,6 +26,16 @@
                 <span id="red-hub-status" class="hub-status inactive">HUB</span>
             </div>
             <div class="match-controls">
+                <div class="auto-selector">
+                    <label for="auto-mode">Auto:</label>
+                    <select id="auto-mode" class="auto-dropdown">
+                        <option value="0">0: Do Nothing</option>
+                        <option value="1">1: Score & Collect</option>
+                        <option value="2">2: Quick Climb</option>
+                        <option value="3">3: Score Then Climb</option>
+                    </select>
+                    <span id="auto-status" class="auto-status"></span>
+                </div>
                 <button id="btn-start-match" class="btn btn-start">Start Match</button>
                 <button id="btn-reset" class="btn btn-reset">Reset</button>
             </div>

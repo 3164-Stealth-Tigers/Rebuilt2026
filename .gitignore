@@ -8,3 +8,5 @@ ctre_sim/
 swervepy
 deploy/
 .gradle
+docs/.DS_Store
+.DS_Store
