@@ -148,6 +148,42 @@ public final class Constants {
 
         public static final double BLUE_CORRAL_X = 1.5;
         public static final double BLUE_CORRAL_Y = 0.5;
+
+        // ====================================================================
+        // APRILTAGS (for vision-based localization)
+        // ====================================================================
+        // AprilTag dimensions (6.5" = 16.5cm standard FRC size)
+        public static final double APRILTAG_SIZE = 0.165;  // meters
+
+        // AprilTag positions: {id, x, y, z, rotation_degrees}
+        // Rotation: 0 = facing +X (red wall), 90 = facing +Y, 180 = facing -X (blue wall), 270 = facing -Y
+        public static final double[][] APRILTAG_POSITIONS = {
+            // BLUE HUB AprilTags (Tags 1-3) - facing toward field center (+X direction)
+            {1, BLUE_HUB_X + HUB_SIZE/2 + 0.01, CENTER_Y, 1.2, 0},           // Blue HUB front center
+            {2, BLUE_HUB_X + HUB_SIZE/2 + 0.01, CENTER_Y + 0.4, 1.0, 0},     // Blue HUB front left
+            {3, BLUE_HUB_X + HUB_SIZE/2 + 0.01, CENTER_Y - 0.4, 1.0, 0},     // Blue HUB front right
+
+            // RED HUB AprilTags (Tags 4-6) - facing toward field center (-X direction)
+            {4, RED_HUB_X - HUB_SIZE/2 - 0.01, CENTER_Y, 1.2, 180},          // Red HUB front center
+            {5, RED_HUB_X - HUB_SIZE/2 - 0.01, CENTER_Y + 0.4, 1.0, 180},    // Red HUB front left
+            {6, RED_HUB_X - HUB_SIZE/2 - 0.01, CENTER_Y - 0.4, 1.0, 180},    // Red HUB front right
+
+            // BLUE TOWER AprilTags (Tags 7-8) - on tower structure
+            {7, BLUE_TOWER_X + 0.3, BLUE_TOWER_Y, 1.5, 0},                   // Blue Tower front
+            {8, BLUE_TOWER_X, BLUE_TOWER_Y - 0.5, 1.5, 270},                 // Blue Tower side
+
+            // RED TOWER AprilTags (Tags 9-10) - on tower structure
+            {9, RED_TOWER_X - 0.3, RED_TOWER_Y, 1.5, 180},                   // Red Tower front
+            {10, RED_TOWER_X, RED_TOWER_Y - 0.5, 1.5, 270},                  // Red Tower side
+
+            // FIELD WALL AprilTags (Tags 11-16) - for general field localization
+            {11, 0.01, WIDTH/4, 0.6, 0},                                      // Blue wall lower
+            {12, 0.01, 3*WIDTH/4, 0.6, 0},                                    // Blue wall upper
+            {13, LENGTH - 0.01, WIDTH/4, 0.6, 180},                           // Red wall lower
+            {14, LENGTH - 0.01, 3*WIDTH/4, 0.6, 180},                         // Red wall upper
+            {15, CENTER_X, 0.01, 0.6, 90},                                    // Bottom wall center
+            {16, CENTER_X, WIDTH - 0.01, 0.6, 270}                            // Top wall center
+        };
     }
 
     // ========================================================================

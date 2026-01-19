@@ -139,9 +139,19 @@ public class SwervePhysics {
      * Update robot pose based on current velocities.
      */
     private static void updatePose(RobotState state, double dt) {
-        // Simple Euler integration
-        state.x += state.vx * dt;
-        state.y += state.vy * dt;
+        // Transform robot-relative velocities to field-relative
+        // Robot forward is along heading, strafe is perpendicular
+        double cos = Math.cos(state.heading);
+        double sin = Math.sin(state.heading);
+
+        // Robot vx = forward velocity, vy = strafe velocity (left positive)
+        // Field: positive X is to the right, positive Y is up
+        double fieldVx = state.vx * cos - state.vy * sin;
+        double fieldVy = state.vx * sin + state.vy * cos;
+
+        // Euler integration with field velocities
+        state.x += fieldVx * dt;
+        state.y += fieldVy * dt;
         state.heading += state.omega * dt;
 
         // Normalize heading to [-PI, PI]

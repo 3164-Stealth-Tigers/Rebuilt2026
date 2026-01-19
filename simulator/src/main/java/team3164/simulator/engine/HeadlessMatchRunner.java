@@ -150,6 +150,26 @@ public class HeadlessMatchRunner {
                         matchState.matchTime, matchDuration,
                         matchState.redTotalScore, matchState.blueTotalScore);
             }
+
+            // Debug: Log detailed robot state every 30 seconds
+            if (verbose && Math.abs(matchState.matchTime % 30.0) < dt && matchState.matchTime > 1) {
+                System.out.println();
+                System.out.println("--- Robot State Snapshot at " + String.format("%.0f", matchState.matchTime) + "s ---");
+                for (int i = 0; i < robots.length; i++) {
+                    RobotState robot = robots[i];
+                    InputState input = inputs[i];
+                    System.out.printf("  %d [%s]: pos=(%.1f,%.1f) fuel=%d shooter=(%.1f°,%.1f m/s) atSpeed=%b atAngle=%b intakeState=%s cmd=%s%n",
+                            robot.teamNumber, robot.alliance.name().charAt(0),
+                            robot.x, robot.y, robot.fuelCount,
+                            robot.shooterAngle, robot.shooterVelocity,
+                            robot.shooterAtSpeed, robot.shooterAtAngle,
+                            robot.intakeState, robot.currentCommand);
+                    System.out.printf("         input: fwd=%.2f strafe=%.2f shoot=%b intake=%b shooterPwr=%.2f%n",
+                            input.forward, input.strafe, input.shoot, input.intake, input.shooterPower);
+                }
+                System.out.println("  Field FUEL: " + fuelState.getFieldFuel().size() + ", In Flight: " + fuelState.getFlightFuel().size());
+                System.out.println();
+            }
         }
 
         if (verbose) {

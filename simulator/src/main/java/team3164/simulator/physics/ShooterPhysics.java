@@ -5,6 +5,7 @@ import team3164.simulator.engine.FuelState;
 import team3164.simulator.engine.FuelState.Fuel;
 import team3164.simulator.engine.InputState;
 import team3164.simulator.engine.MatchState;
+import team3164.simulator.engine.MatchState.Alliance;
 import team3164.simulator.engine.RobotState;
 import team3164.simulator.engine.RobotState.IntakeState;
 
@@ -40,8 +41,8 @@ public class ShooterPhysics {
         // Update shooter velocity
         updateVelocity(state, input, dt);
 
-        // Handle shooting
-        if (input.shoot && state.isReadyToShoot()) {
+        // Handle shooting - G407: Robot must be in alliance zone to score
+        if (input.shoot && state.isReadyToShoot() && isInAllianceZone(state)) {
             launchedFuel = fireFuel(state, fuelState, matchState);
         }
 
@@ -139,8 +140,8 @@ public class ShooterPhysics {
                 break;
 
             case READY_TO_SHOOT:
-                // Waiting for shoot command
-                if (input.shoot && state.isReadyToShoot()) {
+                // Waiting for shoot command - must also be in alliance zone per G407
+                if (input.shoot && state.isReadyToShoot() && isInAllianceZone(state)) {
                     state.intakeState = IntakeState.SHOOTING;
                     state.intakeTimer = 0.1;  // Brief shooting animation
                     state.currentCommand = "Shooting";
@@ -277,6 +278,29 @@ public class ShooterPhysics {
         if (optimal != null) {
             state.shooterAngleGoal = optimal[0];
             state.shooterVelocityGoal = optimal[1];
+        }
+    }
+
+    /**
+     * Check if robot is in its alliance zone (G407 requirement).
+     * Robot BUMPERS must be partially or fully within their ALLIANCE ZONE to score.
+     *
+     * @param state Robot state
+     * @return true if robot can legally shoot
+     */
+    public static boolean isInAllianceZone(RobotState state) {
+        double halfRobot = Constants.Robot.LENGTH_WITH_BUMPERS / 2.0;
+        double allianceZoneDepth = Constants.Field.ALLIANCE_ZONE_DEPTH;
+
+        if (state.alliance == Alliance.BLUE) {
+            // Blue alliance zone: x = 0 to ALLIANCE_ZONE_DEPTH
+            // Robot BUMPERS partially in zone means robot center x < zone + halfRobot
+            return state.x - halfRobot < allianceZoneDepth;
+        } else {
+            // Red alliance zone: x = (LENGTH - ALLIANCE_ZONE_DEPTH) to LENGTH
+            // Robot BUMPERS partially in zone means robot center x > (LENGTH - zone - halfRobot)
+            double redZoneStart = Constants.Field.LENGTH - allianceZoneDepth;
+            return state.x + halfRobot > redZoneStart;
         }
     }
 }

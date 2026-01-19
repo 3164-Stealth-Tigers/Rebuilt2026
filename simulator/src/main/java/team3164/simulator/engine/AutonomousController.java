@@ -61,15 +61,17 @@ public class AutonomousController {
     private double targetY = 0;
     private double targetHeading = 0;
 
-    // Timings (from robot code Constants.AutoConstants)
+    // Timings (OPTIMIZED for faster FUEL collection)
     private static final double SHOOT_TIME_PER_FUEL = 0.75;
-    private static final double DRIVE_TO_NEUTRAL_TIME = 4.0;
-    private static final double INTAKE_TIMEOUT = 5.0;
+    private static final double DRIVE_TO_NEUTRAL_TIME = 8.0;  // Increased from 4.0 - need more time to reach neutral zone
+    private static final double INTAKE_TIMEOUT = 4.0;         // Reduced from 5.0 - exit earlier if no FUEL found
     private static final double CLIMB_TIMEOUT = 12.0;
     private static final double DRIVE_TO_TOWER_TIME = 5.0;
 
     public enum AutoPhase {
         IDLE,
+        // Positioning phase (used to get to shooting position first)
+        POSITIONING_TO_SHOOT,
         // Score & Collect phases
         SCORING_PRELOAD,
         DRIVING_TO_NEUTRAL,
@@ -158,9 +160,14 @@ public class AutonomousController {
                 break;
             case AUTO_QUICK_CLIMB:
                 currentPhase = AutoPhase.DRIVING_TO_TOWER;
-                // Target tower position (blue alliance)
-                targetX = Constants.Field.BLUE_TOWER_X + 1.0;
-                targetY = Constants.Field.BLUE_TOWER_Y;
+                // Target tower position (use correct alliance tower)
+                if (state.alliance == MatchState.Alliance.RED) {
+                    targetX = Constants.Field.RED_TOWER_X - 1.0;
+                    targetY = Constants.Field.RED_TOWER_Y;
+                } else {
+                    targetX = Constants.Field.BLUE_TOWER_X + 1.0;
+                    targetY = Constants.Field.BLUE_TOWER_Y;
+                }
                 break;
             case AUTO_SCORE_THEN_CLIMB:
                 currentPhase = AutoPhase.SCORING_PRELOAD;
@@ -190,9 +197,14 @@ public class AutonomousController {
                 break;
             case AUTO_CLIMB_SUPPORT:
                 currentPhase = AutoPhase.DRIVING_TO_TOWER;
-                // Position near tower for teleop
-                targetX = Constants.Field.BLUE_TOWER_X + 2.0;
-                targetY = Constants.Field.BLUE_TOWER_Y;
+                // Position near tower for teleop (use correct alliance tower)
+                if (state.alliance == MatchState.Alliance.RED) {
+                    targetX = Constants.Field.RED_TOWER_X - 2.0;
+                    targetY = Constants.Field.RED_TOWER_Y;
+                } else {
+                    targetX = Constants.Field.BLUE_TOWER_X + 2.0;
+                    targetY = Constants.Field.BLUE_TOWER_Y;
+                }
                 break;
             case AUTO_WIN_AUTO:
                 currentPhase = AutoPhase.RAPID_SCORING;
@@ -279,29 +291,94 @@ public class AutonomousController {
     }
 
     // ========================================================================
-    // AUTO MODE 1: Score & Collect
+    // AUTO MODE 1: Score & Collect (OPTIMIZED - faster shooting and closer targets)
     // ========================================================================
     private void updateScoreAndCollect(RobotState state, InputState input, double dt) {
         switch (currentPhase) {
             case SCORING_PRELOAD:
-                // Shoot all preloaded FUEL
+                // Check if we need to reposition first
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                // Shoot all preloaded FUEL with proper aiming
                 if (state.fuelCount > 0) {
                     input.spinUp = true;
-                    input.shoot = true;
-                    // Aim at hub
-                    input.shooterAngle = 0.6; // 45 degrees
-                    input.shooterPower = 0.7;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
                 } else {
-                    // All FUEL shot, move to neutral zone
+                    // All FUEL shot, move to CLOSER neutral zone target
                     transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
-                    targetX = Constants.Field.CENTER_X;
+                    // OPTIMIZATION: Target closer FUEL sources (2m closer than center)
+                    targetX = Constants.Field.CENTER_X - 2.0;
                     targetY = Constants.Field.CENTER_Y;
                 }
                 break;
 
+            case POSITIONING_TO_SHOOT:
+                // Drive to shooting position, going AROUND the hub AND bumps
+                double posHubX = (state.alliance == MatchState.Alliance.RED)
+                    ? Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+
+                // Check if robot is in the danger zone (near hub/bumps)
+                double posDangerZoneHalfX = Constants.Field.BUMP_LENGTH / 2.0 + Constants.Robot.LENGTH_WITH_BUMPERS / 2.0 + 1.0;
+                boolean posInDangerZone = Math.abs(state.x - posHubX) < posDangerZoneHalfX;
+
+                // Determine safe Y position (above or below bumps)
+                boolean posGoAbove = state.y >= Constants.Field.CENTER_Y;
+                double posSafeY = getSafeYPosition(state, posGoAbove);
+                boolean posOnSafePath = posGoAbove ? (state.y >= posSafeY - 0.5) : (state.y <= posSafeY + 0.5);
+
+                if (posInDangerZone && !posOnSafePath && state.x > posHubX) {
+                    // Coming from neutral zone side - need to move to safe Y first
+                    // Team 3164 MUST avoid bumps
+                    driveToTarget(state, input, state.x - 0.3, posSafeY);
+                } else if (posInDangerZone && state.x > posHubX) {
+                    // On safe path, drive through the gap toward alliance zone
+                    driveToTarget(state, input, posHubX - posDangerZoneHalfX - 0.5, posSafeY);
+                } else {
+                    // Past the hub/bump area, drive to shooting position
+                    driveToTarget(state, input, targetX, targetY);
+                }
+
+                if (phaseTimer > 6.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    // Transition to SCORING_COLLECTED (not SCORING_PRELOAD) if we have collected FUEL
+                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
+                }
+                break;
+
             case DRIVING_TO_NEUTRAL:
-                // Drive towards neutral zone
-                driveToTarget(state, input, targetX, targetY);
+                // Drive towards neutral zone, going AROUND the hub AND bumps
+                // Hub is at x=4.03 (BLUE) with bumps flanking it in Y direction
+                double hubX = (state.alliance == MatchState.Alliance.RED)
+                    ? Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+
+                // Check if robot needs to navigate around hub/bump area
+                // The danger zone extends from hub to include bumps
+                double dangerZoneHalfX = Constants.Field.BUMP_LENGTH / 2.0 + Constants.Robot.LENGTH_WITH_BUMPERS / 2.0 + 1.0;
+                boolean inDangerZone = Math.abs(state.x - hubX) < dangerZoneHalfX;
+
+                // Check if we're on a safe path (above or below the bumps)
+                boolean goAbove = state.y >= Constants.Field.CENTER_Y;
+                double safeY = getSafeYPosition(state, goAbove);
+                boolean onSafePath = goAbove ? (state.y >= safeY - 0.5) : (state.y <= safeY + 0.5);
+
+                if (inDangerZone && !onSafePath && state.x < hubX) {
+                    // Need to move to safe Y position first before proceeding
+                    // Team 3164 MUST avoid bumps - use wider path
+                    driveToTarget(state, input, state.x + 0.3, safeY);
+                } else if (inDangerZone && state.x < hubX) {
+                    // On safe path, drive forward through the gap
+                    driveToTarget(state, input, hubX + dangerZoneHalfX + 0.5, safeY);
+                } else {
+                    // Past the hub/bump area, drive towards the neutral zone target
+                    driveToTarget(state, input, targetX, targetY);
+                }
 
                 if (phaseTimer > DRIVE_TO_NEUTRAL_TIME || isAtTarget(state, targetX, targetY, 0.5)) {
                     transitionToPhase(AutoPhase.INTAKING);
@@ -309,13 +386,17 @@ public class AutonomousController {
                 break;
 
             case INTAKING:
-                // Intake FUEL in neutral zone
+                // OPTIMIZED: More aggressive intake phase
                 input.intake = true;
 
-                // Slowly drive forward while intaking
-                input.forward = 0.2;
+                // Drive faster while intaking to cover more ground
+                input.forward = 0.4;  // Increased from 0.2
 
-                if (phaseTimer > INTAKE_TIMEOUT || state.fuelCount >= Constants.Intake.MAX_CAPACITY) {
+                // Early exit if we collected enough FUEL (don't wait for timeout)
+                boolean hasEnoughFuel = state.fuelCount >= 4;  // Enough for a good cycle
+                boolean timeoutReached = phaseTimer > INTAKE_TIMEOUT;
+
+                if (hasEnoughFuel || timeoutReached) {
                     if (state.fuelCount > 0) {
                         transitionToPhase(AutoPhase.SCORING_COLLECTED);
                     } else {
@@ -325,12 +406,21 @@ public class AutonomousController {
                 break;
 
             case SCORING_COLLECTED:
-                // Shoot collected FUEL
+                // Check if we need to reposition first
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                // Shoot collected FUEL with proper aiming
                 if (state.fuelCount > 0) {
                     input.spinUp = true;
-                    input.shoot = true;
-                    input.shooterAngle = 0.6;
-                    input.shooterPower = 0.7;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
                 } else {
                     transitionToPhase(AutoPhase.COMPLETE);
                 }
@@ -383,17 +473,39 @@ public class AutonomousController {
     private void updateScoreThenClimb(RobotState state, InputState input, double dt) {
         switch (currentPhase) {
             case SCORING_PRELOAD:
-                // Rapid fire preloaded FUEL (faster than Score & Collect)
+                // Check if we need to reposition first
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                // Rapid fire preloaded FUEL with proper aiming
                 if (state.fuelCount > 0) {
                     input.spinUp = true;
-                    input.shoot = true;
-                    input.shooterAngle = 0.5; // Slightly lower angle for speed
-                    input.shooterPower = 0.8; // Higher power for faster shots
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
                 } else {
-                    // Done shooting, head to tower
+                    // Done shooting, head to tower (use correct alliance tower)
                     transitionToPhase(AutoPhase.DRIVING_TO_TOWER);
-                    targetX = Constants.Field.BLUE_TOWER_X + 1.0;
-                    targetY = Constants.Field.BLUE_TOWER_Y;
+                    if (state.alliance == MatchState.Alliance.RED) {
+                        targetX = Constants.Field.RED_TOWER_X - 1.0;
+                        targetY = Constants.Field.RED_TOWER_Y;
+                    } else {
+                        targetX = Constants.Field.BLUE_TOWER_X + 1.0;
+                        targetY = Constants.Field.BLUE_TOWER_Y;
+                    }
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                // Drive to shooting position while avoiding bumps (team 3164 can't traverse bumps)
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.SCORING_PRELOAD);
                 }
                 break;
 
@@ -470,14 +582,31 @@ public class AutonomousController {
                 break;
 
             case SCORING_COLLECTED:
-                // Score all collected FUEL
+                // Check if we need to reposition first
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                // Score all collected FUEL with proper aiming
                 if (state.fuelCount > 0) {
                     input.spinUp = true;
-                    input.shoot = true;
-                    input.shooterAngle = 0.6;
-                    input.shooterPower = 0.7;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
                 } else {
                     transitionToPhase(AutoPhase.COMPLETE);
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                // Drive to shooting position
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
                 }
                 break;
 
@@ -529,14 +658,31 @@ public class AutonomousController {
                 break;
 
             case SCORING_COLLECTED:
-                // Score collected FUEL
+                // Check if we need to reposition first
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                // Score collected FUEL with proper aiming
                 if (state.fuelCount > 0) {
                     input.spinUp = true;
-                    input.shoot = true;
-                    input.shooterAngle = 0.6;
-                    input.shooterPower = 0.7;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
                 } else {
                     transitionToPhase(AutoPhase.COMPLETE);
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                // Drive to shooting position
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
                 }
                 break;
 
@@ -553,14 +699,31 @@ public class AutonomousController {
     private void updatePreloadOnly(RobotState state, InputState input, double dt) {
         switch (currentPhase) {
             case SCORING_PRELOAD:
-                // Shoot all preloaded FUEL
+                // Check if we need to reposition first
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                // Shoot all preloaded FUEL with proper aiming
                 if (state.fuelCount > 0) {
                     input.spinUp = true;
-                    input.shoot = true;
-                    input.shooterAngle = 0.55;
-                    input.shooterPower = 0.65;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
                 } else {
                     transitionToPhase(AutoPhase.HOLDING);
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                // Drive to shooting position while avoiding bumps (team 3164 can't traverse bumps)
+                driveToPositionAvoidingBumps(state, input, targetX, targetY);
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.SCORING_PRELOAD);
                 }
                 break;
 
@@ -580,17 +743,34 @@ public class AutonomousController {
         switch (currentPhase) {
             case SCORING_PRELOAD:
             case SCORING_COLLECTED:
-                // Shoot all FUEL
+                // Check if we need to reposition first
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                // Shoot all FUEL with proper aiming
                 if (state.fuelCount > 0) {
                     input.spinUp = true;
-                    input.shoot = true;
-                    input.shooterAngle = 0.55;
-                    input.shooterPower = 0.75;
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
                 } else {
                     // Go collect more
                     transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
                     targetX = Constants.Field.CENTER_X + (Math.random() - 0.5) * 4.0;
                     targetY = Constants.Field.CENTER_Y + (Math.random() - 0.5) * 2.0;
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                // Drive to shooting position
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 4.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.SCORING_COLLECTED);
                 }
                 break;
 
@@ -649,17 +829,35 @@ public class AutonomousController {
     private void updateWinAuto(RobotState state, InputState input, double dt) {
         switch (currentPhase) {
             case RAPID_SCORING:
-                // Maximum speed shooting
+                // Check if we need to reposition first
+                if (!isInShootingPosition(state)) {
+                    double[] shootPos = getShootingPosition(state);
+                    targetX = shootPos[0];
+                    targetY = shootPos[1];
+                    transitionToPhase(AutoPhase.POSITIONING_TO_SHOOT);
+                    return;
+                }
+                // Maximum speed shooting with proper aiming
                 if (state.fuelCount > 0) {
                     input.spinUp = true;
-                    input.shoot = true;
-                    input.shooterAngle = 0.5;  // Optimized angle for speed
-                    input.shooterPower = 0.9;  // High power for fast shots
+                    // Use aimAtHub to set proper angle/power and turn toward hub
+                    boolean readyToShoot = aimAtHub(state, input);
+                    if (readyToShoot) {
+                        input.shoot = true;
+                    }
                 } else {
                     // Immediately go for more FUEL
                     transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
                     targetX = Constants.Field.CENTER_X;
                     targetY = Constants.Field.CENTER_Y;
+                }
+                break;
+
+            case POSITIONING_TO_SHOOT:
+                // Drive to shooting position (fast for Win AUTO)
+                driveToTarget(state, input, targetX, targetY);
+                if (phaseTimer > 3.0 || isAtTarget(state, targetX, targetY, 0.5)) {
+                    transitionToPhase(AutoPhase.RAPID_SCORING);
                 }
                 break;
 
@@ -715,6 +913,14 @@ public class AutonomousController {
     }
 
     private void driveToTarget(RobotState state, InputState input, double targetX, double targetY) {
+        driveTowardTarget(state, input, targetX, targetY, 1.0);  // OPTIMIZED: Increased from 0.8 for faster travel
+    }
+
+    /**
+     * Drive toward a target position at specified speed.
+     * Uses field-relative control (SwervePhysics handles the transform).
+     */
+    private void driveTowardTarget(RobotState state, InputState input, double targetX, double targetY, double maxSpeed) {
         double dx = targetX - state.x;
         double dy = targetY - state.y;
         double distance = Math.sqrt(dx * dx + dy * dy);
@@ -724,23 +930,22 @@ public class AutonomousController {
             return;
         }
 
-        // Calculate direction to target
+        // Calculate field-relative speed (SwervePhysics will transform based on heading)
+        double speed = Math.min(maxSpeed, distance * 0.5);
+
+        // Field-relative input: forward = +X direction (toward red), strafe = +Y direction (left)
+        // Normalize direction vector
+        double dirX = dx / distance;
+        double dirY = dy / distance;
+
+        // Set field-relative inputs (SwervePhysics handles the robot-relative transform)
+        input.forward = dirX * speed;
+        input.strafe = dirY * speed;
+
+        // Turn towards target direction
         double targetAngle = Math.atan2(dy, dx);
         double headingError = normalizeAngle(targetAngle - state.heading);
-
-        // Field-relative driving
-        double speed = Math.min(0.8, distance * 0.5);
-
-        // Convert to robot-relative if needed
-        double cos = Math.cos(state.heading);
-        double sin = Math.sin(state.heading);
-
-        // Simplified field-relative control
-        input.forward = speed * Math.cos(targetAngle - state.heading);
-        input.strafe = -speed * Math.sin(targetAngle - state.heading);
-
-        // Turn towards target
-        if (Math.abs(headingError) > 0.1) {
+        if (Math.abs(headingError) > 0.1 && maxSpeed >= 0.8) {
             input.turn = Math.signum(headingError) * Math.min(0.5, Math.abs(headingError));
         }
     }
@@ -755,5 +960,213 @@ public class AutonomousController {
         while (angle > Math.PI) angle -= 2 * Math.PI;
         while (angle < -Math.PI) angle += 2 * Math.PI;
         return angle;
+    }
+
+    /**
+     * Check if a position would put the robot on or near a bump.
+     * Team 3164's robot cannot traverse bumps.
+     */
+    private boolean isNearBump(double x, double y, MatchState.Alliance alliance) {
+        // Get bump positions for this alliance
+        double bumpX = (alliance == MatchState.Alliance.RED)
+            ? Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+        double bump1Y = Constants.Field.CENTER_Y + Constants.Field.HUB_SIZE/2 + Constants.Field.BUMP_WIDTH/2 + 0.3;
+        double bump2Y = Constants.Field.CENTER_Y - Constants.Field.HUB_SIZE/2 - Constants.Field.BUMP_WIDTH/2 - 0.3;
+
+        // Bump extends ±BUMP_LENGTH/2 in X and ±BUMP_WIDTH/2 in Y
+        double bumpHalfX = Constants.Field.BUMP_LENGTH / 2.0;
+        double bumpHalfY = Constants.Field.BUMP_WIDTH / 2.0;
+        double robotMargin = Constants.Robot.LENGTH_WITH_BUMPERS / 2.0 + 0.3;
+
+        // Check bump 1 (above hub)
+        if (Math.abs(x - bumpX) < bumpHalfX + robotMargin &&
+            Math.abs(y - bump1Y) < bumpHalfY + robotMargin) {
+            return true;
+        }
+
+        // Check bump 2 (below hub)
+        if (Math.abs(x - bumpX) < bumpHalfX + robotMargin &&
+            Math.abs(y - bump2Y) < bumpHalfY + robotMargin) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get a safe Y position that avoids both hub and bumps.
+     * For team 3164, we need to go much wider to clear the bumps.
+     */
+    private double getSafeYPosition(RobotState state, boolean goAbove) {
+        // Bump extends to CENTER_Y ± (HUB_SIZE/2 + BUMP_WIDTH + 0.3) = CENTER_Y ± 2.025 approximately
+        // Add robot half-width and safety margin
+        double bumpOuterY = Constants.Field.HUB_SIZE/2 + Constants.Field.BUMP_WIDTH/2 + 0.3 + Constants.Field.BUMP_WIDTH/2;
+        double robotMargin = Constants.Robot.LENGTH_WITH_BUMPERS / 2.0 + 0.5;  // Extra 0.5m safety margin
+        double safeOffset = bumpOuterY + robotMargin;
+
+        // Team 3164 can't traverse bumps - need to go wide
+        if (state.teamNumber == 3164) {
+            safeOffset += 0.5;  // Extra margin for team 3164
+        }
+
+        if (goAbove) {
+            return Constants.Field.CENTER_Y + safeOffset;
+        } else {
+            return Constants.Field.CENTER_Y - safeOffset;
+        }
+    }
+
+    /**
+     * Drive to a position while avoiding bumps (for team 3164).
+     * This method handles navigation around the hub/bump area safely.
+     *
+     * @param state Robot state
+     * @param input Input state to modify
+     * @param destX Destination X
+     * @param destY Destination Y
+     */
+    private void driveToPositionAvoidingBumps(RobotState state, InputState input, double destX, double destY) {
+        double hubX = (state.alliance == MatchState.Alliance.RED)
+            ? Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+
+        // Check if robot is in the danger zone (near hub/bumps)
+        double dangerZoneHalfX = Constants.Field.BUMP_LENGTH / 2.0 + Constants.Robot.LENGTH_WITH_BUMPERS / 2.0 + 1.0;
+        boolean inDangerZone = Math.abs(state.x - hubX) < dangerZoneHalfX;
+
+        // Determine safe Y position (above or below bumps)
+        boolean goAbove = state.y >= Constants.Field.CENTER_Y;
+        double safeY = getSafeYPosition(state, goAbove);
+        boolean onSafePath = goAbove ? (state.y >= safeY - 0.5) : (state.y <= safeY + 0.5);
+
+        // Determine direction of travel (toward or away from hub)
+        boolean goingTowardNeutral = destX > hubX;
+
+        if (inDangerZone && !onSafePath) {
+            // Need to move to safe Y position first
+            double stepX = goingTowardNeutral ? 0.3 : -0.3;
+            driveToTarget(state, input, state.x + stepX, safeY);
+        } else if (inDangerZone) {
+            // On safe path, drive through the gap
+            double exitX = goingTowardNeutral ?
+                hubX + dangerZoneHalfX + 0.5 :
+                hubX - dangerZoneHalfX - 0.5;
+            driveToTarget(state, input, exitX, safeY);
+        } else {
+            // Past the hub/bump area, drive directly to destination
+            driveToTarget(state, input, destX, destY);
+        }
+    }
+
+    /**
+     * Check if robot is in a valid shooting position.
+     * Must be in alliance zone and at safe distance from hub.
+     */
+    private boolean isInShootingPosition(RobotState state) {
+        double hubX = (state.alliance == MatchState.Alliance.RED)
+            ? Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+        double hubY = Constants.Field.CENTER_Y;
+
+        // Check alliance zone (G407 rule)
+        boolean inAllianceZone;
+        if (state.alliance == MatchState.Alliance.RED) {
+            inAllianceZone = state.x > (Constants.Field.LENGTH - Constants.Field.ALLIANCE_ZONE_DEPTH);
+        } else {
+            inAllianceZone = state.x < Constants.Field.ALLIANCE_ZONE_DEPTH;
+        }
+
+        // Check safe distance from hub (at least 2m to avoid collision)
+        double distToHub = Math.hypot(hubX - state.x, hubY - state.y);
+        boolean safeDistance = distToHub > 2.0;
+
+        return inAllianceZone && safeDistance;
+    }
+
+    /**
+     * Get a good shooting position for the robot.
+     * Returns position in alliance zone, at safe distance from hub.
+     */
+    private double[] getShootingPosition(RobotState state) {
+        double hubX = (state.alliance == MatchState.Alliance.RED)
+            ? Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+        double hubY = Constants.Field.CENTER_Y;
+
+        // Position 3m from hub, in alliance zone
+        double shootX, shootY;
+        if (state.alliance == MatchState.Alliance.RED) {
+            shootX = Constants.Field.LENGTH - 2.5;  // Well inside red alliance zone
+        } else {
+            shootX = 2.5;  // Well inside blue alliance zone
+        }
+
+        // Offset Y based on robot ID to spread robots out
+        double yOffset = ((state.robotId % 3) - 1) * 2.0;  // -2, 0, or +2 meters
+        shootY = hubY + yOffset;
+        // Clamp Y to stay on field
+        shootY = Math.max(1.5, Math.min(Constants.Field.WIDTH - 1.5, shootY));
+
+        return new double[]{shootX, shootY};
+    }
+
+    /**
+     * Calculate optimal shot parameters based on distance to hub.
+     * Returns array of [shooterAngle (0-1), shooterPower (0-1)].
+     */
+    private double[] calculateShotParams(RobotState state) {
+        double hubX = (state.alliance == MatchState.Alliance.RED)
+            ? Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+        double hubY = Constants.Field.CENTER_Y;
+
+        double dist = Math.hypot(hubX - state.x, hubY - state.y);
+
+        // Calculate angle and power based on distance
+        // At close range (< 3m): low angle, low power
+        // At medium range (3-6m): medium angle, medium power
+        // At long range (> 6m): high angle, high power
+        double angle, power;
+
+        if (dist < 3.0) {
+            // Very close - flat trajectory
+            angle = 0.15;  // ~11 degrees
+            power = 0.35;  // ~10.25 m/s
+        } else if (dist < 6.0) {
+            // Medium range - moderate arc
+            angle = 0.25 + (dist - 3.0) * 0.05;  // 18-33 degrees
+            power = 0.45 + (dist - 3.0) * 0.05;  // 11.75-14 m/s
+        } else {
+            // Long range - high arc
+            angle = 0.4 + Math.min(0.3, (dist - 6.0) * 0.05);  // 30-52 degrees
+            power = 0.6 + Math.min(0.3, (dist - 6.0) * 0.03);  // 14-18.5 m/s
+        }
+
+        return new double[]{Math.min(0.7, angle), Math.min(0.9, power)};
+    }
+
+    /**
+     * Configure shooter to aim at own alliance's hub.
+     * Sets shooter angle/power and turns robot to face hub.
+     * Returns true when ready to shoot.
+     */
+    private boolean aimAtHub(RobotState state, InputState input) {
+        double hubX = (state.alliance == MatchState.Alliance.RED)
+            ? Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+        double hubY = Constants.Field.CENTER_Y;
+
+        // Set optimal shot parameters
+        double[] params = calculateShotParams(state);
+        input.shooterAngle = params[0];
+        input.shooterPower = params[1];
+
+        // Calculate angle to hub
+        double angleToHub = Math.atan2(hubY - state.y, hubX - state.x);
+        double headingError = normalizeAngle(angleToHub - state.heading);
+
+        // Turn to face hub if needed
+        if (Math.abs(headingError) > 0.1) {
+            input.turn = Math.signum(headingError) * Math.min(0.6, Math.abs(headingError));
+            return false;  // Not aimed yet
+        }
+
+        // Check if shooter is ready
+        return state.shooterAtAngle && state.shooterAtSpeed;
     }
 }

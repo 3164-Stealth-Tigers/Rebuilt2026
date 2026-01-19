@@ -13,9 +13,9 @@ import team3164.simulator.engine.RobotState.IntakeState;
  */
 public class IntakePhysics {
 
-    // Intake physical parameters
-    private static final double INTAKE_REACH = 0.4;  // How far in front of robot intake reaches
-    private static final double INTAKE_WIDTH = Constants.Intake.WIDTH;
+    // Intake physical parameters - made generous for easier pickup
+    private static final double INTAKE_REACH = 0.8;  // How far in front of robot intake reaches
+    private static final double INTAKE_WIDTH = 0.8;  // Wider intake zone
 
     /**
      * Update intake physics - check for FUEL pickup.
@@ -32,12 +32,8 @@ public class IntakePhysics {
             return false;
         }
 
-        // Calculate intake zone (in front of robot)
-        double intakeX = state.x + Math.cos(state.heading) * INTAKE_REACH;
-        double intakeY = state.y + Math.sin(state.heading) * INTAKE_REACH;
-
-        // Check for FUEL in intake zone (field fuel)
-        Fuel fuel = findFuelInIntakeZone(intakeX, intakeY, state.heading, fuelState);
+        // Check for FUEL near the robot (simple distance check)
+        Fuel fuel = findNearestFuelInRange(state.x, state.y, INTAKE_REACH + 0.5, fuelState);
 
         if (fuel != null) {
             // Pick up the FUEL
@@ -60,33 +56,54 @@ public class IntakePhysics {
     }
 
     /**
-     * Find FUEL in the intake zone.
+     * Find the nearest FUEL within pickup range.
      */
-    private static Fuel findFuelInIntakeZone(double intakeX, double intakeY, double heading,
-                                            FuelState fuelState) {
-        double halfWidth = INTAKE_WIDTH / 2.0;
-
-        // Calculate intake zone corners
-        double perpX = -Math.sin(heading);
-        double perpY = Math.cos(heading);
+    private static Fuel findNearestFuelInRange(double robotX, double robotY, double range, FuelState fuelState) {
+        Fuel nearest = null;
+        double nearestDist = Double.MAX_VALUE;
 
         for (Fuel fuel : fuelState.getFieldFuel()) {
-            // Check if FUEL is within intake zone
-            double dx = fuel.x - intakeX;
-            double dy = fuel.y - intakeY;
-
-            // Project onto intake direction
-            double forward = dx * Math.cos(heading) + dy * Math.sin(heading);
-            double lateral = dx * perpX + dy * perpY;
-
-            // Check bounds
-            if (Math.abs(forward) <= INTAKE_REACH / 2 &&
-                Math.abs(lateral) <= halfWidth) {
-                return fuel;
+            double dist = Math.hypot(fuel.x - robotX, fuel.y - robotY);
+            if (dist <= range && dist < nearestDist) {
+                nearestDist = dist;
+                nearest = fuel;
             }
         }
 
-        return null;
+        return nearest;
+    }
+
+    /**
+     * Find FUEL in the intake zone.
+     * Uses a circular zone around the robot for more forgiving pickup.
+     */
+    private static Fuel findFuelInIntakeZone(double intakeX, double intakeY, double heading,
+                                            FuelState fuelState) {
+        // Use a simpler circular pickup zone centered on the robot
+        // This is more realistic for a floor-level intake that can grab balls nearby
+        double pickupRadius = INTAKE_REACH + INTAKE_WIDTH / 2.0;  // ~1.2m radius
+
+        Fuel nearest = null;
+        double nearestDist = Double.MAX_VALUE;
+
+        for (Fuel fuel : fuelState.getFieldFuel()) {
+            // Check distance from robot center (not intake position)
+            double dx = fuel.x - intakeX + Math.cos(heading) * INTAKE_REACH / 2;
+            double dy = fuel.y - intakeY + Math.sin(heading) * INTAKE_REACH / 2;
+            double dist = Math.hypot(dx, dy);
+
+            // Prefer FUEL in front of robot but allow any nearby FUEL
+            // Give bonus to FUEL in front direction
+            double dotProduct = dx * Math.cos(heading) + dy * Math.sin(heading);
+            double effectiveDist = dist - (dotProduct > 0 ? 0.3 : 0);  // Slight preference for forward FUEL
+
+            if (dist <= pickupRadius && effectiveDist < nearestDist) {
+                nearestDist = effectiveDist;
+                nearest = fuel;
+            }
+        }
+
+        return nearest;
     }
 
     /**

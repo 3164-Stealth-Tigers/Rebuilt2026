@@ -215,19 +215,53 @@
             </div>
         </div>
 
-        <!-- First Person View -->
-        <div class="fpv-container">
+        <!-- First Person View - Multi-Camera Array -->
+        <div class="fpv-multi-container">
             <div class="fpv-header">
-                <h2>ROBOT CAM - TEAM 3164</h2>
+                <h2>ROBOT VISION SYSTEM - TEAM 3164</h2>
                 <div class="fpv-info">
                     <span id="fpv-heading">HDG: 0°</span>
                     <span id="fpv-fuel">FUEL: 0</span>
                     <span id="fpv-target">TARGET: ---</span>
                 </div>
             </div>
-            <canvas id="fpv-canvas" width="800" height="300"></canvas>
-            <div class="fpv-hud">
-                <div class="fpv-crosshair"></div>
+            <div class="fpv-cameras">
+                <!-- Camera 2: Left (90° FOV) -->
+                <div class="fpv-camera fpv-camera-side">
+                    <div class="fpv-camera-label">CAM 2 - LEFT (90°)</div>
+                    <canvas id="fpv-canvas-left" width="250" height="200"></canvas>
+                    <div class="fpv-hud-mini">
+                        <div class="fpv-crosshair-mini"></div>
+                    </div>
+                    <div class="fpv-apriltags" id="fpv-tags-left">
+                        <span class="apriltag-label">TAGS:</span>
+                        <span class="apriltag-list">---</span>
+                    </div>
+                </div>
+                <!-- Camera 1: Front (180° FOV) -->
+                <div class="fpv-camera fpv-camera-main">
+                    <div class="fpv-camera-label">CAM 1 - FRONT (180°)</div>
+                    <canvas id="fpv-canvas" width="500" height="250"></canvas>
+                    <div class="fpv-hud">
+                        <div class="fpv-crosshair"></div>
+                    </div>
+                    <div class="fpv-apriltags" id="fpv-tags-front">
+                        <span class="apriltag-label">TAGS:</span>
+                        <span class="apriltag-list">---</span>
+                    </div>
+                </div>
+                <!-- Camera 3: Right (90° FOV) -->
+                <div class="fpv-camera fpv-camera-side">
+                    <div class="fpv-camera-label">CAM 3 - RIGHT (90°)</div>
+                    <canvas id="fpv-canvas-right" width="250" height="200"></canvas>
+                    <div class="fpv-hud-mini">
+                        <div class="fpv-crosshair-mini"></div>
+                    </div>
+                    <div class="fpv-apriltags" id="fpv-tags-right">
+                        <span class="apriltag-label">TAGS:</span>
+                        <span class="apriltag-list">---</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

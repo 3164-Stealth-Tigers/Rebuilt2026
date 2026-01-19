@@ -161,7 +161,9 @@ public class RobotState {
      */
     public boolean canIntakeFuel() {
         return fuelCount < Constants.Intake.MAX_CAPACITY &&
-               intakeState == IntakeState.IDLE;
+               (intakeState == IntakeState.IDLE ||
+                intakeState == IntakeState.INTAKING ||
+                intakeState == IntakeState.READY_TO_SHOOT);
     }
 
     /**

@@ -216,21 +216,43 @@ public class AIRobotController {
         // If we have FUEL, shoot it
         if (state.fuelCount > 0) {
             currentPhase = AIPhase.SHOOTING;
-            // Drive toward active hub
+            // Drive toward shooting position - MUST be in alliance zone per G407
             double hubX = alliance == MatchState.Alliance.RED ?
-                    Constants.Field.RED_HUB_X - 2.5 : Constants.Field.BLUE_HUB_X + 2.5;
-            double hubY = Constants.Field.CENTER_Y;
+                    Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+            double hubY = Constants.Field.RED_HUB_Y;  // Center Y
+            // G407: Robot must shoot from inside alliance zone
+            // BLUE zone: x = 0 to 4.03m, RED zone: x = 12.51m to 16.54m
+            // Position deep enough that 1.0m tolerance still keeps us in zone
+            double shootPosX = alliance == MatchState.Alliance.RED ?
+                    Constants.Field.LENGTH - 2.0 : 2.0;
+            // Offset Y based on robot ID to spread robots out and avoid HUB collision
+            // HUB is at center Y (~4.0), so offset by 2.5-3.5m to go around it
+            double yOffset = ((state.robotId % 3) - 1) * 3.0;  // -3, 0, or +3 meters
+            double shootPosY = hubY + yOffset;
+            // Clamp Y to stay on field
+            shootPosY = Math.max(1.5, Math.min(Constants.Field.WIDTH - 1.5, shootPosY));
 
-            boolean atPosition = driveToTarget(state, input, hubX, hubY, 1.0);
+            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0);
 
-            // Always set shooter parameters so it spins up while approaching
-            input.shooterAngle = 0.55;  // ~41 degrees
-            input.shooterPower = 0.75;  // ~15 m/s
+            // Calculate optimal shot parameters based on distance
+            double distToHub = Math.hypot(hubX - state.x, hubY - state.y);
+            // Lower angle for closer shots, higher for farther shots
+            double optimalAngle = Math.min(0.7, Math.max(0.2, (distToHub - 2.0) / 10.0));
+            double optimalPower = Math.min(0.9, Math.max(0.5, distToHub / 10.0));
+            input.shooterAngle = optimalAngle;
+            input.shooterPower = optimalPower;
 
             if (atPosition) {
-                // At hub position - check if shooter is ready
-                if (state.shooterAtSpeed && state.shooterAtAngle) {
-                    // Shooter ready, fire!
+                // At shooting position - turn to face the hub
+                double angleToHub = Math.atan2(hubY - state.y, hubX - state.x);
+                double headingError = normalizeAngle(angleToHub - state.heading);
+
+                if (Math.abs(headingError) > 0.1) {
+                    // Need to turn to face hub
+                    input.turn = Math.signum(headingError) * Math.min(0.6, Math.abs(headingError));
+                    state.currentCommand = "Aiming";
+                } else if (state.shooterAtSpeed && state.shooterAtAngle) {
+                    // Facing hub and shooter ready - fire!
                     input.shoot = true;
                     state.currentCommand = "Shooting";
                 } else {
@@ -263,15 +285,30 @@ public class AIRobotController {
         if (state.fuelCount >= 3) {
             currentPhase = AIPhase.SHOOTING;
             double hubX = alliance == MatchState.Alliance.RED ?
-                    Constants.Field.RED_HUB_X - 2.5 : Constants.Field.BLUE_HUB_X + 2.5;
-            double hubY = Constants.Field.CENTER_Y;
+                    Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+            double hubY = Constants.Field.RED_HUB_Y;
+            // G407: Robot must shoot from inside alliance zone
+            double shootPosX = alliance == MatchState.Alliance.RED ?
+                    Constants.Field.LENGTH - 2.0 : 2.0;
+            double yOffset = ((state.robotId % 3) - 1) * 3.0;
+            double shootPosY = hubY + yOffset;
+            shootPosY = Math.max(1.5, Math.min(Constants.Field.WIDTH - 1.5, shootPosY));
 
-            boolean atPosition = driveToTarget(state, input, hubX, hubY, 1.0);
+            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0);
             input.shooterAngle = 0.55;
             input.shooterPower = 0.75;
 
-            if (atPosition && state.shooterAtSpeed && state.shooterAtAngle) {
-                input.shoot = true;
+            if (atPosition) {
+                // Turn to face hub
+                double angleToHub = Math.atan2(hubY - state.y, hubX - state.x);
+                double headingError = normalizeAngle(angleToHub - state.heading);
+                if (Math.abs(headingError) > 0.1) {
+                    input.turn = Math.signum(headingError) * Math.min(0.6, Math.abs(headingError));
+                    state.currentCommand = "Aiming";
+                } else if (state.shooterAtSpeed && state.shooterAtAngle) {
+                    input.shoot = true;
+                    state.currentCommand = "Shooting";
+                }
             }
             return;
         }
@@ -349,15 +386,29 @@ public class AIRobotController {
             // Score any FUEL before climbing
             currentPhase = AIPhase.SHOOTING;
             double hubX = alliance == MatchState.Alliance.RED ?
-                    Constants.Field.RED_HUB_X - 2.5 : Constants.Field.BLUE_HUB_X + 2.5;
-            double hubY = Constants.Field.CENTER_Y;
+                    Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+            double hubY = Constants.Field.RED_HUB_Y;
+            // G407: Robot must shoot from inside alliance zone
+            double shootPosX = alliance == MatchState.Alliance.RED ?
+                    Constants.Field.LENGTH - 2.0 : 2.0;
+            double yOffset = ((state.robotId % 3) - 1) * 3.0;
+            double shootPosY = hubY + yOffset;
+            shootPosY = Math.max(1.5, Math.min(Constants.Field.WIDTH - 1.5, shootPosY));
 
-            boolean atPosition = driveToTarget(state, input, hubX, hubY, 1.0);
+            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0);
             input.shooterAngle = 0.55;
             input.shooterPower = 0.75;
 
-            if (atPosition && state.shooterAtSpeed && state.shooterAtAngle) {
-                input.shoot = true;
+            if (atPosition) {
+                double angleToHub = Math.atan2(hubY - state.y, hubX - state.x);
+                double headingError = normalizeAngle(angleToHub - state.heading);
+                if (Math.abs(headingError) > 0.1) {
+                    input.turn = Math.signum(headingError) * Math.min(0.6, Math.abs(headingError));
+                    state.currentCommand = "Aiming";
+                } else if (state.shooterAtSpeed && state.shooterAtAngle) {
+                    input.shoot = true;
+                    state.currentCommand = "Shooting";
+                }
             }
         } else {
             // Collect FUEL until closer to end game
@@ -379,17 +430,29 @@ public class AIRobotController {
             // Nearly full, go score
             currentPhase = AIPhase.SHOOTING;
             double hubX = alliance == MatchState.Alliance.RED ?
-                    Constants.Field.RED_HUB_X - 2.5 : Constants.Field.BLUE_HUB_X + 2.5;
-            double hubY = Constants.Field.CENTER_Y;
+                    Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
+            double hubY = Constants.Field.RED_HUB_Y;
+            // G407: Robot must shoot from inside alliance zone
+            double shootPosX = alliance == MatchState.Alliance.RED ?
+                    Constants.Field.LENGTH - 2.0 : 2.0;
+            double yOffset = ((state.robotId % 3) - 1) * 3.0;
+            double shootPosY = hubY + yOffset;
+            shootPosY = Math.max(1.5, Math.min(Constants.Field.WIDTH - 1.5, shootPosY));
 
-            boolean atPosition = driveToTarget(state, input, hubX, hubY, 1.0);
+            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0);
 
             // Spin up shooter while approaching
             input.shooterAngle = 0.55;
             input.shooterPower = 0.75;
 
             if (atPosition) {
-                if (state.shooterAtSpeed && state.shooterAtAngle) {
+                // Turn to face hub (aim at hub center, not offset position)
+                double angleToHub = Math.atan2(hubY - state.y, hubX - state.x);
+                double headingError = normalizeAngle(angleToHub - state.heading);
+                if (Math.abs(headingError) > 0.1) {
+                    input.turn = Math.signum(headingError) * Math.min(0.6, Math.abs(headingError));
+                    state.currentCommand = "Aiming";
+                } else if (state.shooterAtSpeed && state.shooterAtAngle) {
                     input.shoot = true;
                     state.currentCommand = "Dumping FUEL";
                 } else {

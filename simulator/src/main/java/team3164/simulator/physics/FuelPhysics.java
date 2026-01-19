@@ -39,13 +39,28 @@ public class FuelPhysics {
      * @param dt Time step in seconds
      */
     public static void update(FuelState fuelState, MatchState matchState, double dt) {
-        List<Fuel> activeFuel = fuelState.getActiveFuel();
+        // Create a copy of the list to avoid ConcurrentModificationException
+        List<Fuel> flightFuelCopy = new java.util.ArrayList<>(fuelState.getFlightFuel());
+        List<Fuel> fieldFuelCopy = new java.util.ArrayList<>(fuelState.getFieldFuel());
 
-        for (Fuel fuel : activeFuel) {
+        // Process in-flight FUEL
+        for (Fuel fuel : flightFuelCopy) {
+            // First check for hub collision (scoring) before updating physics
+            checkHubCollision(fuel, fuelState, matchState);
+
+            // If still in flight after hub check, update physics
             if (fuel.location == FuelLocation.IN_FLIGHT) {
-                updateFlightPhysics(fuel, dt);
-                checkHubCollision(fuel, fuelState, matchState);
-            } else if (fuel.location == FuelLocation.ON_FIELD) {
+                boolean landed = updateFlightPhysics(fuel, dt);
+                if (landed) {
+                    // Transition to ON_FIELD
+                    fuelState.landOnField(fuel);
+                }
+            }
+        }
+
+        // Process on-field FUEL
+        for (Fuel fuel : fieldFuelCopy) {
+            if (fuel.location == FuelLocation.ON_FIELD) {
                 updateGroundPhysics(fuel, dt);
                 checkFieldBoundaries(fuel);
                 checkCorralEntry(fuel, fuelState);
@@ -55,8 +70,9 @@ public class FuelPhysics {
 
     /**
      * Update physics for FUEL in flight.
+     * Returns true if FUEL has landed and should transition to ON_FIELD.
      */
-    private static void updateFlightPhysics(Fuel fuel, double dt) {
+    private static boolean updateFlightPhysics(Fuel fuel, double dt) {
         // Calculate drag force
         double speed = fuel.getSpeed();
         if (speed > 0) {
@@ -88,11 +104,13 @@ public class FuelPhysics {
             fuel.vx *= 0.8;
             fuel.vy *= 0.8;
 
-            // If very low bounce, consider landed
+            // If very low bounce, consider landed and transition to ON_FIELD
             if (Math.abs(fuel.vz) < 0.5) {
                 fuel.vz = 0;
+                return true;  // Signal to transition to ON_FIELD
             }
         }
+        return false;
     }
 
     /**

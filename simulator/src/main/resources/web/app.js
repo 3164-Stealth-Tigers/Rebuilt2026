@@ -84,6 +84,36 @@ const FUEL = {
     RADIUS: 0.075  // 5.91 inches / 2
 };
 
+// AprilTag positions: {id, x, y, z, rotation}
+// Rotation: 0 = facing +X (red wall), 90 = facing +Y, 180 = facing -X (blue wall), 270 = facing -Y
+const APRILTAGS = [
+    // BLUE HUB AprilTags (Tags 1-3) - facing toward field center (+X direction)
+    {id: 1, x: HUB.BLUE_X + HUB.SIZE/2 + 0.01, y: FIELD.CENTER_Y, z: 1.2, rotation: 0},
+    {id: 2, x: HUB.BLUE_X + HUB.SIZE/2 + 0.01, y: FIELD.CENTER_Y + 0.4, z: 1.0, rotation: 0},
+    {id: 3, x: HUB.BLUE_X + HUB.SIZE/2 + 0.01, y: FIELD.CENTER_Y - 0.4, z: 1.0, rotation: 0},
+
+    // RED HUB AprilTags (Tags 4-6) - facing toward field center (-X direction)
+    {id: 4, x: HUB.RED_X - HUB.SIZE/2 - 0.01, y: FIELD.CENTER_Y, z: 1.2, rotation: 180},
+    {id: 5, x: HUB.RED_X - HUB.SIZE/2 - 0.01, y: FIELD.CENTER_Y + 0.4, z: 1.0, rotation: 180},
+    {id: 6, x: HUB.RED_X - HUB.SIZE/2 - 0.01, y: FIELD.CENTER_Y - 0.4, z: 1.0, rotation: 180},
+
+    // BLUE TOWER AprilTags (Tags 7-8)
+    {id: 7, x: TOWER.BLUE_X + 0.3, y: TOWER.BLUE_Y, z: 1.5, rotation: 0},
+    {id: 8, x: TOWER.BLUE_X, y: TOWER.BLUE_Y - 0.5, z: 1.5, rotation: 270},
+
+    // RED TOWER AprilTags (Tags 9-10)
+    {id: 9, x: TOWER.RED_X - 0.3, y: TOWER.RED_Y, z: 1.5, rotation: 180},
+    {id: 10, x: TOWER.RED_X, y: TOWER.RED_Y - 0.5, z: 1.5, rotation: 270},
+
+    // FIELD WALL AprilTags (Tags 11-16) - for general field localization
+    {id: 11, x: 0.01, y: FIELD.WIDTH/4, z: 0.6, rotation: 0},
+    {id: 12, x: 0.01, y: 3*FIELD.WIDTH/4, z: 0.6, rotation: 0},
+    {id: 13, x: FIELD.LENGTH - 0.01, y: FIELD.WIDTH/4, z: 0.6, rotation: 180},
+    {id: 14, x: FIELD.LENGTH - 0.01, y: 3*FIELD.WIDTH/4, z: 0.6, rotation: 180},
+    {id: 15, x: FIELD.CENTER_X, y: 0.01, z: 0.6, rotation: 90},
+    {id: 16, x: FIELD.CENTER_X, y: FIELD.WIDTH - 0.01, z: 0.6, rotation: 270}
+];
+
 // ============================================================================
 // STATE
 // ============================================================================
@@ -93,6 +123,8 @@ let connected = false;
 let state = null;
 let canvas, ctx;
 let fpvCanvas, fpvCtx;
+let fpvCanvasLeft, fpvCtxLeft;
+let fpvCanvasRight, fpvCtxRight;
 
 // Input state
 const keys = {};
@@ -428,8 +460,8 @@ function updateUI() {
     // Render field
     renderField();
 
-    // Render first-person view
-    renderFPV();
+    // Render first-person view (all cameras)
+    renderAllFPV();
 }
 
 /**
@@ -655,6 +687,11 @@ function renderField() {
     drawHub(HUB.RED_X * scale, h - HUB.RED_Y * scale, HUB.SIZE * scale, 'red', state.match.redHubActive);
     drawHub(HUB.BLUE_X * scale, h - HUB.BLUE_Y * scale, HUB.SIZE * scale, 'blue', state.match.blueHubActive);
 
+    // Draw AprilTags
+    APRILTAGS.forEach(tag => {
+        drawAprilTag(tag.x * scale, h - tag.y * scale, 8, tag.id);
+    });
+
     // Draw DEPOTs
     drawDepot(DEPOT.RED_X * scale, h - DEPOT.RED_Y * scale, DEPOT.LENGTH * scale, DEPOT.WIDTH * scale, 'red');
     drawDepot(DEPOT.BLUE_X * scale, h - DEPOT.BLUE_Y * scale, DEPOT.LENGTH * scale, DEPOT.WIDTH * scale, 'blue');
@@ -752,6 +789,29 @@ function drawTower(x, y, length, width, alliance) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('TOWER', x, y);
+}
+
+function drawAprilTag(x, y, size, id) {
+    const half = size / 2;
+
+    // Outer black square
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x - half, y - half, size, size);
+
+    // Inner white border
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x - half + 1, y - half + 1, size - 2, size - 2);
+
+    // Inner black square
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x - half + 2, y - half + 2, size - 4, size - 4);
+
+    // Tag ID number
+    ctx.fillStyle = '#0f0';
+    ctx.font = 'bold 7px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(id.toString(), x, y);
 }
 
 function drawBump(x, y, length, width, alliance) {
@@ -1018,23 +1078,44 @@ function drawSwerveModules(x, y, heading, scale) {
 // ============================================================================
 
 /**
- * Initialize the FPV canvas.
+ * Initialize the FPV canvases (front, left, right cameras).
  */
 function initFPVCanvas() {
+    // Front camera (180° FOV)
     fpvCanvas = document.getElementById('fpv-canvas');
-    if (!fpvCanvas) return;
+    if (fpvCanvas) {
+        fpvCtx = fpvCanvas.getContext('2d');
+    }
 
-    fpvCtx = fpvCanvas.getContext('2d');
+    // Left camera (90° FOV)
+    fpvCanvasLeft = document.getElementById('fpv-canvas-left');
+    if (fpvCanvasLeft) {
+        fpvCtxLeft = fpvCanvasLeft.getContext('2d');
+    }
+
+    // Right camera (90° FOV)
+    fpvCanvasRight = document.getElementById('fpv-canvas-right');
+    if (fpvCanvasRight) {
+        fpvCtxRight = fpvCanvasRight.getContext('2d');
+    }
 
     function resizeFPV() {
-        const container = fpvCanvas.parentElement;
-        const width = container.clientWidth;
-        const height = 300;
+        // Front camera sizing
+        if (fpvCanvas) {
+            fpvCanvas.width = 500;
+            fpvCanvas.height = 250;
+        }
+        // Side cameras sizing
+        if (fpvCanvasLeft) {
+            fpvCanvasLeft.width = 250;
+            fpvCanvasLeft.height = 200;
+        }
+        if (fpvCanvasRight) {
+            fpvCanvasRight.width = 250;
+            fpvCanvasRight.height = 200;
+        }
 
-        fpvCanvas.width = width;
-        fpvCanvas.height = height;
-
-        if (state) renderFPV();
+        if (state) renderAllFPV();
     }
 
     window.addEventListener('resize', resizeFPV);
@@ -1042,13 +1123,10 @@ function initFPVCanvas() {
 }
 
 /**
- * Render the first-person view from the player's robot perspective.
+ * Render all three FPV cameras.
  */
-function renderFPV() {
-    if (!fpvCtx || !state) return;
-
-    const w = fpvCanvas.width;
-    const h = fpvCanvas.height;
+function renderAllFPV() {
+    if (!state) return;
 
     // Get player robot data
     let playerRobot = null;
@@ -1065,51 +1143,44 @@ function renderFPV() {
         };
     }
 
+    // Collect all objects once for all cameras
+    const objects = collectFPVObjects();
+
     const robotX = playerRobot.x;
     const robotY = playerRobot.y;
-    const robotHeading = -playerRobot.heading * Math.PI / 180; // Convert to radians
+    const robotHeading = -playerRobot.heading * Math.PI / 180;
 
-    // Clear canvas with sky gradient
-    const skyGradient = fpvCtx.createLinearGradient(0, 0, 0, h / 2);
-    skyGradient.addColorStop(0, '#1a1a2e');
-    skyGradient.addColorStop(1, '#16213e');
-    fpvCtx.fillStyle = skyGradient;
-    fpvCtx.fillRect(0, 0, w, h / 2);
-
-    // Draw ground with perspective
-    const groundGradient = fpvCtx.createLinearGradient(0, h / 2, 0, h);
-    groundGradient.addColorStop(0, '#2d4a3a');
-    groundGradient.addColorStop(1, '#1a2d22');
-    fpvCtx.fillStyle = groundGradient;
-    fpvCtx.fillRect(0, h / 2, w, h / 2);
-
-    // Draw grid lines on ground for depth perception
-    fpvCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    fpvCtx.lineWidth = 1;
-
-    // Horizontal grid lines (perspective)
-    for (let i = 1; i <= 10; i++) {
-        const y = h / 2 + (h / 2) * (1 - 1 / (i * 0.5 + 1));
-        const spread = 1 + (i * 0.3);
-        fpvCtx.beginPath();
-        fpvCtx.moveTo(w / 2 - w * spread / 2, y);
-        fpvCtx.lineTo(w / 2 + w * spread / 2, y);
-        fpvCtx.stroke();
+    // Render front camera (180° FOV) and get visible objects
+    let frontVisible = [];
+    if (fpvCtx && fpvCanvas) {
+        frontVisible = renderFPVCamera(fpvCanvas, fpvCtx, objects, playerRobot, Math.PI, 0);
     }
 
-    // Vertical grid lines (converging to horizon)
-    for (let i = -5; i <= 5; i++) {
-        fpvCtx.beginPath();
-        fpvCtx.moveTo(w / 2 + i * 30, h / 2);
-        fpvCtx.lineTo(w / 2 + i * 150, h);
-        fpvCtx.stroke();
+    // Render left camera (90° FOV, looking 90° left)
+    let leftVisible = [];
+    if (fpvCtxLeft && fpvCanvasLeft) {
+        leftVisible = renderFPVCamera(fpvCanvasLeft, fpvCtxLeft, objects, playerRobot, Math.PI / 2, Math.PI / 2);
     }
 
-    // Draw field elements in 3D perspective
-    const fov = Math.PI / 2.5; // Field of view (~72 degrees)
-    const maxDist = 15; // Max render distance in meters
+    // Render right camera (90° FOV, looking 90° right)
+    let rightVisible = [];
+    if (fpvCtxRight && fpvCanvasRight) {
+        rightVisible = renderFPVCamera(fpvCanvasRight, fpvCtxRight, objects, playerRobot, Math.PI / 2, -Math.PI / 2);
+    }
 
-    // Collect all objects to render
+    // Update AprilTag indicators for each camera
+    updateAprilTagIndicator('fpv-tags-front', frontVisible);
+    updateAprilTagIndicator('fpv-tags-left', leftVisible);
+    updateAprilTagIndicator('fpv-tags-right', rightVisible);
+
+    // Update HUD elements
+    updateFPVHUD(playerRobot, frontVisible);
+}
+
+/**
+ * Collect all objects to render in FPV views.
+ */
+function collectFPVObjects() {
     const objects = [];
 
     // Add HUBs
@@ -1143,6 +1214,18 @@ function renderFPV() {
         objects.push({ type: 'bump', x: bump.x, y: bump.y, alliance: bump.alliance });
     });
 
+    // Add AprilTags
+    APRILTAGS.forEach(tag => {
+        objects.push({
+            type: 'apriltag',
+            x: tag.x,
+            y: tag.y,
+            z: tag.z,
+            id: tag.id,
+            rotation: tag.rotation
+        });
+    });
+
     // Add FUEL on field
     if (state.fuel && state.fuel.field) {
         state.fuel.field.forEach(fuel => {
@@ -1167,39 +1250,103 @@ function renderFPV() {
         });
     }
 
-    // Transform and sort objects by distance
-    const visibleObjects = objects.map(obj => {
-        // Transform to robot-relative coordinates
+    return objects;
+}
+
+/**
+ * Transform objects for a specific camera view.
+ */
+function transformObjectsForCamera(objects, robotX, robotY, robotHeading, fov, headingOffset) {
+    const maxDist = 15;
+    const cameraHeading = robotHeading + headingOffset;
+
+    return objects.map(obj => {
         const dx = obj.x - robotX;
         const dy = obj.y - robotY;
 
-        // Rotate by robot heading
-        const localX = dx * Math.cos(-robotHeading) - dy * Math.sin(-robotHeading);
-        const localY = dx * Math.sin(-robotHeading) + dy * Math.cos(-robotHeading);
+        // Rotate by camera heading (robot heading + camera offset)
+        const localX = dx * Math.cos(-cameraHeading) - dy * Math.sin(-cameraHeading);
+        const localY = dx * Math.sin(-cameraHeading) + dy * Math.cos(-cameraHeading);
 
-        // localX is forward, localY is left/right
         const dist = Math.sqrt(localX * localX + localY * localY);
         const angle = Math.atan2(localY, localX);
 
         return { ...obj, localX, localY, dist, angle };
     }).filter(obj => {
-        // Only render objects in front of robot and within FOV
-        return obj.localX > 0.5 && Math.abs(obj.angle) < fov / 2 && obj.dist < maxDist;
-    }).sort((a, b) => b.dist - a.dist); // Sort far to near
-
-    // Render objects
-    visibleObjects.forEach(obj => {
-        renderFPVObject(obj, w, h, fov);
-    });
-
-    // Update HUD elements
-    updateFPVHUD(playerRobot, visibleObjects);
+        // Only render objects in front of camera and within FOV
+        return obj.localX > 0.3 && Math.abs(obj.angle) < fov / 2 && obj.dist < maxDist;
+    }).sort((a, b) => b.dist - a.dist);
 }
 
 /**
- * Render a single object in FPV perspective.
+ * Render a single FPV camera view.
+ * Returns the visible objects for this camera.
  */
-function renderFPVObject(obj, w, h, fov) {
+function renderFPVCamera(canvas, ctx, objects, playerRobot, fov, headingOffset) {
+    const w = canvas.width;
+    const h = canvas.height;
+
+    const robotX = playerRobot.x;
+    const robotY = playerRobot.y;
+    const robotHeading = -playerRobot.heading * Math.PI / 180;
+
+    // Clear canvas with sky gradient
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, h / 2);
+    skyGradient.addColorStop(0, '#1a1a2e');
+    skyGradient.addColorStop(1, '#16213e');
+    ctx.fillStyle = skyGradient;
+    ctx.fillRect(0, 0, w, h / 2);
+
+    // Draw ground with perspective
+    const groundGradient = ctx.createLinearGradient(0, h / 2, 0, h);
+    groundGradient.addColorStop(0, '#2d4a3a');
+    groundGradient.addColorStop(1, '#1a2d22');
+    ctx.fillStyle = groundGradient;
+    ctx.fillRect(0, h / 2, w, h / 2);
+
+    // Draw grid lines on ground
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+
+    for (let i = 1; i <= 10; i++) {
+        const y = h / 2 + (h / 2) * (1 - 1 / (i * 0.5 + 1));
+        const spread = 1 + (i * 0.3);
+        ctx.beginPath();
+        ctx.moveTo(w / 2 - w * spread / 2, y);
+        ctx.lineTo(w / 2 + w * spread / 2, y);
+        ctx.stroke();
+    }
+
+    for (let i = -5; i <= 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(w / 2 + i * 20, h / 2);
+        ctx.lineTo(w / 2 + i * 100, h);
+        ctx.stroke();
+    }
+
+    // Transform and filter objects for this camera
+    const visibleObjects = transformObjectsForCamera(objects, robotX, robotY, robotHeading, fov, headingOffset);
+
+    // Render objects
+    visibleObjects.forEach(obj => {
+        renderFPVObjectToCtx(ctx, obj, w, h, fov);
+    });
+
+    // Return visible objects for AprilTag indicator
+    return visibleObjects;
+}
+
+/**
+ * Legacy renderFPV for backwards compatibility.
+ */
+function renderFPV() {
+    renderAllFPV();
+}
+
+/**
+ * Render a single object in FPV perspective to a specific canvas context.
+ */
+function renderFPVObjectToCtx(ctx, obj, w, h, fov) {
     // Calculate screen position
     const screenX = w / 2 + (obj.angle / (fov / 2)) * (w / 2);
     const depthScale = 1 / (obj.dist * 0.15 + 0.5);
@@ -1207,192 +1354,259 @@ function renderFPVObject(obj, w, h, fov) {
 
     switch (obj.type) {
         case 'hub':
-            drawFPVHub(screenX, screenY, depthScale, obj);
+            drawFPVHub(ctx, screenX, screenY, depthScale, obj);
             break;
         case 'tower':
-            drawFPVTower(screenX, screenY, depthScale, obj);
+            drawFPVTower(ctx, screenX, screenY, depthScale, obj);
             break;
         case 'depot':
-            drawFPVDepot(screenX, screenY, depthScale, obj);
+            drawFPVDepot(ctx, screenX, screenY, depthScale, obj);
             break;
         case 'bump':
-            drawFPVBump(screenX, screenY, depthScale, obj);
+            drawFPVBump(ctx, screenX, screenY, depthScale, obj);
             break;
         case 'fuel':
-            drawFPVFuel(screenX, screenY, depthScale);
+            drawFPVFuel(ctx, screenX, screenY, depthScale);
             break;
         case 'robot':
-            drawFPVRobot(screenX, screenY, depthScale, obj);
+            drawFPVRobot(ctx, screenX, screenY, depthScale, obj);
+            break;
+        case 'apriltag':
+            drawFPVAprilTag(ctx, screenX, screenY, depthScale, obj);
             break;
     }
 }
 
 /**
+ * Render a single object in FPV perspective (legacy, uses global fpvCtx).
+ */
+function renderFPVObject(obj, w, h, fov) {
+    renderFPVObjectToCtx(fpvCtx, obj, w, h, fov);
+}
+
+/**
  * Draw a HUB in FPV.
  */
-function drawFPVHub(x, y, scale, obj) {
+function drawFPVHub(ctx, x, y, scale, obj) {
     const size = 80 * scale;
     const color = obj.alliance === 'red' ? '#e94560' : '#3498db';
 
     // HUB structure
     if (obj.active) {
-        fpvCtx.shadowColor = color;
-        fpvCtx.shadowBlur = 20 * scale;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 20 * scale;
     }
 
-    fpvCtx.fillStyle = obj.active ? color : '#444';
-    fpvCtx.strokeStyle = obj.active ? '#fff' : '#666';
-    fpvCtx.lineWidth = 3 * scale;
+    ctx.fillStyle = obj.active ? color : '#444';
+    ctx.strokeStyle = obj.active ? '#fff' : '#666';
+    ctx.lineWidth = 3 * scale;
 
     // Draw 3D box shape
-    fpvCtx.beginPath();
-    fpvCtx.moveTo(x - size / 2, y);
-    fpvCtx.lineTo(x - size / 2, y - size);
-    fpvCtx.lineTo(x + size / 2, y - size);
-    fpvCtx.lineTo(x + size / 2, y);
-    fpvCtx.closePath();
-    fpvCtx.fill();
-    fpvCtx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x - size / 2, y);
+    ctx.lineTo(x - size / 2, y - size);
+    ctx.lineTo(x + size / 2, y - size);
+    ctx.lineTo(x + size / 2, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 
     // Top face
-    fpvCtx.fillStyle = obj.active ? lightenColor(color, 20) : '#555';
-    fpvCtx.beginPath();
-    fpvCtx.moveTo(x - size / 2, y - size);
-    fpvCtx.lineTo(x - size / 3, y - size - size / 4);
-    fpvCtx.lineTo(x + size / 3, y - size - size / 4);
-    fpvCtx.lineTo(x + size / 2, y - size);
-    fpvCtx.closePath();
-    fpvCtx.fill();
+    ctx.fillStyle = obj.active ? lightenColor(color, 20) : '#555';
+    ctx.beginPath();
+    ctx.moveTo(x - size / 2, y - size);
+    ctx.lineTo(x - size / 3, y - size - size / 4);
+    ctx.lineTo(x + size / 3, y - size - size / 4);
+    ctx.lineTo(x + size / 2, y - size);
+    ctx.closePath();
+    ctx.fill();
 
-    fpvCtx.shadowBlur = 0;
+    ctx.shadowBlur = 0;
 
     // Label
     if (scale > 0.3) {
-        fpvCtx.fillStyle = '#fff';
-        fpvCtx.font = `bold ${Math.max(12, 18 * scale)}px sans-serif`;
-        fpvCtx.textAlign = 'center';
-        fpvCtx.fillText('HUB', x, y - size / 2);
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${Math.max(12, 18 * scale)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('HUB', x, y - size / 2);
     }
 }
 
 /**
  * Draw a TOWER in FPV.
  */
-function drawFPVTower(x, y, scale, obj) {
+function drawFPVTower(ctx, x, y, scale, obj) {
     const width = 50 * scale;
     const height = 100 * scale;
     const color = obj.alliance === 'red' ? '#c0392b' : '#2980b9';
 
-    fpvCtx.fillStyle = color;
-    fpvCtx.strokeStyle = '#fff';
-    fpvCtx.lineWidth = 2 * scale;
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2 * scale;
 
     // Tower body
-    fpvCtx.fillRect(x - width / 2, y - height, width, height);
-    fpvCtx.strokeRect(x - width / 2, y - height, width, height);
+    ctx.fillRect(x - width / 2, y - height, width, height);
+    ctx.strokeRect(x - width / 2, y - height, width, height);
 
     // Label
     if (scale > 0.25) {
-        fpvCtx.fillStyle = '#fff';
-        fpvCtx.font = `${Math.max(10, 14 * scale)}px sans-serif`;
-        fpvCtx.textAlign = 'center';
-        fpvCtx.fillText('TOWER', x, y - height / 2);
+        ctx.fillStyle = '#fff';
+        ctx.font = `${Math.max(10, 14 * scale)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('TOWER', x, y - height / 2);
     }
 }
 
 /**
  * Draw a DEPOT in FPV.
  */
-function drawFPVDepot(x, y, scale, obj) {
+function drawFPVDepot(ctx, x, y, scale, obj) {
     const width = 40 * scale;
     const height = 30 * scale;
     const color = obj.alliance === 'red' ? 'rgba(231, 76, 60, 0.7)' : 'rgba(52, 152, 219, 0.7)';
 
-    fpvCtx.fillStyle = color;
-    fpvCtx.strokeStyle = obj.alliance === 'red' ? '#e74c3c' : '#3498db';
-    fpvCtx.lineWidth = 2 * scale;
+    ctx.fillStyle = color;
+    ctx.strokeStyle = obj.alliance === 'red' ? '#e74c3c' : '#3498db';
+    ctx.lineWidth = 2 * scale;
 
-    fpvCtx.fillRect(x - width / 2, y - height, width, height);
-    fpvCtx.strokeRect(x - width / 2, y - height, width, height);
+    ctx.fillRect(x - width / 2, y - height, width, height);
+    ctx.strokeRect(x - width / 2, y - height, width, height);
 }
 
 /**
  * Draw a BUMP in FPV.
  */
-function drawFPVBump(x, y, scale, obj) {
+function drawFPVBump(ctx, x, y, scale, obj) {
     const width = 60 * scale;
     const height = 25 * scale;
     const color = obj.alliance === 'red' ? 'rgba(255, 180, 100, 0.7)' : 'rgba(100, 180, 255, 0.7)';
 
-    fpvCtx.fillStyle = color;
-    fpvCtx.strokeStyle = obj.alliance === 'red' ? '#ffa500' : '#5dade2';
-    fpvCtx.lineWidth = 2 * scale;
+    ctx.fillStyle = color;
+    ctx.strokeStyle = obj.alliance === 'red' ? '#ffa500' : '#5dade2';
+    ctx.lineWidth = 2 * scale;
 
     // Draw bump as a raised platform shape
-    fpvCtx.beginPath();
-    fpvCtx.moveTo(x - width / 2, y);
-    fpvCtx.lineTo(x - width / 2 + 5 * scale, y - height);
-    fpvCtx.lineTo(x + width / 2 - 5 * scale, y - height);
-    fpvCtx.lineTo(x + width / 2, y);
-    fpvCtx.closePath();
-    fpvCtx.fill();
-    fpvCtx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x - width / 2, y);
+    ctx.lineTo(x - width / 2 + 5 * scale, y - height);
+    ctx.lineTo(x + width / 2 - 5 * scale, y - height);
+    ctx.lineTo(x + width / 2, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 }
 
 /**
  * Draw FUEL in FPV.
  */
-function drawFPVFuel(x, y, scale) {
+function drawFPVFuel(ctx, x, y, scale) {
     const radius = Math.max(4, 15 * scale);
 
-    fpvCtx.fillStyle = '#f77f00';
-    fpvCtx.strokeStyle = '#fff';
-    fpvCtx.lineWidth = 1;
+    ctx.fillStyle = '#f77f00';
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
 
-    fpvCtx.beginPath();
-    fpvCtx.arc(x, y - radius, radius, 0, Math.PI * 2);
-    fpvCtx.fill();
-    fpvCtx.stroke();
+    ctx.beginPath();
+    ctx.arc(x, y - radius, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
 
     // Highlight
-    fpvCtx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-    fpvCtx.beginPath();
-    fpvCtx.arc(x - radius * 0.3, y - radius - radius * 0.3, radius * 0.3, 0, Math.PI * 2);
-    fpvCtx.fill();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.beginPath();
+    ctx.arc(x - radius * 0.3, y - radius - radius * 0.3, radius * 0.3, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 /**
  * Draw another robot in FPV.
  */
-function drawFPVRobot(x, y, scale, obj) {
+function drawFPVRobot(ctx, x, y, scale, obj) {
     const width = 50 * scale;
     const height = 60 * scale;
 
     // Robot body color
     const color = obj.alliance === 'RED' ? '#c0392b' : '#2980b9';
 
-    fpvCtx.fillStyle = color;
-    fpvCtx.strokeStyle = '#fff';
-    fpvCtx.lineWidth = 2 * scale;
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2 * scale;
 
     // Robot body
-    fpvCtx.fillRect(x - width / 2, y - height, width, height);
-    fpvCtx.strokeRect(x - width / 2, y - height, width, height);
+    ctx.fillRect(x - width / 2, y - height, width, height);
+    ctx.strokeRect(x - width / 2, y - height, width, height);
 
     // Team number
     if (scale > 0.2) {
-        fpvCtx.fillStyle = '#fff';
-        fpvCtx.font = `bold ${Math.max(10, 16 * scale)}px sans-serif`;
-        fpvCtx.textAlign = 'center';
-        fpvCtx.textBaseline = 'middle';
-        fpvCtx.fillText(obj.teamNumber.toString(), x, y - height / 2);
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${Math.max(10, 16 * scale)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(obj.teamNumber.toString(), x, y - height / 2);
     }
 
     // FUEL count indicator
     if (obj.fuelCount > 0 && scale > 0.25) {
-        fpvCtx.fillStyle = '#f77f00';
-        fpvCtx.font = `bold ${Math.max(8, 12 * scale)}px sans-serif`;
-        fpvCtx.fillText(`${obj.fuelCount}`, x, y - height / 4);
+        ctx.fillStyle = '#f77f00';
+        ctx.font = `bold ${Math.max(8, 12 * scale)}px sans-serif`;
+        ctx.fillText(`${obj.fuelCount}`, x, y - height / 4);
+    }
+}
+
+/**
+ * Draw an AprilTag in FPV.
+ * AprilTags are rendered as distinctive square markers with ID numbers.
+ */
+function drawFPVAprilTag(ctx, x, y, scale, obj) {
+    const size = 40 * scale;
+    const borderSize = size * 0.15;
+
+    // Only render if large enough to be visible
+    if (scale < 0.1) return;
+
+    // Adjust Y position based on tag height (z coordinate)
+    // Higher tags appear higher in the view
+    const heightOffset = (obj.z - 0.5) * 30 * scale;
+    const tagY = y - heightOffset;
+
+    // Draw outer black border
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x - size/2, tagY - size, size, size);
+
+    // Draw white border inside
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(
+        x - size/2 + borderSize,
+        tagY - size + borderSize,
+        size - borderSize * 2,
+        size - borderSize * 2
+    );
+
+    // Draw inner black area (simplified pattern)
+    ctx.fillStyle = '#000';
+    const innerSize = size - borderSize * 4;
+    ctx.fillRect(
+        x - innerSize/2,
+        tagY - size + borderSize * 2,
+        innerSize,
+        innerSize
+    );
+
+    // Draw tag ID number in white
+    if (scale > 0.15) {
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${Math.max(10, 16 * scale)}px monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(obj.id.toString(), x, tagY - size/2);
+    }
+
+    // Draw "AT" label below tag for clarity
+    if (scale > 0.2) {
+        ctx.fillStyle = '#0f0';
+        ctx.font = `${Math.max(8, 10 * scale)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(`TAG ${obj.id}`, x, tagY + 5);
     }
 }
 
@@ -1428,6 +1642,47 @@ function updateFPVHUD(playerRobot, visibleObjects) {
             targetEl.textContent = 'TARGET: ---';
             targetEl.style.color = '#8b949e';
         }
+    }
+}
+
+/**
+ * Update the AprilTag visibility indicator for a camera.
+ */
+function updateAprilTagIndicator(elementId, visibleObjects) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+
+    const listEl = container.querySelector('.apriltag-list');
+    if (!listEl) return;
+
+    // Filter for AprilTags only
+    const visibleTags = visibleObjects
+        .filter(obj => obj.type === 'apriltag')
+        .sort((a, b) => a.id - b.id);
+
+    if (visibleTags.length === 0) {
+        listEl.innerHTML = '---';
+        listEl.className = 'apriltag-list empty';
+    } else {
+        // Generate HTML for each visible tag with color coding
+        const tagHtml = visibleTags.map(tag => {
+            let tagClass = 'apriltag-id';
+            // Color code based on tag ID:
+            // 1-6: HUB tags (blue)
+            // 7-10: TOWER tags (purple)
+            // 11-16: WALL tags (gray)
+            if (tag.id >= 1 && tag.id <= 6) {
+                tagClass += ' hub-tag';
+            } else if (tag.id >= 7 && tag.id <= 10) {
+                tagClass += ' tower-tag';
+            } else {
+                tagClass += ' wall-tag';
+            }
+            return `<span class="${tagClass}">${tag.id}</span>`;
+        }).join('');
+
+        listEl.innerHTML = tagHtml;
+        listEl.className = 'apriltag-list';
     }
 }
 

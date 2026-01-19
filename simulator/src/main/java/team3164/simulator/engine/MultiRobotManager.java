@@ -273,6 +273,24 @@ public class MultiRobotManager {
     }
 
     /**
+     * Convert the player robot to AI control for benchmarking purposes.
+     *
+     * @param index    Robot index to convert
+     * @param autoMode Auto mode to use (0-9)
+     */
+    public void convertPlayerToAI(int index, int autoMode) {
+        if (index >= 0 && index < TOTAL_ROBOTS) {
+            robots[index].isPlayerControlled = false;
+            aiControllers[index] = new AIRobotController(
+                    index,
+                    robots[index].alliance,
+                    robots[index].teamNumber
+            );
+            aiControllers[index].setAutoMode(autoMode);
+        }
+    }
+
+    /**
      * Copy input state.
      */
     private void copyInput(InputState from, InputState to) {
