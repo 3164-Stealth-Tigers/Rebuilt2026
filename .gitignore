@@ -1,7 +1,7 @@
 .venv/
 
 .idea/
-
+bin/
 networktables.json
 simgui*.json
 ctre_sim/
