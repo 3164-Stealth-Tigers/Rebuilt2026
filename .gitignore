@@ -10,3 +10,6 @@ deploy/
 .gradle
 docs/.DS_Store
 .DS_Store
+simulator/.gradle/
+simulator/tmp/
+build/tmp/
