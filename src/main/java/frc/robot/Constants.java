@@ -25,7 +25,7 @@ public final class Constants {
 
     public static final class VisionConstants {
         // Camera names (must match what's in PhotonVision)
-        public static final String[] CAMERA_NAMES = { "front_camera", "back_camera" }; // (placeholder TODO)
+        public static final String[] CAMERA_NAMES = { "example_cam_1", "example_cam_2" }; // (placeholder TODO)
         public static final double AMBIGUITY_THRESHOLD = 0.4; // (placeholder TODO)
 
         // Filters
