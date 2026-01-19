@@ -369,8 +369,8 @@ public class AutonomousController {
                 // Drive faster while intaking to cover more ground
                 input.forward = 0.4;  // Increased from 0.2
 
-                // Early exit if we collected enough FUEL (don't wait for timeout)
-                boolean hasEnoughFuel = state.fuelCount >= 4;  // Enough for a good cycle
+                // OPTIMIZATION: Collect up to 5 FUEL (max capacity is 8, preload is 3)
+                boolean hasEnoughFuel = state.fuelCount >= 5;  // Increased from 4 to 5
                 boolean timeoutReached = phaseTimer > INTAKE_TIMEOUT;
 
                 if (hasEnoughFuel || timeoutReached) {
@@ -399,7 +399,15 @@ public class AutonomousController {
                         input.shoot = true;
                     }
                 } else {
-                    transitionToPhase(AutoPhase.COMPLETE);
+                    // OPTIMIZATION: Check if enough time for another cycle (~8s needed)
+                    if (totalAutoTime < 12.0) {
+                        // Time for another cycle - go collect more
+                        transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
+                        targetX = Constants.Field.CENTER_X - 2.0;
+                        targetY = Constants.Field.CENTER_Y;
+                    } else {
+                        transitionToPhase(AutoPhase.COMPLETE);
+                    }
                 }
                 break;
 
@@ -864,10 +872,11 @@ public class AutonomousController {
                 input.intake = true;
                 input.forward = 0.4;
 
-                boolean hasEnoughFuel = state.fuelCount >= 4;
-                boolean timeoutReached = phaseTimer > INTAKE_TIMEOUT;
+                // OPTIMIZATION: Collect up to 5 FUEL for max scoring
+                boolean hasEnoughFuel7 = state.fuelCount >= 5;
+                boolean timeoutReached7 = phaseTimer > INTAKE_TIMEOUT;
 
-                if (hasEnoughFuel || timeoutReached) {
+                if (hasEnoughFuel7 || timeoutReached7) {
                     if (state.fuelCount > 0) {
                         transitionToPhase(AutoPhase.SCORING_COLLECTED);
                     } else {
@@ -893,7 +902,14 @@ public class AutonomousController {
                         input.shoot = true;
                     }
                 } else {
-                    transitionToPhase(AutoPhase.COMPLETE);
+                    // OPTIMIZATION: Check if enough time for another cycle
+                    if (totalAutoTime < 12.0) {
+                        transitionToPhase(AutoPhase.DRIVING_TO_NEUTRAL);
+                        targetX = Constants.Field.CENTER_X - 2.0;
+                        targetY = Constants.Field.CENTER_Y;
+                    } else {
+                        transitionToPhase(AutoPhase.COMPLETE);
+                    }
                 }
                 break;
 
