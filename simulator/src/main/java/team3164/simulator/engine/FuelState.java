@@ -91,6 +91,8 @@ public class FuelState {
     private final List<Fuel> blueChuteFuel = new ArrayList<>();
     private final List<Fuel> redCorralFuel = new ArrayList<>();
     private final List<Fuel> blueCorralFuel = new ArrayList<>();
+    private final List<Fuel> redDepotFuel = new ArrayList<>();
+    private final List<Fuel> blueDepotFuel = new ArrayList<>();
 
     private int nextFuelId = 0;
 
@@ -109,6 +111,8 @@ public class FuelState {
         blueChuteFuel.clear();
         redCorralFuel.clear();
         blueCorralFuel.clear();
+        redDepotFuel.clear();
+        blueDepotFuel.clear();
         nextFuelId = 0;
 
         // Add FUEL to CHUTES
@@ -134,40 +138,126 @@ public class FuelState {
 
     /**
      * Create initial FUEL distribution on field.
+     * Based on typical FRC game field setup with:
+     * - Neutral zone FUEL (center of field)
+     * - Alliance depot FUEL (near each alliance wall)
+     * - Near-hub FUEL (for quick scoring)
      */
     private void initializeFieldFuel() {
-        // Field FUEL positions (simplified - evenly distributed)
-        double[] fieldX = {4.0, 6.0, 8.0, 10.0, 12.0};
-        double[] fieldY = {2.0, 4.0, 6.0};
+        // ====================================================================
+        // NEUTRAL ZONE FUEL (center of field - contested area)
+        // Two rows of FUEL across the neutral zone
+        // ====================================================================
+        double centerX = Constants.Field.CENTER_X;
+        double centerY = Constants.Field.CENTER_Y;
 
-        for (double fx : fieldX) {
-            for (double fy : fieldY) {
+        // Center line FUEL - 5 balls spread across center
+        double[] centerYPositions = {
+            centerY - 2.5,
+            centerY - 1.25,
+            centerY,
+            centerY + 1.25,
+            centerY + 2.5
+        };
+        for (double y : centerYPositions) {
+            Fuel fuel = createFuel();
+            fuel.location = FuelLocation.ON_FIELD;
+            fuel.x = centerX + (Math.random() - 0.5) * 0.3;  // Slight randomness
+            fuel.y = y + (Math.random() - 0.5) * 0.3;
+            fuel.z = Constants.Fuel.RADIUS;
+            fieldFuel.add(fuel);
+        }
+
+        // Additional neutral zone FUEL (offset from center)
+        double[] offsetX = {-2.0, 2.0};  // 2 meters on each side of center
+        for (double ox : offsetX) {
+            for (int i = 0; i < 3; i++) {
                 Fuel fuel = createFuel();
                 fuel.location = FuelLocation.ON_FIELD;
-                fuel.x = fx + (Math.random() - 0.5) * 0.5;
-                fuel.y = fy + (Math.random() - 0.5) * 0.5;
+                fuel.x = centerX + ox + (Math.random() - 0.5) * 0.5;
+                fuel.y = centerY + (i - 1) * 2.0 + (Math.random() - 0.5) * 0.5;
                 fuel.z = Constants.Fuel.RADIUS;
                 fieldFuel.add(fuel);
             }
         }
 
-        // Add FUEL near HUBs
-        for (int i = 0; i < 5; i++) {
-            // Near red HUB
-            Fuel redNearHub = createFuel();
-            redNearHub.location = FuelLocation.ON_FIELD;
-            redNearHub.x = Constants.Field.RED_HUB_X + (Math.random() - 0.5) * 2;
-            redNearHub.y = Constants.Field.RED_HUB_Y + (Math.random() - 0.5) * 2;
-            redNearHub.z = Constants.Fuel.RADIUS;
-            fieldFuel.add(redNearHub);
+        // ====================================================================
+        // DEPOT FUEL (alliance-specific, easy autonomous access)
+        // Each depot has 5 FUEL for autonomous collection
+        // ====================================================================
 
-            // Near blue HUB
-            Fuel blueNearHub = createFuel();
-            blueNearHub.location = FuelLocation.ON_FIELD;
-            blueNearHub.x = Constants.Field.BLUE_HUB_X + (Math.random() - 0.5) * 2;
-            blueNearHub.y = Constants.Field.BLUE_HUB_Y + (Math.random() - 0.5) * 2;
-            blueNearHub.z = Constants.Fuel.RADIUS;
-            fieldFuel.add(blueNearHub);
+        // RED depot FUEL
+        for (int i = 0; i < 5; i++) {
+            Fuel fuel = createFuel();
+            fuel.location = FuelLocation.IN_DEPOT;
+            fuel.alliance = MatchState.Alliance.RED;
+            fuel.x = Constants.Field.RED_DEPOT_X + (Math.random() - 0.5) * Constants.Field.DEPOT_LENGTH * 0.8;
+            fuel.y = Constants.Field.RED_DEPOT_Y + (Math.random() - 0.5) * Constants.Field.DEPOT_WIDTH * 0.8;
+            fuel.z = Constants.Fuel.RADIUS;
+            redDepotFuel.add(fuel);
+        }
+
+        // BLUE depot FUEL
+        for (int i = 0; i < 5; i++) {
+            Fuel fuel = createFuel();
+            fuel.location = FuelLocation.IN_DEPOT;
+            fuel.alliance = MatchState.Alliance.BLUE;
+            fuel.x = Constants.Field.BLUE_DEPOT_X + (Math.random() - 0.5) * Constants.Field.DEPOT_LENGTH * 0.8;
+            fuel.y = Constants.Field.BLUE_DEPOT_Y + (Math.random() - 0.5) * Constants.Field.DEPOT_WIDTH * 0.8;
+            fuel.z = Constants.Fuel.RADIUS;
+            blueDepotFuel.add(fuel);
+        }
+
+        // ====================================================================
+        // NEAR-HUB FUEL (quick scoring opportunities)
+        // FUEL scattered in the alliance zones near each hub
+        // ====================================================================
+
+        // Near RED HUB (in red alliance zone)
+        for (int i = 0; i < 4; i++) {
+            Fuel fuel = createFuel();
+            fuel.location = FuelLocation.ON_FIELD;
+            // Place in arc around hub, offset toward field center
+            double angle = Math.PI + (Math.random() - 0.5) * Math.PI * 0.6;
+            double dist = 2.0 + Math.random() * 1.5;
+            fuel.x = Constants.Field.RED_HUB_X + Math.cos(angle) * dist;
+            fuel.y = Constants.Field.RED_HUB_Y + Math.sin(angle) * dist;
+            fuel.z = Constants.Fuel.RADIUS;
+            // Keep in bounds
+            fuel.x = Math.min(fuel.x, Constants.Field.LENGTH - 1.0);
+            fuel.y = Math.max(1.0, Math.min(fuel.y, Constants.Field.WIDTH - 1.0));
+            fieldFuel.add(fuel);
+        }
+
+        // Near BLUE HUB (in blue alliance zone)
+        for (int i = 0; i < 4; i++) {
+            Fuel fuel = createFuel();
+            fuel.location = FuelLocation.ON_FIELD;
+            // Place in arc around hub, offset toward field center
+            double angle = (Math.random() - 0.5) * Math.PI * 0.6;
+            double dist = 2.0 + Math.random() * 1.5;
+            fuel.x = Constants.Field.BLUE_HUB_X + Math.cos(angle) * dist;
+            fuel.y = Constants.Field.BLUE_HUB_Y + Math.sin(angle) * dist;
+            fuel.z = Constants.Fuel.RADIUS;
+            // Keep in bounds
+            fuel.x = Math.max(1.0, fuel.x);
+            fuel.y = Math.max(1.0, Math.min(fuel.y, Constants.Field.WIDTH - 1.0));
+            fieldFuel.add(fuel);
+        }
+
+        // ====================================================================
+        // WING FUEL (along field edges in neutral zone)
+        // ====================================================================
+        double[] wingY = {1.5, Constants.Field.WIDTH - 1.5};  // Near top and bottom edges
+        for (double wy : wingY) {
+            for (int i = 0; i < 3; i++) {
+                Fuel fuel = createFuel();
+                fuel.location = FuelLocation.ON_FIELD;
+                fuel.x = centerX + (i - 1) * 2.5 + (Math.random() - 0.5) * 0.3;
+                fuel.y = wy + (Math.random() - 0.5) * 0.5;
+                fuel.z = Constants.Fuel.RADIUS;
+                fieldFuel.add(fuel);
+            }
         }
     }
 
@@ -212,8 +302,61 @@ public class FuelState {
         return blueCorralFuel;
     }
 
+    public List<Fuel> getRedDepotFuel() {
+        return redDepotFuel;
+    }
+
+    public List<Fuel> getBlueDepotFuel() {
+        return blueDepotFuel;
+    }
+
     public int getTotalFuelCount() {
         return allFuel.size();
+    }
+
+    /**
+     * Pick up FUEL from depot.
+     *
+     * @param x Robot X position
+     * @param y Robot Y position
+     * @param alliance Which alliance's depot to pick from
+     * @param pickupRadius How far the robot can reach
+     * @return The picked up FUEL, or null if none in range
+     */
+    public Fuel pickupFromDepot(double x, double y, MatchState.Alliance alliance, double pickupRadius) {
+        List<Fuel> depotFuel = (alliance == MatchState.Alliance.RED) ? redDepotFuel : blueDepotFuel;
+
+        Fuel closest = null;
+        double closestDist = Double.MAX_VALUE;
+
+        for (Fuel fuel : depotFuel) {
+            double dist = Math.hypot(fuel.x - x, fuel.y - y);
+            if (dist < pickupRadius && dist < closestDist) {
+                closest = fuel;
+                closestDist = dist;
+            }
+        }
+
+        if (closest != null) {
+            depotFuel.remove(closest);
+            closest.location = FuelLocation.IN_ROBOT;
+            closest.isMoving = false;
+        }
+
+        return closest;
+    }
+
+    /**
+     * Check if robot is near its alliance depot.
+     */
+    public boolean isNearDepot(double x, double y, MatchState.Alliance alliance) {
+        double depotX = (alliance == MatchState.Alliance.RED) ?
+                Constants.Field.RED_DEPOT_X : Constants.Field.BLUE_DEPOT_X;
+        double depotY = (alliance == MatchState.Alliance.RED) ?
+                Constants.Field.RED_DEPOT_Y : Constants.Field.BLUE_DEPOT_Y;
+
+        double dist = Math.hypot(x - depotX, y - depotY);
+        return dist < Constants.Field.DEPOT_LENGTH + 0.5;  // Within depot + some margin
     }
 
     // ========================================================================

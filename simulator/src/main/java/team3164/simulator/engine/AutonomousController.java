@@ -167,9 +167,14 @@ public class AutonomousController {
                 break;
             case AUTO_DEPOT_RAID:
                 currentPhase = AutoPhase.DRIVING_TO_DEPOT;
-                // Target alliance depot
-                targetX = Constants.Field.BLUE_DEPOT_X;
-                targetY = Constants.Field.BLUE_DEPOT_Y;
+                // Target alliance depot (based on robot's alliance)
+                if (state.alliance == MatchState.Alliance.RED) {
+                    targetX = Constants.Field.RED_DEPOT_X;
+                    targetY = Constants.Field.RED_DEPOT_Y;
+                } else {
+                    targetX = Constants.Field.BLUE_DEPOT_X;
+                    targetY = Constants.Field.BLUE_DEPOT_Y;
+                }
                 break;
             case AUTO_FAR_NEUTRAL:
                 currentPhase = AutoPhase.DRIVING_TO_FAR_NEUTRAL;
@@ -445,7 +450,12 @@ public class AutonomousController {
 
                 if (phaseTimer > 5.0 || state.fuelCount >= 4) {
                     transitionToPhase(AutoPhase.DRIVING_TO_SCORE);
-                    targetX = Constants.Field.BLUE_HUB_X + 2.0;
+                    // Target own alliance hub for scoring
+                    if (state.alliance == MatchState.Alliance.RED) {
+                        targetX = Constants.Field.RED_HUB_X - 2.5;
+                    } else {
+                        targetX = Constants.Field.BLUE_HUB_X + 2.5;
+                    }
                     targetY = Constants.Field.CENTER_Y;
                 }
                 break;
@@ -499,7 +509,12 @@ public class AutonomousController {
 
                 if (phaseTimer > 4.0 || state.fuelCount >= Constants.Intake.MAX_CAPACITY) {
                     transitionToPhase(AutoPhase.RETURNING_TO_SCORE);
-                    targetX = Constants.Field.BLUE_HUB_X + 2.0;
+                    // Target own alliance hub for scoring
+                    if (state.alliance == MatchState.Alliance.RED) {
+                        targetX = Constants.Field.RED_HUB_X - 2.5;
+                    } else {
+                        targetX = Constants.Field.BLUE_HUB_X + 2.5;
+                    }
                     targetY = Constants.Field.CENTER_Y;
                 }
                 break;

@@ -23,7 +23,15 @@
             <div class="alliance-score red">
                 <span class="alliance-name">RED</span>
                 <span id="red-score" class="score-value">0</span>
+                <div class="score-breakdown">
+                    <span id="red-fuel" class="score-detail" title="FUEL Scored">FUEL: 0</span>
+                    <span id="red-tower" class="score-detail" title="Tower Points">TOWER: 0</span>
+                </div>
                 <span id="red-hub-status" class="hub-status inactive">HUB</span>
+                <div class="rp-indicators">
+                    <span id="red-energized" class="rp-badge" title="100+ FUEL for RP">EN</span>
+                    <span id="red-traversal" class="rp-badge" title="50+ Tower pts for RP">TR</span>
+                </div>
             </div>
             <div class="match-controls">
                 <div class="auto-selector">
@@ -46,7 +54,15 @@
                 <button id="btn-reset" class="btn btn-reset">Reset</button>
             </div>
             <div class="alliance-score blue">
+                <div class="rp-indicators">
+                    <span id="blue-energized" class="rp-badge" title="100+ FUEL for RP">EN</span>
+                    <span id="blue-traversal" class="rp-badge" title="50+ Tower pts for RP">TR</span>
+                </div>
                 <span id="blue-hub-status" class="hub-status inactive">HUB</span>
+                <div class="score-breakdown">
+                    <span id="blue-fuel" class="score-detail" title="FUEL Scored">FUEL: 0</span>
+                    <span id="blue-tower" class="score-detail" title="Tower Points">TOWER: 0</span>
+                </div>
                 <span id="blue-score" class="score-value">0</span>
                 <span class="alliance-name">BLUE</span>
             </div>
@@ -196,6 +212,22 @@
                     <div class="control-item"><kbd>Enter</kbd> Start Match</div>
                     <div class="control-item"><kbd>Esc</kbd> Reset</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- First Person View -->
+        <div class="fpv-container">
+            <div class="fpv-header">
+                <h2>ROBOT CAM - TEAM 3164</h2>
+                <div class="fpv-info">
+                    <span id="fpv-heading">HDG: 0°</span>
+                    <span id="fpv-fuel">FUEL: 0</span>
+                    <span id="fpv-target">TARGET: ---</span>
+                </div>
+            </div>
+            <canvas id="fpv-canvas" width="800" height="300"></canvas>
+            <div class="fpv-hud">
+                <div class="fpv-crosshair"></div>
             </div>
         </div>
     </div>

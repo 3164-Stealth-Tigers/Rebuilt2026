@@ -92,6 +92,7 @@ let ws = null;
 let connected = false;
 let state = null;
 let canvas, ctx;
+let fpvCanvas, fpvCtx;
 
 // Input state
 const keys = {};
@@ -279,6 +280,9 @@ function setupInputHandlers() {
     document.getElementById('btn-reset').addEventListener('click', () => {
         if (ws && connected) {
             ws.send(JSON.stringify({ type: 'reset' }));
+            // Clear robot lineup so it gets recreated with fresh data
+            document.getElementById('blue-lineup').innerHTML = '';
+            document.getElementById('red-lineup').innerHTML = '';
         }
     });
 
@@ -344,6 +348,25 @@ function updateUI() {
     document.getElementById('red-score').textContent = state.match.scores.redTotal;
     document.getElementById('blue-score').textContent = state.match.scores.blueTotal;
 
+    // Score breakdown
+    document.getElementById('red-fuel').textContent = `FUEL: ${state.match.scores.redFuel}`;
+    document.getElementById('blue-fuel').textContent = `FUEL: ${state.match.scores.blueFuel}`;
+    document.getElementById('red-tower').textContent = `TOWER: ${state.match.scores.redTower}`;
+    document.getElementById('blue-tower').textContent = `TOWER: ${state.match.scores.blueTower}`;
+
+    // Ranking Points indicators
+    const redEnergized = document.getElementById('red-energized');
+    const blueEnergized = document.getElementById('blue-energized');
+    const redTraversal = document.getElementById('red-traversal');
+    const blueTraversal = document.getElementById('blue-traversal');
+
+    if (state.match.rankingPoints) {
+        redEnergized.className = `rp-badge ${state.match.rankingPoints.redEnergized ? 'earned' : ''}`;
+        blueEnergized.className = `rp-badge ${state.match.rankingPoints.blueEnergized ? 'earned' : ''}`;
+        redTraversal.className = `rp-badge ${state.match.rankingPoints.redTraversal ? 'earned' : ''}`;
+        blueTraversal.className = `rp-badge ${state.match.rankingPoints.blueTraversal ? 'earned' : ''}`;
+    }
+
     // HUB status
     const redHub = document.getElementById('red-hub-status');
     const blueHub = document.getElementById('blue-hub-status');
@@ -404,10 +427,14 @@ function updateUI() {
 
     // Render field
     renderField();
+
+    // Render first-person view
+    renderFPV();
 }
 
 /**
  * Update the robot lineup panels with auto mode info.
+ * Only recreates cards if the lineup hasn't been initialized.
  */
 function updateRobotLineup() {
     if (!state || !state.multiRobotEnabled || !state.allRobots) return;
@@ -415,23 +442,46 @@ function updateRobotLineup() {
     const blueLineup = document.getElementById('blue-lineup');
     const redLineup = document.getElementById('red-lineup');
 
-    // Clear existing content
-    blueLineup.innerHTML = '';
-    redLineup.innerHTML = '';
+    // Check if we need to create the cards (first time or reset)
+    const needsInit = blueLineup.children.length === 0;
 
-    // Sort robots by alliance
-    const blueRobots = state.allRobots.filter(r => r.alliance === 'BLUE');
-    const redRobots = state.allRobots.filter(r => r.alliance === 'RED');
+    if (needsInit) {
+        // Clear and recreate
+        blueLineup.innerHTML = '';
+        redLineup.innerHTML = '';
 
-    // Create lineup cards for blue alliance
-    blueRobots.forEach(robot => {
-        blueLineup.appendChild(createRobotCard(robot, 'blue'));
-    });
+        // Sort robots by alliance
+        const blueRobots = state.allRobots.filter(r => r.alliance === 'BLUE');
+        const redRobots = state.allRobots.filter(r => r.alliance === 'RED');
 
-    // Create lineup cards for red alliance
-    redRobots.forEach(robot => {
-        redLineup.appendChild(createRobotCard(robot, 'red'));
-    });
+        // Create lineup cards for blue alliance
+        blueRobots.forEach(robot => {
+            blueLineup.appendChild(createRobotCard(robot, 'blue'));
+        });
+
+        // Create lineup cards for red alliance
+        redRobots.forEach(robot => {
+            redLineup.appendChild(createRobotCard(robot, 'red'));
+        });
+    } else {
+        // Just update the existing dropdowns with current values
+        state.allRobots.forEach(robot => {
+            if (!robot.isPlayer) {
+                const select = document.querySelector(`.ai-auto-select[data-robot-id="${robot.id}"]`);
+                if (select && document.activeElement !== select) {
+                    // Only update if user isn't currently interacting with it
+                    const serverValue = robot.autoModeIndex;
+                    if (serverValue >= 0 && select.value !== String(serverValue)) {
+                        select.value = serverValue;
+                    }
+                }
+                // Update disabled state based on match lock
+                if (select) {
+                    select.disabled = state.match.autoLocked;
+                }
+            }
+        });
+    }
 }
 
 /**
@@ -460,15 +510,8 @@ function createRobotCard(robot, alliance) {
             { value: 9, name: 'Win AUTO' }
         ];
 
-        // Determine current mode index from name
-        let currentMode = 0;
-        const currentAutoName = robot.autoMode || '';
-        for (let i = 0; i < autoModes.length; i++) {
-            if (currentAutoName.includes(autoModes[i].name)) {
-                currentMode = i;
-                break;
-            }
-        }
+        // Use the numeric autoModeIndex from server
+        const currentMode = robot.autoModeIndex >= 0 ? robot.autoModeIndex : 0;
 
         html += `<select class="ai-auto-select" data-robot-id="${robot.id}" ${state.match.autoLocked ? 'disabled' : ''}>`;
         autoModes.forEach(mode => {
@@ -910,6 +953,17 @@ function drawMultiRobot(x, y, heading, scale, robotData) {
     }
 
     ctx.restore();
+
+    // Draw status label below robot (only for AI robots)
+    if (!robotData.isPlayer && robotData.command && robotData.command.length > 0) {
+        ctx.save();
+        ctx.fillStyle = robotData.alliance === 'RED' ? '#ffb3b3' : '#b3d9ff';
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(robotData.command, x, y + robotH / 2 + 18);
+        ctx.restore();
+    }
 }
 
 function drawSwerveModules(x, y, heading, scale) {
@@ -960,11 +1014,447 @@ function drawSwerveModules(x, y, heading, scale) {
 }
 
 // ============================================================================
+// FIRST PERSON VIEW RENDERING
+// ============================================================================
+
+/**
+ * Initialize the FPV canvas.
+ */
+function initFPVCanvas() {
+    fpvCanvas = document.getElementById('fpv-canvas');
+    if (!fpvCanvas) return;
+
+    fpvCtx = fpvCanvas.getContext('2d');
+
+    function resizeFPV() {
+        const container = fpvCanvas.parentElement;
+        const width = container.clientWidth;
+        const height = 300;
+
+        fpvCanvas.width = width;
+        fpvCanvas.height = height;
+
+        if (state) renderFPV();
+    }
+
+    window.addEventListener('resize', resizeFPV);
+    resizeFPV();
+}
+
+/**
+ * Render the first-person view from the player's robot perspective.
+ */
+function renderFPV() {
+    if (!fpvCtx || !state) return;
+
+    const w = fpvCanvas.width;
+    const h = fpvCanvas.height;
+
+    // Get player robot data
+    let playerRobot = null;
+    if (state.multiRobotEnabled && state.allRobots) {
+        playerRobot = state.allRobots.find(r => r.isPlayer);
+    }
+    if (!playerRobot) {
+        playerRobot = {
+            x: state.robot.x,
+            y: state.robot.y,
+            heading: state.robot.heading,
+            alliance: state.robot.alliance,
+            fuelCount: state.shooter.fuelCount
+        };
+    }
+
+    const robotX = playerRobot.x;
+    const robotY = playerRobot.y;
+    const robotHeading = -playerRobot.heading * Math.PI / 180; // Convert to radians
+
+    // Clear canvas with sky gradient
+    const skyGradient = fpvCtx.createLinearGradient(0, 0, 0, h / 2);
+    skyGradient.addColorStop(0, '#1a1a2e');
+    skyGradient.addColorStop(1, '#16213e');
+    fpvCtx.fillStyle = skyGradient;
+    fpvCtx.fillRect(0, 0, w, h / 2);
+
+    // Draw ground with perspective
+    const groundGradient = fpvCtx.createLinearGradient(0, h / 2, 0, h);
+    groundGradient.addColorStop(0, '#2d4a3a');
+    groundGradient.addColorStop(1, '#1a2d22');
+    fpvCtx.fillStyle = groundGradient;
+    fpvCtx.fillRect(0, h / 2, w, h / 2);
+
+    // Draw grid lines on ground for depth perception
+    fpvCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    fpvCtx.lineWidth = 1;
+
+    // Horizontal grid lines (perspective)
+    for (let i = 1; i <= 10; i++) {
+        const y = h / 2 + (h / 2) * (1 - 1 / (i * 0.5 + 1));
+        const spread = 1 + (i * 0.3);
+        fpvCtx.beginPath();
+        fpvCtx.moveTo(w / 2 - w * spread / 2, y);
+        fpvCtx.lineTo(w / 2 + w * spread / 2, y);
+        fpvCtx.stroke();
+    }
+
+    // Vertical grid lines (converging to horizon)
+    for (let i = -5; i <= 5; i++) {
+        fpvCtx.beginPath();
+        fpvCtx.moveTo(w / 2 + i * 30, h / 2);
+        fpvCtx.lineTo(w / 2 + i * 150, h);
+        fpvCtx.stroke();
+    }
+
+    // Draw field elements in 3D perspective
+    const fov = Math.PI / 2.5; // Field of view (~72 degrees)
+    const maxDist = 15; // Max render distance in meters
+
+    // Collect all objects to render
+    const objects = [];
+
+    // Add HUBs
+    objects.push({
+        type: 'hub',
+        x: HUB.RED_X,
+        y: HUB.RED_Y,
+        size: HUB.SIZE,
+        alliance: 'red',
+        active: state.match.redHubActive
+    });
+    objects.push({
+        type: 'hub',
+        x: HUB.BLUE_X,
+        y: HUB.BLUE_Y,
+        size: HUB.SIZE,
+        alliance: 'blue',
+        active: state.match.blueHubActive
+    });
+
+    // Add TOWERs
+    objects.push({ type: 'tower', x: TOWER.RED_X, y: TOWER.RED_Y, alliance: 'red' });
+    objects.push({ type: 'tower', x: TOWER.BLUE_X, y: TOWER.BLUE_Y, alliance: 'blue' });
+
+    // Add DEPOTs
+    objects.push({ type: 'depot', x: DEPOT.RED_X, y: DEPOT.RED_Y, alliance: 'red' });
+    objects.push({ type: 'depot', x: DEPOT.BLUE_X, y: DEPOT.BLUE_Y, alliance: 'blue' });
+
+    // Add BUMPs
+    BUMPS.forEach(bump => {
+        objects.push({ type: 'bump', x: bump.x, y: bump.y, alliance: bump.alliance });
+    });
+
+    // Add FUEL on field
+    if (state.fuel && state.fuel.field) {
+        state.fuel.field.forEach(fuel => {
+            objects.push({ type: 'fuel', x: fuel.x, y: fuel.y });
+        });
+    }
+
+    // Add other robots
+    if (state.multiRobotEnabled && state.allRobots) {
+        state.allRobots.forEach(robot => {
+            if (!robot.isPlayer) {
+                objects.push({
+                    type: 'robot',
+                    x: robot.x,
+                    y: robot.y,
+                    heading: robot.heading,
+                    alliance: robot.alliance,
+                    teamNumber: robot.teamNumber,
+                    fuelCount: robot.fuelCount
+                });
+            }
+        });
+    }
+
+    // Transform and sort objects by distance
+    const visibleObjects = objects.map(obj => {
+        // Transform to robot-relative coordinates
+        const dx = obj.x - robotX;
+        const dy = obj.y - robotY;
+
+        // Rotate by robot heading
+        const localX = dx * Math.cos(-robotHeading) - dy * Math.sin(-robotHeading);
+        const localY = dx * Math.sin(-robotHeading) + dy * Math.cos(-robotHeading);
+
+        // localX is forward, localY is left/right
+        const dist = Math.sqrt(localX * localX + localY * localY);
+        const angle = Math.atan2(localY, localX);
+
+        return { ...obj, localX, localY, dist, angle };
+    }).filter(obj => {
+        // Only render objects in front of robot and within FOV
+        return obj.localX > 0.5 && Math.abs(obj.angle) < fov / 2 && obj.dist < maxDist;
+    }).sort((a, b) => b.dist - a.dist); // Sort far to near
+
+    // Render objects
+    visibleObjects.forEach(obj => {
+        renderFPVObject(obj, w, h, fov);
+    });
+
+    // Update HUD elements
+    updateFPVHUD(playerRobot, visibleObjects);
+}
+
+/**
+ * Render a single object in FPV perspective.
+ */
+function renderFPVObject(obj, w, h, fov) {
+    // Calculate screen position
+    const screenX = w / 2 + (obj.angle / (fov / 2)) * (w / 2);
+    const depthScale = 1 / (obj.dist * 0.15 + 0.5);
+    const screenY = h / 2 + depthScale * 50; // Objects appear lower as they get closer
+
+    switch (obj.type) {
+        case 'hub':
+            drawFPVHub(screenX, screenY, depthScale, obj);
+            break;
+        case 'tower':
+            drawFPVTower(screenX, screenY, depthScale, obj);
+            break;
+        case 'depot':
+            drawFPVDepot(screenX, screenY, depthScale, obj);
+            break;
+        case 'bump':
+            drawFPVBump(screenX, screenY, depthScale, obj);
+            break;
+        case 'fuel':
+            drawFPVFuel(screenX, screenY, depthScale);
+            break;
+        case 'robot':
+            drawFPVRobot(screenX, screenY, depthScale, obj);
+            break;
+    }
+}
+
+/**
+ * Draw a HUB in FPV.
+ */
+function drawFPVHub(x, y, scale, obj) {
+    const size = 80 * scale;
+    const color = obj.alliance === 'red' ? '#e94560' : '#3498db';
+
+    // HUB structure
+    if (obj.active) {
+        fpvCtx.shadowColor = color;
+        fpvCtx.shadowBlur = 20 * scale;
+    }
+
+    fpvCtx.fillStyle = obj.active ? color : '#444';
+    fpvCtx.strokeStyle = obj.active ? '#fff' : '#666';
+    fpvCtx.lineWidth = 3 * scale;
+
+    // Draw 3D box shape
+    fpvCtx.beginPath();
+    fpvCtx.moveTo(x - size / 2, y);
+    fpvCtx.lineTo(x - size / 2, y - size);
+    fpvCtx.lineTo(x + size / 2, y - size);
+    fpvCtx.lineTo(x + size / 2, y);
+    fpvCtx.closePath();
+    fpvCtx.fill();
+    fpvCtx.stroke();
+
+    // Top face
+    fpvCtx.fillStyle = obj.active ? lightenColor(color, 20) : '#555';
+    fpvCtx.beginPath();
+    fpvCtx.moveTo(x - size / 2, y - size);
+    fpvCtx.lineTo(x - size / 3, y - size - size / 4);
+    fpvCtx.lineTo(x + size / 3, y - size - size / 4);
+    fpvCtx.lineTo(x + size / 2, y - size);
+    fpvCtx.closePath();
+    fpvCtx.fill();
+
+    fpvCtx.shadowBlur = 0;
+
+    // Label
+    if (scale > 0.3) {
+        fpvCtx.fillStyle = '#fff';
+        fpvCtx.font = `bold ${Math.max(12, 18 * scale)}px sans-serif`;
+        fpvCtx.textAlign = 'center';
+        fpvCtx.fillText('HUB', x, y - size / 2);
+    }
+}
+
+/**
+ * Draw a TOWER in FPV.
+ */
+function drawFPVTower(x, y, scale, obj) {
+    const width = 50 * scale;
+    const height = 100 * scale;
+    const color = obj.alliance === 'red' ? '#c0392b' : '#2980b9';
+
+    fpvCtx.fillStyle = color;
+    fpvCtx.strokeStyle = '#fff';
+    fpvCtx.lineWidth = 2 * scale;
+
+    // Tower body
+    fpvCtx.fillRect(x - width / 2, y - height, width, height);
+    fpvCtx.strokeRect(x - width / 2, y - height, width, height);
+
+    // Label
+    if (scale > 0.25) {
+        fpvCtx.fillStyle = '#fff';
+        fpvCtx.font = `${Math.max(10, 14 * scale)}px sans-serif`;
+        fpvCtx.textAlign = 'center';
+        fpvCtx.fillText('TOWER', x, y - height / 2);
+    }
+}
+
+/**
+ * Draw a DEPOT in FPV.
+ */
+function drawFPVDepot(x, y, scale, obj) {
+    const width = 40 * scale;
+    const height = 30 * scale;
+    const color = obj.alliance === 'red' ? 'rgba(231, 76, 60, 0.7)' : 'rgba(52, 152, 219, 0.7)';
+
+    fpvCtx.fillStyle = color;
+    fpvCtx.strokeStyle = obj.alliance === 'red' ? '#e74c3c' : '#3498db';
+    fpvCtx.lineWidth = 2 * scale;
+
+    fpvCtx.fillRect(x - width / 2, y - height, width, height);
+    fpvCtx.strokeRect(x - width / 2, y - height, width, height);
+}
+
+/**
+ * Draw a BUMP in FPV.
+ */
+function drawFPVBump(x, y, scale, obj) {
+    const width = 60 * scale;
+    const height = 25 * scale;
+    const color = obj.alliance === 'red' ? 'rgba(255, 180, 100, 0.7)' : 'rgba(100, 180, 255, 0.7)';
+
+    fpvCtx.fillStyle = color;
+    fpvCtx.strokeStyle = obj.alliance === 'red' ? '#ffa500' : '#5dade2';
+    fpvCtx.lineWidth = 2 * scale;
+
+    // Draw bump as a raised platform shape
+    fpvCtx.beginPath();
+    fpvCtx.moveTo(x - width / 2, y);
+    fpvCtx.lineTo(x - width / 2 + 5 * scale, y - height);
+    fpvCtx.lineTo(x + width / 2 - 5 * scale, y - height);
+    fpvCtx.lineTo(x + width / 2, y);
+    fpvCtx.closePath();
+    fpvCtx.fill();
+    fpvCtx.stroke();
+}
+
+/**
+ * Draw FUEL in FPV.
+ */
+function drawFPVFuel(x, y, scale) {
+    const radius = Math.max(4, 15 * scale);
+
+    fpvCtx.fillStyle = '#f77f00';
+    fpvCtx.strokeStyle = '#fff';
+    fpvCtx.lineWidth = 1;
+
+    fpvCtx.beginPath();
+    fpvCtx.arc(x, y - radius, radius, 0, Math.PI * 2);
+    fpvCtx.fill();
+    fpvCtx.stroke();
+
+    // Highlight
+    fpvCtx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    fpvCtx.beginPath();
+    fpvCtx.arc(x - radius * 0.3, y - radius - radius * 0.3, radius * 0.3, 0, Math.PI * 2);
+    fpvCtx.fill();
+}
+
+/**
+ * Draw another robot in FPV.
+ */
+function drawFPVRobot(x, y, scale, obj) {
+    const width = 50 * scale;
+    const height = 60 * scale;
+
+    // Robot body color
+    const color = obj.alliance === 'RED' ? '#c0392b' : '#2980b9';
+
+    fpvCtx.fillStyle = color;
+    fpvCtx.strokeStyle = '#fff';
+    fpvCtx.lineWidth = 2 * scale;
+
+    // Robot body
+    fpvCtx.fillRect(x - width / 2, y - height, width, height);
+    fpvCtx.strokeRect(x - width / 2, y - height, width, height);
+
+    // Team number
+    if (scale > 0.2) {
+        fpvCtx.fillStyle = '#fff';
+        fpvCtx.font = `bold ${Math.max(10, 16 * scale)}px sans-serif`;
+        fpvCtx.textAlign = 'center';
+        fpvCtx.textBaseline = 'middle';
+        fpvCtx.fillText(obj.teamNumber.toString(), x, y - height / 2);
+    }
+
+    // FUEL count indicator
+    if (obj.fuelCount > 0 && scale > 0.25) {
+        fpvCtx.fillStyle = '#f77f00';
+        fpvCtx.font = `bold ${Math.max(8, 12 * scale)}px sans-serif`;
+        fpvCtx.fillText(`${obj.fuelCount}`, x, y - height / 4);
+    }
+}
+
+/**
+ * Update the FPV HUD elements.
+ */
+function updateFPVHUD(playerRobot, visibleObjects) {
+    const headingEl = document.getElementById('fpv-heading');
+    const fuelEl = document.getElementById('fpv-fuel');
+    const targetEl = document.getElementById('fpv-target');
+
+    if (headingEl) {
+        headingEl.textContent = `HDG: ${Math.round(playerRobot.heading)}°`;
+    }
+
+    if (fuelEl) {
+        const fuelCount = playerRobot.fuelCount || 0;
+        fuelEl.textContent = `FUEL: ${fuelCount}`;
+    }
+
+    if (targetEl) {
+        // Find nearest target (hub or fuel)
+        const nearestHub = visibleObjects.find(obj => obj.type === 'hub' && obj.active);
+        const nearestFuel = visibleObjects.find(obj => obj.type === 'fuel');
+
+        if (nearestHub && nearestHub.dist < 8) {
+            targetEl.textContent = `TARGET: ${nearestHub.alliance.toUpperCase()} HUB ${nearestHub.dist.toFixed(1)}m`;
+            targetEl.style.color = nearestHub.alliance === 'red' ? '#e94560' : '#3498db';
+        } else if (nearestFuel) {
+            targetEl.textContent = `TARGET: FUEL ${nearestFuel.dist.toFixed(1)}m`;
+            targetEl.style.color = '#f77f00';
+        } else {
+            targetEl.textContent = 'TARGET: ---';
+            targetEl.style.color = '#8b949e';
+        }
+    }
+}
+
+/**
+ * Helper to lighten a color.
+ */
+function lightenColor(color, percent) {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return '#' + (
+        0x1000000 +
+        (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+        (B < 255 ? (B < 1 ? 0 : B) : 255)
+    ).toString(16).slice(1);
+}
+
+// ============================================================================
 // INITIALIZATION
 // ============================================================================
 
 function init() {
     initCanvas();
+    initFPVCanvas();
     setupInputHandlers();
     connect();
 

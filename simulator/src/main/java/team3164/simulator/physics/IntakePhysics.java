@@ -36,12 +36,24 @@ public class IntakePhysics {
         double intakeX = state.x + Math.cos(state.heading) * INTAKE_REACH;
         double intakeY = state.y + Math.sin(state.heading) * INTAKE_REACH;
 
-        // Check for FUEL in intake zone
+        // Check for FUEL in intake zone (field fuel)
         Fuel fuel = findFuelInIntakeZone(intakeX, intakeY, state.heading, fuelState);
 
         if (fuel != null) {
             // Pick up the FUEL
             return pickupFuel(state, fuel, fuelState);
+        }
+
+        // Check for FUEL in depot (only own alliance's depot)
+        if (fuelState.isNearDepot(state.x, state.y, state.alliance)) {
+            Fuel depotFuel = fuelState.pickupFromDepot(state.x, state.y, state.alliance, INTAKE_REACH + 0.5);
+            if (depotFuel != null) {
+                state.addFuel();
+                depotFuel.owningRobotIndex = state.robotId;
+                state.intakeState = IntakeState.TRANSFERRING;
+                state.intakeTimer = Constants.Intake.TRANSFER_TIME;
+                return true;
+            }
         }
 
         return false;

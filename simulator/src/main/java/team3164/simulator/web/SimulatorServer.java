@@ -8,6 +8,7 @@ import io.javalin.websocket.WsContext;
 import team3164.simulator.Constants;
 import team3164.simulator.engine.*;
 import team3164.simulator.engine.FuelState.Fuel;
+import team3164.simulator.engine.HeadlessMatchRunner;
 
 import java.util.Map;
 import java.util.concurrent.*;
@@ -92,6 +93,41 @@ public class SimulatorServer {
                 "clients", clients.size(),
                 "ticks", engine.getTickCount()
             ));
+        });
+
+        // Run a headless match and return results (for automated testing)
+        app.get("/api/run-match", ctx -> {
+            System.out.println("\n[API] Running headless match...");
+            HeadlessMatchRunner runner = new HeadlessMatchRunner();
+            String summary = runner.runMatch(true);
+            ctx.contentType("text/plain");
+            ctx.result(summary);
+        });
+
+        // Run a headless match and return JSON results
+        app.get("/api/run-match-json", ctx -> {
+            System.out.println("\n[API] Running headless match (JSON)...");
+            HeadlessMatchRunner runner = new HeadlessMatchRunner();
+            String json = runner.runMatchJson();
+            ctx.contentType("application/json");
+            ctx.result(json);
+        });
+
+        // Run multiple matches
+        app.get("/api/run-matches/{count}", ctx -> {
+            int count = Integer.parseInt(ctx.pathParam("count"));
+            count = Math.min(count, 10); // Limit to 10 matches
+            System.out.println("\n[API] Running " + count + " headless matches...");
+            HeadlessMatchRunner runner = new HeadlessMatchRunner();
+            String summary = runner.runMultipleMatches(count, false);
+            ctx.contentType("text/plain");
+            ctx.result(summary);
+        });
+
+        // Get current match state as JSON
+        app.get("/api/state", ctx -> {
+            ctx.contentType("application/json");
+            ctx.result(buildFullStateJson());
         });
 
         // Start the server
@@ -229,16 +265,21 @@ public class SimulatorServer {
             robotJson.addProperty("climbLevel", robot.climbLevel);
             robotJson.addProperty("climbComplete", robot.climbComplete);
             robotJson.addProperty("command", robot.currentCommand);
+            robotJson.addProperty("shooterReady", robot.shooterAtSpeed && robot.shooterAtAngle);
+            robotJson.addProperty("intakeState", robot.intakeState.name());
+            robotJson.addProperty("speed", round(Math.hypot(robot.vx, robot.vy), 2));
 
-            // Add auto mode name for AI robots
+            // Add auto mode info for AI robots
             if (!robot.isPlayerControlled && robotManager != null) {
                 AIRobotController aiController = robotManager.getAIController(robot.robotId);
                 if (aiController != null) {
                     robotJson.addProperty("autoMode", aiController.getAutoModeName());
+                    robotJson.addProperty("autoModeIndex", aiController.getSelectedAutoMode());
                     robotJson.addProperty("teleopBehavior", aiController.getTeleopBehavior().name());
                 }
             } else {
                 robotJson.addProperty("autoMode", "PLAYER");
+                robotJson.addProperty("autoModeIndex", -1);
                 robotJson.addProperty("teleopBehavior", "PLAYER");
             }
 

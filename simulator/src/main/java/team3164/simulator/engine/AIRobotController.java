@@ -151,6 +151,9 @@ public class AIRobotController {
         // Clear inputs
         clearInputs(input);
 
+        // AI robots use robot-relative control (we calculate the transform ourselves)
+        state.fieldRelative = false;
+
         // Manage trench mode - enable when approaching trenches, disable when clear
         manageTrenchMode(state);
 
@@ -163,10 +166,17 @@ public class AIRobotController {
                 updateAuto(state, input, dt);
                 break;
             case TRANSITION:
-                // Wait during transition
+                // Wait during transition - robots hold position
+                break;
+            case SHIFT_1:
+            case SHIFT_2:
+            case SHIFT_3:
+            case SHIFT_4:
+            case END_GAME:
+                updateTeleop(state, input, matchState, allRobots, dt);
                 break;
             default:
-                updateTeleop(state, input, matchState, allRobots, dt);
+                // PRE_MATCH, POST_MATCH - do nothing
                 break;
         }
     }
@@ -208,15 +218,27 @@ public class AIRobotController {
             currentPhase = AIPhase.SHOOTING;
             // Drive toward active hub
             double hubX = alliance == MatchState.Alliance.RED ?
-                    Constants.Field.RED_HUB_X - 2.0 : Constants.Field.BLUE_HUB_X + 2.0;
+                    Constants.Field.RED_HUB_X - 2.5 : Constants.Field.BLUE_HUB_X + 2.5;
             double hubY = Constants.Field.CENTER_Y;
 
-            if (driveToTarget(state, input, hubX, hubY, 1.5)) {
-                // At hub, shoot
-                input.spinUp = true;
-                input.shoot = true;
-                input.shooterAngle = 0.6;
-                input.shooterPower = 0.7;
+            boolean atPosition = driveToTarget(state, input, hubX, hubY, 1.0);
+
+            // Always set shooter parameters so it spins up while approaching
+            input.shooterAngle = 0.55;  // ~41 degrees
+            input.shooterPower = 0.75;  // ~15 m/s
+
+            if (atPosition) {
+                // At hub position - check if shooter is ready
+                if (state.shooterAtSpeed && state.shooterAtAngle) {
+                    // Shooter ready, fire!
+                    input.shoot = true;
+                    state.currentCommand = "Shooting";
+                } else {
+                    // Wait for shooter to spin up
+                    state.currentCommand = "Spinning Up";
+                }
+            } else {
+                state.currentCommand = "Approaching Hub";
             }
         } else {
             // Go collect FUEL
@@ -228,48 +250,74 @@ public class AIRobotController {
 
             input.intake = true;
             driveToTarget(state, input, targetX, targetY, 0.5);
+            state.currentCommand = "Collecting FUEL";
         }
     }
 
     /**
-     * Defensive behavior - block opponents.
+     * Defensive behavior - block opponents and opportunistically score.
      */
     private void updateDefensive(RobotState state, InputState input, MatchState matchState,
                                  RobotState[] allRobots, double dt) {
+        // If we have FUEL, score it first (opportunity scoring)
+        if (state.fuelCount >= 3) {
+            currentPhase = AIPhase.SHOOTING;
+            double hubX = alliance == MatchState.Alliance.RED ?
+                    Constants.Field.RED_HUB_X - 2.5 : Constants.Field.BLUE_HUB_X + 2.5;
+            double hubY = Constants.Field.CENTER_Y;
+
+            boolean atPosition = driveToTarget(state, input, hubX, hubY, 1.0);
+            input.shooterAngle = 0.55;
+            input.shooterPower = 0.75;
+
+            if (atPosition && state.shooterAtSpeed && state.shooterAtAngle) {
+                input.shoot = true;
+            }
+            return;
+        }
+
         currentPhase = AIPhase.DEFENDING;
 
-        // Find nearest opponent
-        RobotState nearestOpponent = null;
-        double nearestDist = Double.MAX_VALUE;
+        // Find nearest opponent with FUEL (prioritize blocking scorers)
+        RobotState targetOpponent = null;
+        double bestScore = -1;
 
         for (RobotState other : allRobots) {
             if (other == state || other.alliance == alliance) continue;
 
             double dist = Math.hypot(other.x - state.x, other.y - state.y);
-            if (dist < nearestDist) {
-                nearestDist = dist;
-                nearestOpponent = other;
+            // Score based on: closer + has more fuel = better target
+            double score = other.fuelCount * 10.0 - dist;
+            if (score > bestScore) {
+                bestScore = score;
+                targetOpponent = other;
             }
         }
 
-        if (nearestOpponent != null) {
+        if (targetOpponent != null) {
             // Position between opponent and their hub
-            double hubX = nearestOpponent.alliance == MatchState.Alliance.RED ?
+            double hubX = targetOpponent.alliance == MatchState.Alliance.RED ?
                     Constants.Field.RED_HUB_X : Constants.Field.BLUE_HUB_X;
             double hubY = Constants.Field.CENTER_Y;
 
-            // Intercept position
-            double interceptX = (nearestOpponent.x + hubX) / 2;
-            double interceptY = (nearestOpponent.y + hubY) / 2;
+            // Intercept position (closer to hub to block shots)
+            double interceptX = targetOpponent.x * 0.3 + hubX * 0.7;
+            double interceptY = targetOpponent.y * 0.3 + hubY * 0.7;
 
-            driveToTarget(state, input, interceptX, interceptY, 1.0);
+            driveToTarget(state, input, interceptX, interceptY, 1.5);
+            state.currentCommand = "Defending";
+
+            // Collect FUEL opportunistically while defending
+            input.intake = true;
         } else {
-            // Patrol neutral zone
-            if (!hasTarget || actionTimer > 4.0) {
+            // Patrol neutral zone and collect FUEL
+            if (!hasTarget || actionTimer > 3.0) {
                 pickRandomNeutralTarget();
                 actionTimer = 0;
             }
+            input.intake = true;
             driveToTarget(state, input, targetX, targetY, 0.5);
+            state.currentCommand = "Patrolling";
         }
     }
 
@@ -279,8 +327,8 @@ public class AIRobotController {
     private void updateClimber(RobotState state, InputState input, MatchState matchState, double dt) {
         double timeRemaining = matchState.getRemainingTime();
 
-        // Start climbing when 30 seconds left
-        if (timeRemaining < 30 && !state.climbComplete) {
+        // Start climbing when 35 seconds left (need time to climb)
+        if (timeRemaining < 35 && !state.climbComplete) {
             currentPhase = AIPhase.CLIMBING;
 
             // Drive to tower
@@ -290,13 +338,36 @@ public class AIRobotController {
                     Constants.Field.RED_TOWER_Y : Constants.Field.BLUE_TOWER_Y;
 
             if (driveToTarget(state, input, towerX, towerY, 0.5)) {
-                // At tower, climb
-                input.level2 = true;  // Aim for L2
+                // At tower, climb to L2 (20 points)
+                input.level2 = true;
                 input.climberUp = true;
+                state.currentCommand = "Climbing L2";
+            } else {
+                state.currentCommand = "Moving to Tower";
+            }
+        } else if (state.fuelCount > 0) {
+            // Score any FUEL before climbing
+            currentPhase = AIPhase.SHOOTING;
+            double hubX = alliance == MatchState.Alliance.RED ?
+                    Constants.Field.RED_HUB_X - 2.5 : Constants.Field.BLUE_HUB_X + 2.5;
+            double hubY = Constants.Field.CENTER_Y;
+
+            boolean atPosition = driveToTarget(state, input, hubX, hubY, 1.0);
+            input.shooterAngle = 0.55;
+            input.shooterPower = 0.75;
+
+            if (atPosition && state.shooterAtSpeed && state.shooterAtAngle) {
+                input.shoot = true;
             }
         } else {
-            // Before end game, collect and score
-            updateAggressive(state, input, matchState, dt);
+            // Collect FUEL until closer to end game
+            currentPhase = AIPhase.INTAKING;
+            if (!hasTarget || actionTimer > 3.0) {
+                pickRandomNeutralTarget();
+                actionTimer = 0;
+            }
+            input.intake = true;
+            driveToTarget(state, input, targetX, targetY, 0.5);
         }
     }
 
@@ -304,29 +375,40 @@ public class AIRobotController {
      * Collector behavior - focus on gathering FUEL.
      */
     private void updateCollector(RobotState state, InputState input, MatchState matchState, double dt) {
-        if (state.fuelCount >= Constants.Intake.MAX_CAPACITY - 1) {
-            // Full, go score
+        if (state.fuelCount >= Constants.Intake.MAX_CAPACITY - 2) {
+            // Nearly full, go score
             currentPhase = AIPhase.SHOOTING;
             double hubX = alliance == MatchState.Alliance.RED ?
-                    Constants.Field.RED_HUB_X - 2.0 : Constants.Field.BLUE_HUB_X + 2.0;
+                    Constants.Field.RED_HUB_X - 2.5 : Constants.Field.BLUE_HUB_X + 2.5;
             double hubY = Constants.Field.CENTER_Y;
 
-            if (driveToTarget(state, input, hubX, hubY, 1.5)) {
-                input.spinUp = true;
-                input.shoot = true;
-                input.shooterAngle = 0.6;
-                input.shooterPower = 0.7;
+            boolean atPosition = driveToTarget(state, input, hubX, hubY, 1.0);
+
+            // Spin up shooter while approaching
+            input.shooterAngle = 0.55;
+            input.shooterPower = 0.75;
+
+            if (atPosition) {
+                if (state.shooterAtSpeed && state.shooterAtAngle) {
+                    input.shoot = true;
+                    state.currentCommand = "Dumping FUEL";
+                } else {
+                    state.currentCommand = "Spinning Up";
+                }
+            } else {
+                state.currentCommand = "Full - Scoring";
             }
         } else {
             // Collect FUEL
             currentPhase = AIPhase.INTAKING;
-            if (!hasTarget || actionTimer > 5.0) {
+            if (!hasTarget || actionTimer > 4.0) {
                 pickRandomFieldTarget();
                 actionTimer = 0;
             }
 
             input.intake = true;
             driveToTarget(state, input, targetX, targetY, 0.5);
+            state.currentCommand = "Collecting (" + state.fuelCount + "/" + Constants.Intake.MAX_CAPACITY + ")";
         }
     }
 
@@ -381,9 +463,18 @@ public class AIRobotController {
         double targetAngle = Math.atan2(dy, dx);
         double speed = Math.min(0.7, distance * 0.3);
 
-        // Field-relative control
-        input.forward = speed * Math.cos(targetAngle - state.heading);
-        input.strafe = -speed * Math.sin(targetAngle - state.heading);
+        // Field-relative control - but only if not in field-relative mode!
+        // AI robots should use robot-relative control since they calculate the transform themselves
+        double cos = Math.cos(state.heading);
+        double sin = Math.sin(state.heading);
+
+        // Transform field-relative target velocity to robot-relative
+        double fieldVx = speed * Math.cos(targetAngle);
+        double fieldVy = speed * Math.sin(targetAngle);
+
+        // Robot-relative velocities
+        input.forward = fieldVx * cos + fieldVy * sin;
+        input.strafe = -fieldVx * sin + fieldVy * cos;
 
         // Turn towards movement direction
         double headingError = normalizeAngle(targetAngle - state.heading);
