@@ -2,6 +2,7 @@ package team3164.simulator.engine;
 
 import team3164.simulator.Constants;
 import team3164.simulator.physics.CollisionPhysics;
+import team3164.simulator.physics.CollisionPrediction;
 import team3164.simulator.physics.TrenchPhysics;
 
 import java.util.Random;
@@ -195,16 +196,16 @@ public class AIRobotController {
                               RobotState[] allRobots, double dt) {
         switch (teleopBehavior) {
             case AGGRESSIVE:
-                updateAggressive(state, input, matchState, dt);
+                updateAggressive(state, input, matchState, allRobots, dt);
                 break;
             case DEFENSIVE:
                 updateDefensive(state, input, matchState, allRobots, dt);
                 break;
             case CLIMBER:
-                updateClimber(state, input, matchState, dt);
+                updateClimber(state, input, matchState, allRobots, dt);
                 break;
             case COLLECTOR:
-                updateCollector(state, input, matchState, dt);
+                updateCollector(state, input, matchState, allRobots, dt);
                 break;
         }
     }
@@ -212,7 +213,8 @@ public class AIRobotController {
     /**
      * Aggressive behavior - seek FUEL and score.
      */
-    private void updateAggressive(RobotState state, InputState input, MatchState matchState, double dt) {
+    private void updateAggressive(RobotState state, InputState input, MatchState matchState,
+                                  RobotState[] allRobots, double dt) {
         // If we have FUEL, shoot it
         if (state.fuelCount > 0) {
             currentPhase = AIPhase.SHOOTING;
@@ -232,7 +234,7 @@ public class AIRobotController {
             // Clamp Y to stay on field
             shootPosY = Math.max(1.5, Math.min(Constants.Field.WIDTH - 1.5, shootPosY));
 
-            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0);
+            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0, allRobots);
 
             // Calculate optimal shot parameters based on distance
             double distToHub = Math.hypot(hubX - state.x, hubY - state.y);
@@ -271,7 +273,7 @@ public class AIRobotController {
             }
 
             input.intake = true;
-            driveToTarget(state, input, targetX, targetY, 0.5);
+            driveToTarget(state, input, targetX, targetY, 0.5, allRobots);
             state.currentCommand = "Collecting FUEL";
         }
     }
@@ -294,7 +296,7 @@ public class AIRobotController {
             double shootPosY = hubY + yOffset;
             shootPosY = Math.max(1.5, Math.min(Constants.Field.WIDTH - 1.5, shootPosY));
 
-            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0);
+            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0, allRobots);
             input.shooterAngle = 0.55;
             input.shooterPower = 0.75;
 
@@ -341,7 +343,7 @@ public class AIRobotController {
             double interceptX = targetOpponent.x * 0.3 + hubX * 0.7;
             double interceptY = targetOpponent.y * 0.3 + hubY * 0.7;
 
-            driveToTarget(state, input, interceptX, interceptY, 1.5);
+            driveToTarget(state, input, interceptX, interceptY, 1.5, allRobots);
             state.currentCommand = "Defending";
 
             // Collect FUEL opportunistically while defending
@@ -353,7 +355,7 @@ public class AIRobotController {
                 actionTimer = 0;
             }
             input.intake = true;
-            driveToTarget(state, input, targetX, targetY, 0.5);
+            driveToTarget(state, input, targetX, targetY, 0.5, allRobots);
             state.currentCommand = "Patrolling";
         }
     }
@@ -361,7 +363,8 @@ public class AIRobotController {
     /**
      * Climber behavior - prioritize climbing in end game.
      */
-    private void updateClimber(RobotState state, InputState input, MatchState matchState, double dt) {
+    private void updateClimber(RobotState state, InputState input, MatchState matchState,
+                               RobotState[] allRobots, double dt) {
         double timeRemaining = matchState.getRemainingTime();
 
         // Start climbing when 35 seconds left (need time to climb)
@@ -374,7 +377,7 @@ public class AIRobotController {
             double towerY = alliance == MatchState.Alliance.RED ?
                     Constants.Field.RED_TOWER_Y : Constants.Field.BLUE_TOWER_Y;
 
-            if (driveToTarget(state, input, towerX, towerY, 0.5)) {
+            if (driveToTarget(state, input, towerX, towerY, 0.5, allRobots)) {
                 // At tower, climb to L2 (20 points)
                 input.level2 = true;
                 input.climberUp = true;
@@ -395,7 +398,7 @@ public class AIRobotController {
             double shootPosY = hubY + yOffset;
             shootPosY = Math.max(1.5, Math.min(Constants.Field.WIDTH - 1.5, shootPosY));
 
-            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0);
+            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0, allRobots);
             input.shooterAngle = 0.55;
             input.shooterPower = 0.75;
 
@@ -418,14 +421,15 @@ public class AIRobotController {
                 actionTimer = 0;
             }
             input.intake = true;
-            driveToTarget(state, input, targetX, targetY, 0.5);
+            driveToTarget(state, input, targetX, targetY, 0.5, allRobots);
         }
     }
 
     /**
      * Collector behavior - focus on gathering FUEL.
      */
-    private void updateCollector(RobotState state, InputState input, MatchState matchState, double dt) {
+    private void updateCollector(RobotState state, InputState input, MatchState matchState,
+                                 RobotState[] allRobots, double dt) {
         if (state.fuelCount >= Constants.Intake.MAX_CAPACITY - 2) {
             // Nearly full, go score
             currentPhase = AIPhase.SHOOTING;
@@ -439,7 +443,7 @@ public class AIRobotController {
             double shootPosY = hubY + yOffset;
             shootPosY = Math.max(1.5, Math.min(Constants.Field.WIDTH - 1.5, shootPosY));
 
-            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0);
+            boolean atPosition = driveToTarget(state, input, shootPosX, shootPosY, 1.0, allRobots);
 
             // Spin up shooter while approaching
             input.shooterAngle = 0.55;
@@ -470,7 +474,7 @@ public class AIRobotController {
             }
 
             input.intake = true;
-            driveToTarget(state, input, targetX, targetY, 0.5);
+            driveToTarget(state, input, targetX, targetY, 0.5, allRobots);
             state.currentCommand = "Collecting (" + state.fuelCount + "/" + Constants.Intake.MAX_CAPACITY + ")";
         }
     }
@@ -498,12 +502,19 @@ public class AIRobotController {
     }
 
     /**
-     * Drive toward a target position.
+     * Drive toward a target position with collision avoidance.
      *
+     * @param state This robot's state
+     * @param input Input to modify
+     * @param tgtX Target X position
+     * @param tgtY Target Y position
+     * @param tolerance Distance at which we consider ourselves "at target"
+     * @param allRobots All robots for collision avoidance (can be null)
      * @return true if at target
      */
     private boolean driveToTarget(RobotState state, InputState input,
-                                  double tgtX, double tgtY, double tolerance) {
+                                  double tgtX, double tgtY, double tolerance,
+                                  RobotState[] allRobots) {
         double dx = tgtX - state.x;
         double dy = tgtY - state.y;
         double distance = Math.hypot(dx, dy);
@@ -534,6 +545,30 @@ public class AIRobotController {
         // Transform field-relative target velocity to robot-relative
         double fieldVx = speed * Math.cos(targetAngle);
         double fieldVy = speed * Math.sin(targetAngle);
+
+        // ========== Collision Avoidance ==========
+        if (allRobots != null) {
+            CollisionPrediction.AvoidanceVector avoidance =
+                    CollisionPrediction.calculateCombinedAvoidance(state, allRobots);
+
+            if (avoidance.needsAvoidance) {
+                // Blend avoidance with target direction
+                double avoidInfluence = avoidance.urgency *
+                        Constants.CollisionAvoidance.MAX_AVOIDANCE_BLEND;
+                double targetInfluence = 1.0 - avoidInfluence;
+
+                fieldVx = fieldVx * targetInfluence +
+                          avoidance.steerX * Constants.Swerve.MAX_SPEED * avoidInfluence;
+                fieldVy = fieldVy * targetInfluence +
+                          avoidance.steerY * Constants.Swerve.MAX_SPEED * avoidInfluence;
+
+                // Reduce speed during avoidance
+                double speedScale = 1.0 - (avoidance.urgency *
+                        Constants.CollisionAvoidance.MAX_SPEED_REDUCTION);
+                fieldVx *= speedScale;
+                fieldVy *= speedScale;
+            }
+        }
 
         // Robot-relative velocities
         input.forward = fieldVx * cos + fieldVy * sin;

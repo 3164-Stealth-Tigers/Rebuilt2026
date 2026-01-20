@@ -40,48 +40,52 @@ public final class Constants {
         public static final double BLUE_HUB_Y = CENTER_Y;
 
         // ====================================================================
-        // BUMP (4 per field)
+        // BUMP (4 per field) - Game Manual Section 5.5
         // ====================================================================
-        // BUMP dimensions: 1.854m x 1.128m x 0.165m, 15° ramps
-        public static final double BUMP_LENGTH = 1.854;
-        public static final double BUMP_WIDTH = 1.128;
-        public static final double BUMP_HEIGHT = 0.165;
+        // BUMP dimensions: 73.0in x 44.4in x 6.513in (1.854m x 1.128m x 0.165m)
+        // BUMPs are on either side of the HUB, forming part of the barrier
+        public static final double BUMP_LENGTH = 1.854;       // 73.0in (width in Y direction)
+        public static final double BUMP_WIDTH = 1.128;        // 44.4in (depth in X direction)
+        public static final double BUMP_HEIGHT = 0.165;       // 6.513in
         public static final double BUMP_RAMP_ANGLE = 15.0;    // degrees
 
-        // BUMP positions (flanking HUBs on either side in Y direction)
+        // BUMP positions (flanking HUBs, at same X as HUB, forming barrier line)
         // Red side bumps (flanking red HUB)
         public static final double RED_BUMP_1_X = RED_HUB_X;
-        public static final double RED_BUMP_1_Y = CENTER_Y + HUB_SIZE/2 + BUMP_WIDTH/2 + 0.3;
+        public static final double RED_BUMP_1_Y = CENTER_Y + HUB_SIZE/2 + BUMP_LENGTH/2;  // Above HUB
         public static final double RED_BUMP_2_X = RED_HUB_X;
-        public static final double RED_BUMP_2_Y = CENTER_Y - HUB_SIZE/2 - BUMP_WIDTH/2 - 0.3;
+        public static final double RED_BUMP_2_Y = CENTER_Y - HUB_SIZE/2 - BUMP_LENGTH/2;  // Below HUB
 
         // Blue side bumps (flanking blue HUB)
         public static final double BLUE_BUMP_1_X = BLUE_HUB_X;
-        public static final double BLUE_BUMP_1_Y = CENTER_Y + HUB_SIZE/2 + BUMP_WIDTH/2 + 0.3;
+        public static final double BLUE_BUMP_1_Y = CENTER_Y + HUB_SIZE/2 + BUMP_LENGTH/2;  // Above HUB
         public static final double BLUE_BUMP_2_X = BLUE_HUB_X;
-        public static final double BLUE_BUMP_2_Y = CENTER_Y - HUB_SIZE/2 - BUMP_WIDTH/2 - 0.3;
+        public static final double BLUE_BUMP_2_Y = CENTER_Y - HUB_SIZE/2 - BUMP_LENGTH/2;  // Below HUB
 
         // ====================================================================
-        // TRENCH (4 per field)
+        // TRENCH (4 per field) - Game Manual Section 5.6
         // ====================================================================
-        // TRENCH dimensions: 1.668m x 1.194m x 1.022m, clearance 0.565m
-        public static final double TRENCH_LENGTH = 1.668;
-        public static final double TRENCH_WIDTH = 1.194;
-        public static final double TRENCH_HEIGHT = 1.022;
-        public static final double TRENCH_CLEARANCE = 0.565;  // Robot must be under this
+        // TRENCH dimensions: 65.65in x 47.0in x 40.25in (1.668m x 1.194m x 1.022m)
+        // Clearance underneath: 22.25in (0.565m)
+        // "The TRENCH extends from the guardrail to the BUMP on both sides of the FIELD"
+        public static final double TRENCH_LENGTH = 1.668;     // 65.65in (width in Y direction)
+        public static final double TRENCH_WIDTH = 1.194;      // 47.0in (depth in X direction)
+        public static final double TRENCH_HEIGHT = 1.022;     // 40.25in
+        public static final double TRENCH_CLEARANCE = 0.565;  // 22.25in - Robot must be under this
 
-        // TRENCH positions (at field edges near guardrails)
-        // Red side trenches
-        public static final double RED_TRENCH_1_X = RED_HUB_X - 1.5;
-        public static final double RED_TRENCH_1_Y = WIDTH - TRENCH_WIDTH/2 - 0.1;
-        public static final double RED_TRENCH_2_X = RED_HUB_X - 1.5;
-        public static final double RED_TRENCH_2_Y = TRENCH_WIDTH/2 + 0.1;
+        // TRENCH positions (extending from guardrail to BUMP, at same X as HUB/BUMP)
+        // The TRENCH connects the guardrail to the BUMP, forming a continuous barrier
+        // Red side trenches (at same X as red HUB, extending to guardrails)
+        public static final double RED_TRENCH_1_X = RED_HUB_X;
+        public static final double RED_TRENCH_1_Y = WIDTH - TRENCH_LENGTH/2;  // Top guardrail side
+        public static final double RED_TRENCH_2_X = RED_HUB_X;
+        public static final double RED_TRENCH_2_Y = TRENCH_LENGTH/2;          // Bottom guardrail side
 
-        // Blue side trenches
-        public static final double BLUE_TRENCH_1_X = BLUE_HUB_X + 1.5;
-        public static final double BLUE_TRENCH_1_Y = WIDTH - TRENCH_WIDTH/2 - 0.1;
-        public static final double BLUE_TRENCH_2_X = BLUE_HUB_X + 1.5;
-        public static final double BLUE_TRENCH_2_Y = TRENCH_WIDTH/2 + 0.1;
+        // Blue side trenches (at same X as blue HUB, extending to guardrails)
+        public static final double BLUE_TRENCH_1_X = BLUE_HUB_X;
+        public static final double BLUE_TRENCH_1_Y = WIDTH - TRENCH_LENGTH/2;  // Top guardrail side
+        public static final double BLUE_TRENCH_2_X = BLUE_HUB_X;
+        public static final double BLUE_TRENCH_2_Y = TRENCH_LENGTH/2;          // Bottom guardrail side
 
         // ====================================================================
         // TOWER (2 per field, one per alliance)
@@ -316,5 +320,31 @@ public final class Constants {
         public static final double TICK_RATE = 50.0;          // Hz (20ms per tick)
         public static final double DT = 1.0 / TICK_RATE;      // seconds per tick
         public static final int BROADCAST_RATE = 30;          // Hz for WebSocket updates
+    }
+
+    // ========================================================================
+    // COLLISION AVOIDANCE
+    // ========================================================================
+    public static final class CollisionAvoidance {
+        /** Time horizon for collision prediction (seconds) */
+        public static final double LOOKAHEAD_TIME = 1.5;
+
+        /** Buffer radius for early reaction (meters) */
+        public static final double AVOIDANCE_BUFFER = 0.85;
+
+        /** Maximum avoidance steering magnitude (0-1 scale) */
+        public static final double MAX_AVOIDANCE_STEERING = 0.4;
+
+        /** Distance at which avoidance begins ramping up (meters) */
+        public static final double AVOIDANCE_RAMP_START = 2.5;
+
+        /** Distance at which avoidance reaches maximum (meters) */
+        public static final double AVOIDANCE_RAMP_END = 1.0;
+
+        /** Maximum speed reduction during avoidance (0-1) */
+        public static final double MAX_SPEED_REDUCTION = 0.3;
+
+        /** How much avoidance can override target direction (0-1) */
+        public static final double MAX_AVOIDANCE_BLEND = 0.8;
     }
 }

@@ -43,6 +43,9 @@ public class HeadlessMatchRunner {
     public String runMatch(boolean verbose) {
         this.verbose = verbose;
 
+        // Enable driving debug for autonomous analysis (set to true for detailed nav logging)
+        AutonomousController.DEBUG_DRIVING = false;
+
         // Initialize
         robotManager.reset();
         matchState.reset();

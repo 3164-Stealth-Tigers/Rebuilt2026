@@ -36,33 +36,35 @@ const TOWER = {
 };
 
 // BUMP positions (flanking HUBs on either side in Y)
-// BUMPs are 1.854m x 1.128m
+// BUMPs are 1.854m (Y) x 1.128m (X) - form barrier with HUB and TRENCH
+// Game manual: "BUMPS are structures on either side of the HUB"
 const BUMP = {
-    LENGTH: 1.854,
-    WIDTH: 1.128
+    LENGTH: 1.854,  // Y direction (along barrier line)
+    WIDTH: 1.128    // X direction (depth into field)
 };
 const BUMPS = [
-    // Red side bumps (flanking red HUB)
-    { x: HUB.RED_X, y: HUB.RED_Y + HUB.SIZE/2 + BUMP.WIDTH/2 + 0.3, alliance: 'red' },
-    { x: HUB.RED_X, y: HUB.RED_Y - HUB.SIZE/2 - BUMP.WIDTH/2 - 0.3, alliance: 'red' },
-    // Blue side bumps (flanking blue HUB)
-    { x: HUB.BLUE_X, y: HUB.BLUE_Y + HUB.SIZE/2 + BUMP.WIDTH/2 + 0.3, alliance: 'blue' },
-    { x: HUB.BLUE_X, y: HUB.BLUE_Y - HUB.SIZE/2 - BUMP.WIDTH/2 - 0.3, alliance: 'blue' }
+    // Red side bumps (flanking red HUB, at same X as HUB)
+    { x: HUB.RED_X, y: HUB.RED_Y + HUB.SIZE/2 + BUMP.LENGTH/2, alliance: 'red' },   // Above HUB
+    { x: HUB.RED_X, y: HUB.RED_Y - HUB.SIZE/2 - BUMP.LENGTH/2, alliance: 'red' },   // Below HUB
+    // Blue side bumps (flanking blue HUB, at same X as HUB)
+    { x: HUB.BLUE_X, y: HUB.BLUE_Y + HUB.SIZE/2 + BUMP.LENGTH/2, alliance: 'blue' }, // Above HUB
+    { x: HUB.BLUE_X, y: HUB.BLUE_Y - HUB.SIZE/2 - BUMP.LENGTH/2, alliance: 'blue' }  // Below HUB
 ];
 
-// TRENCH positions (at field edges near guardrails)
-// TRENCHes are 1.668m x 1.194m
+// TRENCH positions (extending from guardrail to BUMP)
+// TRENCHes are 1.668m (Y) x 1.194m (X)
+// Game manual: "The TRENCH extends from the guardrail to the BUMP on both sides of the FIELD"
 const TRENCH = {
-    LENGTH: 1.668,
-    WIDTH: 1.194
+    LENGTH: 1.668,  // Y direction (along barrier line)
+    WIDTH: 1.194    // X direction (depth into field)
 };
 const TRENCHES = [
-    // Red side trenches (near field edges)
-    { x: HUB.RED_X - 1.5, y: FIELD.WIDTH - TRENCH.WIDTH/2 - 0.1, alliance: 'red' },
-    { x: HUB.RED_X - 1.5, y: TRENCH.WIDTH/2 + 0.1, alliance: 'red' },
-    // Blue side trenches (near field edges)
-    { x: HUB.BLUE_X + 1.5, y: FIELD.WIDTH - TRENCH.WIDTH/2 - 0.1, alliance: 'blue' },
-    { x: HUB.BLUE_X + 1.5, y: TRENCH.WIDTH/2 + 0.1, alliance: 'blue' }
+    // Red side trenches (at same X as HUB, extending to guardrails)
+    { x: HUB.RED_X, y: FIELD.WIDTH - TRENCH.LENGTH/2, alliance: 'red' },  // Top guardrail
+    { x: HUB.RED_X, y: TRENCH.LENGTH/2, alliance: 'red' },                 // Bottom guardrail
+    // Blue side trenches (at same X as HUB, extending to guardrails)
+    { x: HUB.BLUE_X, y: FIELD.WIDTH - TRENCH.LENGTH/2, alliance: 'blue' }, // Top guardrail
+    { x: HUB.BLUE_X, y: TRENCH.LENGTH/2, alliance: 'blue' }                // Bottom guardrail
 ];
 
 // DEPOT positions (near alliance walls)
@@ -528,8 +530,9 @@ function createRobotCard(robot, alliance) {
     if (robot.isPlayer) {
         html += `<span class="player-badge">YOU</span>`;
     } else {
-        // Add auto mode dropdown for AI robots (10 modes with 4-bit DIP switch)
+        // Add auto mode dropdown for AI robots (20 modes)
         const autoModes = [
+            // Original Modes (0-9)
             { value: 0, name: 'Do Nothing' },
             { value: 1, name: 'Score & Collect' },
             { value: 2, name: 'Quick Climb' },
@@ -539,7 +542,19 @@ function createRobotCard(robot, alliance) {
             { value: 6, name: 'Preload Only' },
             { value: 7, name: 'Max Cycles' },
             { value: 8, name: 'Climb Support' },
-            { value: 9, name: 'Win AUTO' }
+            { value: 9, name: 'Win AUTO' },
+            // Optimized Modes (10-14)
+            { value: 10, name: 'Score+Collect+Climb' },
+            { value: 11, name: 'Fast Climb' },
+            { value: 12, name: 'Balanced' },
+            { value: 13, name: 'Depot+Climb OPTIMAL' },
+            { value: 14, name: 'Max Points' },
+            // Strategic Modes (15-19)
+            { value: 15, name: 'Safe Climb' },
+            { value: 16, name: 'Dual Cycle' },
+            { value: 17, name: 'Deny FUEL' },
+            { value: 18, name: 'Center Control' },
+            { value: 19, name: 'Alliance Support' }
         ];
 
         // Use the numeric autoModeIndex from server
@@ -670,13 +685,15 @@ function renderField() {
     ctx.setLineDash([]);
 
     // Draw TRENCHes (under other elements)
+    // TRENCH.WIDTH = X extent (horizontal), TRENCH.LENGTH = Y extent (vertical)
     TRENCHES.forEach(trench => {
-        drawTrench(trench.x * scale, h - trench.y * scale, TRENCH.LENGTH * scale, TRENCH.WIDTH * scale, trench.alliance);
+        drawTrench(trench.x * scale, h - trench.y * scale, TRENCH.WIDTH * scale, TRENCH.LENGTH * scale, trench.alliance);
     });
 
     // Draw BUMPs
+    // BUMP.WIDTH = X extent (horizontal), BUMP.LENGTH = Y extent (vertical)
     BUMPS.forEach(bump => {
-        drawBump(bump.x * scale, h - bump.y * scale, BUMP.LENGTH * scale, BUMP.WIDTH * scale, bump.alliance);
+        drawBump(bump.x * scale, h - bump.y * scale, BUMP.WIDTH * scale, BUMP.LENGTH * scale, bump.alliance);
     });
 
     // Draw TOWERs
@@ -814,9 +831,10 @@ function drawAprilTag(x, y, size, id) {
     ctx.fillText(id.toString(), x, y);
 }
 
-function drawBump(x, y, length, width, alliance) {
-    const halfL = length / 2;
+function drawBump(x, y, width, height, alliance) {
+    // width = X extent (horizontal), height = Y extent (vertical)
     const halfW = width / 2;
+    const halfH = height / 2;
 
     // Color based on alliance zone
     const fillColor = alliance === 'red' ? 'rgba(255, 180, 100, 0.5)' : 'rgba(100, 180, 255, 0.5)';
@@ -826,8 +844,8 @@ function drawBump(x, y, length, width, alliance) {
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 2;
 
-    ctx.fillRect(x - halfL, y - halfW, length, width);
-    ctx.strokeRect(x - halfL, y - halfW, length, width);
+    ctx.fillRect(x - halfW, y - halfH, width, height);
+    ctx.strokeRect(x - halfW, y - halfH, width, height);
 
     // Label
     ctx.fillStyle = '#fff';
@@ -837,9 +855,10 @@ function drawBump(x, y, length, width, alliance) {
     ctx.fillText('BUMP', x, y);
 }
 
-function drawTrench(x, y, length, width, alliance) {
-    const halfL = length / 2;
+function drawTrench(x, y, width, height, alliance) {
+    // width = X extent (horizontal), height = Y extent (vertical)
     const halfW = width / 2;
+    const halfH = height / 2;
 
     // Darker color to show it's a structure to drive under
     const fillColor = alliance === 'red' ? 'rgba(139, 69, 19, 0.6)' : 'rgba(70, 130, 180, 0.6)';
@@ -850,8 +869,8 @@ function drawTrench(x, y, length, width, alliance) {
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 3]);
 
-    ctx.fillRect(x - halfL, y - halfW, length, width);
-    ctx.strokeRect(x - halfL, y - halfW, length, width);
+    ctx.fillRect(x - halfW, y - halfH, width, height);
+    ctx.strokeRect(x - halfW, y - halfH, width, height);
 
     ctx.setLineDash([]);
 

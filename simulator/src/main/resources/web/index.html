@@ -37,16 +37,29 @@
                 <div class="auto-selector">
                     <label for="auto-mode">Auto:</label>
                     <select id="auto-mode" class="auto-dropdown">
+                        <!-- Original Modes (0-9) -->
                         <option value="0">0: Do Nothing</option>
-                        <option value="1">1: Score & Collect</option>
-                        <option value="2">2: Quick Climb</option>
-                        <option value="3">3: Score Then Climb</option>
-                        <option value="4">4: Depot Raid</option>
-                        <option value="5">5: Far Neutral</option>
-                        <option value="6">6: Preload Only</option>
-                        <option value="7">7: Max Cycles</option>
-                        <option value="8">8: Climb Support</option>
-                        <option value="9">9: Win AUTO</option>
+                        <option value="1">1: Score & Collect (8 pts)</option>
+                        <option value="2">2: Quick Climb (18 pts)</option>
+                        <option value="3">3: Score Then Climb (18 pts)</option>
+                        <option value="4">4: Depot Raid (5 pts)</option>
+                        <option value="5">5: Far Neutral (3-4 pts)</option>
+                        <option value="6">6: Preload Only (3 pts)</option>
+                        <option value="7">7: Max Cycles (8 pts)</option>
+                        <option value="8">8: Climb Support (3 pts)</option>
+                        <option value="9">9: Win AUTO (4 pts)</option>
+                        <!-- Optimized Modes (10-14) -->
+                        <option value="10">10: Score+Collect+Climb (18 pts)</option>
+                        <option value="11">11: Fast Climb (15 pts)</option>
+                        <option value="12">12: Balanced (18 pts)</option>
+                        <option value="13">13: Depot+Climb OPTIMAL (20 pts)</option>
+                        <option value="14">14: Max Points (18 pts)</option>
+                        <!-- Strategic Modes (15-19) -->
+                        <option value="15">15: Safe Climb (15-18 pts)</option>
+                        <option value="16">16: Dual Cycle (6-8 pts)</option>
+                        <option value="17">17: Deny FUEL (strategic)</option>
+                        <option value="18">18: Center Control (strategic)</option>
+                        <option value="19">19: Alliance Support (strategic)</option>
                     </select>
                     <span id="auto-status" class="auto-status"></span>
                 </div>
