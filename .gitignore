@@ -1,5 +1,10 @@
 .venv/
 
+build/
+.wpilib/
+.gradle/
+.vscode/
+
 .idea/
 bin/
 networktables.json
@@ -12,5 +17,3 @@ docs/.DS_Store
 simulator/.gradle/
 simulator/.gradle*
 simulator/tmp/
-build/tmp/
-build/
