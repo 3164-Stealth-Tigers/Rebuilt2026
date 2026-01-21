@@ -1,0 +1,977 @@
+Error at java.base/java.io.FileInputStream.open0(Native Method): Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+at java.base/java.io.FileInputStream.open0(Native Method)
+at java.base/java.io.FileInputStream.open(Unknown Source)
+at java.base/java.io.FileInputStream.<init>(Unknown Source)
+at com.fasterxml.jackson.core.TokenStreamFactory._fileInputStream(TokenStreamFactory.java:318)
+at com.fasterxml.jackson.core.JsonFactory.createParser(JsonFactory.java:1219)
+at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3752)
+at edu.wpi.first.apriltag.AprilTagFieldLayout.<init>(AprilTagFieldLayout.java:82)
+at frc.robot.subsystems.Vision.<init>(Vision.java:535)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:313)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Warning at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:450): The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+Error at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:457): The startCompetition() method (or methods called by it) should have handled the exception above.
+********** Robot program starting **********
+NT: Listening on NT3 port 1735, NT4 port 5810
+DataLog: Logging to '/home/lvuser/logs/FRC_TBD_a40c793aceaa7e79.wpilog' (2.9 GiB free space)
+StatusLogger: Logging REVLOG to '/home/lvuser/logs/REV_TBD_200b60dc88c32d46.revlog'
+StatusLogger: Renamed REVLOG from 'REV_TBD_200b60dc88c32d46.revlog' to 'REV_20260121_221941.revlog' at '/home/lvuser/logs/REV_20260121_221941.revlog'
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+[phoenix] Signal Logger Started (Network: rio)
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+[Spark Max] IDs: 3, timed out while waiting for Get parameter ID 127, frameID 33901504: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 1, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+Device firmware could not be retrieved. Check that the device is running v6 firmware, the device ID is correct, the specified CAN bus is correct, and the device is powered.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 2, timed out while waiting for Frame Mgr: Period Status 0: HAL: CAN Receive has Timed Out
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+The startCompetition() method (or methods called by it) should have handled the exception above.
+Could not transmit CAN Frame.
+StatusLogger: It is not recommended to log to RoboRIO internal storage. Plug in a flash drive.
+[Spark Max] IDs: 7, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 7, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+[Spark Max] IDs: 7, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 8, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix] Library initialization is complete.
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix-diagnostics] Server 2026.1.0 (Jan 7 2026, 19:24:14) running on port: 1250
+[Spark Max] IDs: 5, timed out while waiting for Getting SPARK Model failed. Unable to account for device-specific behavior differences.
+[Spark Max] IDs: 5, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+[Spark Max] IDs: 3, timed out while waiting for Get Motor Interface: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 1, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+Device firmware could not be retrieved. Check that the device is running v6 firmware, the device ID is correct, the specified CAN bus is correct, and the device is powered.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 2, timed out while waiting for Frame Mgr: Period Status 0: HAL: CAN Receive has Timed Out
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+The startCompetition() method (or methods called by it) should have handled the exception above.
+Could not transmit CAN Frame.
+StatusLogger: It is not recommended to log to RoboRIO internal storage. Plug in a flash drive.
+[Spark Max] IDs: 7, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 7, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+[Spark Max] IDs: 7, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 8, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix] Library initialization is complete.
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+[Spark Max] IDs: 5, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 5, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix-diagnostics] Server 2026.1.0 (Jan 7 2026, 19:24:14) running on port: 1250
+CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 3, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 3, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+Device firmware could not be retrieved. Check that the device is running v6 firmware, the device ID is correct, the specified CAN bus is correct, and the device is powered.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 1, timed out while waiting for Frame Mgr: Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 2, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+The startCompetition() method (or methods called by it) should have handled the exception above.
+Could not transmit CAN Frame.
+StatusLogger: It is not recommended to log to RoboRIO internal storage. Plug in a flash drive.
+[Spark Max] IDs: 7, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 7, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+[Spark Max] IDs: 7, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 8, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix] Library initialization is complete.
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+[Spark Max] IDs: 5, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 5, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix-diagnostics] Server 2026.1.0 (Jan 7 2026, 19:24:14) running on port: 1250
+CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 3, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 3, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+Device firmware could not be retrieved. Check that the device is running v6 firmware, the device ID is correct, the specified CAN bus is correct, and the device is powered.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 1, timed out while waiting for Frame Mgr: Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 2, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+The startCompetition() method (or methods called by it) should have handled the exception above.
+Could not transmit CAN Frame.
+StatusLogger: It is not recommended to log to RoboRIO internal storage. Plug in a flash drive.
+[Spark Max] IDs: 7, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 7, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+[Spark Max] IDs: 7, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 8, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix] Library initialization is complete.
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix-diagnostics] Server 2026.1.0 (Jan 7 2026, 19:24:14) running on port: 1250
+[Spark Max] IDs: 5, timed out while waiting for Getting SPARK Model failed. Unable to account for device-specific behavior differences.
+[Spark Max] IDs: 5, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+[Spark Max] IDs: 3, timed out while waiting for Getting SPARK Model failed. Unable to account for device-specific behavior differences.
+[Spark Max] IDs: 1, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+Device firmware could not be retrieved. Check that the device is running v6 firmware, the device ID is correct, the specified CAN bus is correct, and the device is powered.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 2, timed out while waiting for Frame Mgr: Period Status 0: HAL: CAN Receive has Timed Out
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+The startCompetition() method (or methods called by it) should have handled the exception above.
+Could not transmit CAN Frame.
+StatusLogger: It is not recommended to log to RoboRIO internal storage. Plug in a flash drive.
+[Spark Max] IDs: 7, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 7, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+[Spark Max] IDs: 7, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 8, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix] Library initialization is complete.
+Info roboRIO: Game data update "" received by Robot
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix-diagnostics] Server 2026.1.0 (Jan 7 2026, 19:24:14) running on port: 1250
+[phoenix] Signal Logger Started (Network: rio)
+[Spark Max] IDs: 5, timed out while waiting for Getting SPARK Model failed. Unable to account for device-specific behavior differences.
+[Spark Max] IDs: 5, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+[Spark Max] IDs: 3, timed out while waiting for Getting SPARK Model failed. Unable to account for device-specific behavior differences.
+[Spark Max] IDs: 1, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+Device firmware could not be retrieved. Check that the device is running v6 firmware, the device ID is correct, the specified CAN bus is correct, and the device is powered.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 2, timed out while waiting for Frame Mgr: Period Status 0: HAL: CAN Receive has Timed Out
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+Error at java.base/java.io.FileInputStream.open0(Native Method): Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+at java.base/java.io.FileInputStream.open0(Native Method)
+The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+at java.base/java.io.FileInputStream.open(Unknown Source)
+at java.base/java.io.FileInputStream.<init>(Unknown Source)
+at com.fasterxml.jackson.core.TokenStreamFactory._fileInputStream(TokenStreamFactory.java:318)
+at com.fasterxml.jackson.core.JsonFactory.createParser(JsonFactory.java:1219)
+at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3752)
+at edu.wpi.first.apriltag.AprilTagFieldLayout.<init>(AprilTagFieldLayout.java:82)
+at frc.robot.subsystems.Vision.<init>(Vision.java:535)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:313)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Warning at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:450): The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+The startCompetition() method (or methods called by it) should have handled the exception above.
+Error at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:457): The startCompetition() method (or methods called by it) should have handled the exception above.
+********** Robot program starting **********
+NT: Listening on NT3 port 1735, NT4 port 5810
+NT: Got a NT4 connection from 10.31.64.20 port 56387
+NT: CONNECTED NT4 client 'shuffleboard@1' (from 10.31.64.20:56387)
+DataLog: Logging to '/home/lvuser/logs/FRC_TBD_21714057f43935ed.wpilog' (2.9 GiB free space)
+Could not transmit CAN Frame.
+StatusLogger: It is not recommended to log to RoboRIO internal storage. Plug in a flash drive.
+StatusLogger: Logging REVLOG to '/home/lvuser/logs/REV_TBD_dd8e3ba55efd6038.revlog'
+StatusLogger: Renamed REVLOG from 'REV_TBD_dd8e3ba55efd6038.revlog' to 'REV_20260121_221954.revlog' at '/home/lvuser/logs/REV_20260121_221954.revlog'
+[Spark Max] IDs: 7, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 7, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+[Spark Max] IDs: 7, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 8, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix] Library initialization is complete.
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+[Spark Max] IDs: 5, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 5, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix-diagnostics] Server 2026.1.0 (Jan 7 2026, 19:24:14) running on port: 1250
+[phoenix] Signal Logger Started (Network: rio)
+CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 6, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 3, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+Device firmware could not be retrieved. Check that the device is running v6 firmware, the device ID is correct, the specified CAN bus is correct, and the device is powered.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 1, timed out while waiting for Frame Mgr: Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 2, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+Error at java.base/java.io.FileInputStream.open0(Native Method): Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+at java.base/java.io.FileInputStream.open0(Native Method)
+The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+at java.base/java.io.FileInputStream.open(Unknown Source)
+at java.base/java.io.FileInputStream.<init>(Unknown Source)
+The startCompetition() method (or methods called by it) should have handled the exception above.
+at com.fasterxml.jackson.core.TokenStreamFactory._fileInputStream(TokenStreamFactory.java:318)
+at com.fasterxml.jackson.core.JsonFactory.createParser(JsonFactory.java:1219)
+at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3752)
+at edu.wpi.first.apriltag.AprilTagFieldLayout.<init>(AprilTagFieldLayout.java:82)
+at frc.robot.subsystems.Vision.<init>(Vision.java:535)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:313)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Warning at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:450): The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+Error at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:457): The startCompetition() method (or methods called by it) should have handled the exception above.
+********** Robot program starting **********
+NT: Listening on NT3 port 1735, NT4 port 5810
+NT: Got a NT4 connection from 10.31.64.20 port 56399
+NT: CONNECTED NT4 client 'shuffleboard@1' (from 10.31.64.20:56399)
+DataLog: Logging to '/home/lvuser/logs/FRC_TBD_05fcac1ca6c68f7e.wpilog' (2.9 GiB free space)
+Could not transmit CAN Frame.
+StatusLogger: It is not recommended to log to RoboRIO internal storage. Plug in a flash drive.
+StatusLogger: Logging REVLOG to '/home/lvuser/logs/REV_TBD_12f4516e22440f45.revlog'
+StatusLogger: Renamed REVLOG from 'REV_TBD_12f4516e22440f45.revlog' to 'REV_20260121_222008.revlog' at '/home/lvuser/logs/REV_20260121_222008.revlog'
+[Spark Max] IDs: 7, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 7, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+[Spark Max] IDs: 7, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 8, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix] Library initialization is complete.
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix-diagnostics] Server 2026.1.0 (Jan 7 2026, 19:24:14) running on port: 1250
+[Spark Max] IDs: 5, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 5, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+[phoenix] Signal Logger Started (Network: rio)
+CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+[Spark Max] IDs: 3, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 1, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+Device firmware could not be retrieved. Check that the device is running v6 firmware, the device ID is correct, the specified CAN bus is correct, and the device is powered.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 2, timed out while waiting for Frame Mgr: Period Status 0: HAL: CAN Receive has Timed Out
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+Error at java.base/java.io.FileInputStream.open0(Native Method): Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+at java.base/java.io.FileInputStream.open0(Native Method)
+The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+at java.base/java.io.FileInputStream.open(Unknown Source)
+at java.base/java.io.FileInputStream.<init>(Unknown Source)
+The startCompetition() method (or methods called by it) should have handled the exception above.
+at com.fasterxml.jackson.core.TokenStreamFactory._fileInputStream(TokenStreamFactory.java:318)
+at com.fasterxml.jackson.core.JsonFactory.createParser(JsonFactory.java:1219)
+at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:375 2)
+at edu.wpi.first.apriltag.AprilTagFieldLayout.<init>(AprilTagFieldLayout.java:82)
+at frc.robot.subsystems.Vision.<init>(Vision.java:535)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:313)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Warning at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:450): The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+Error at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:457): The startCompetition() method (or methods called by it) should have handled the exception above.
+********** Robot program starting **********
+NT: Listening on NT3 port 1735, NT4 port 5810
+NT: Got a NT4 connection from 10.31.64.20 port 56411
+NT: CONNECTED NT4 client 'shuffleboard@1' (from 10.31.64.20:56411)
+DataLog: Logging to '/home/lvuser/logs/FRC_TBD_f2f2bd35c69f0a5a.wpilog' (2.9 GiB free space)
+Could not transmit CAN Frame.
+StatusLogger: It is not recommended to log to RoboRIO internal storage. Plug in a flash drive.
+StatusLogger: Logging REVLOG to '/home/lvuser/logs/REV_TBD_e4a5005897989d0c.revlog'
+StatusLogger: Renamed REVLOG from 'REV_TBD_e4a5005897989d0c.revlog' to 'REV_20260121_222022.revlog' at '/home/lvuser/logs/REV_20260121_222022.revlog'
+[Spark Max] IDs: 7, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 7, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+[Spark Max] IDs: 7, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 8, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix] Library initialization is complete.
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix-diagnostics] Server 2026.1.0 (Jan 7 2026, 19:24:14) running on port: 1250
+[phoenix] Signal Logger Started (Network: rio)
+[Spark Max] IDs: 5, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 5, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+[Spark Max] IDs: 3, timed out while waiting for Getting SPARK Model failed. Unable to account for device-specific behavior differences.
+[Spark Max] IDs: 1, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+Device firmware could not be retrieved. Check that the device is running v6 firmware, the device ID is correct, the specified CAN bus is correct, and the device is powered.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 2, timed out while waiting for Frame Mgr: Period Status 0: HAL: CAN Receive has Timed Out
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+Error at java.base/java.io.FileInputStream.open0(Native Method): Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+at java.base/java.io.FileInputStream.open0(Native Method)
+The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+at java.base/java.io.FileInputStream.open(Unknown Source)
+The startCompetition() method (or methods called by it) should have handled the exception above.
+at java.base/java.io.FileInputStream.<init>(Unknown Source)
+at com.fasterxml.jackson.core.TokenStreamFactory._fileInputStream(TokenStreamFactory.java:318)
+at com.fasterxml.jackson.core.JsonFactory.createParser(JsonFactory.java:1219)
+at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3752)
+at edu.wpi.first.apriltag.AprilTagFieldLayout.<init>(AprilTagFieldLayout.java:82)
+at frc.robot.subsystems.Vision.<init>(Vision.java:535)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:313)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Warning at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:450): The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+Error at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:457): The startCompetition() method (or methods called by it) should have handled the exception above.
+********** Robot program starting **********
+NT: Listening on NT3 port 1735, NT4 port 5810
+NT: Got a NT4 connection from 10.31.64.20 port 56421
+NT: CONNECTED NT4 client 'shuffleboard@1' (from 10.31.64.20:56421)
+DataLog: Logging to '/home/lvuser/logs/FRC_TBD_265612d968d6cbd0.wpilog' (2.9 GiB free space)
+Could not transmit CAN Frame.
+StatusLogger: It is not recommended to log to RoboRIO internal storage. Plug in a flash drive.
+StatusLogger: Logging REVLOG to '/home/lvuser/logs/REV_TBD_5d2af7768b8ee6bb.revlog'
+StatusLogger: Renamed REVLOG from 'REV_TBD_5d2af7768b8ee6bb.revlog' to 'REV_20260121_222035.revlog' at '/home/lvuser/logs/REV_20260121_222035.revlog'
+[Spark Max] IDs: 7, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 7, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+[Spark Max] IDs: 7, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 8, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix] Library initialization is complete.
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 6, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+[Spark Max] IDs: 5, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 5, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix-diagnostics] Server 2026.1.0 (Jan 7 2026, 19:24:14) running on port: 1250
+[phoenix] Signal Logger Started (Network: rio)
+CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 3, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 3, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 3, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 1, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 2, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+Firmware Too Old. Use Phoenix Tuner X to field upgrade your CTRE CAN device firmware(CRF). Then restart your robot application to clear this error.
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+Firmware version is not compatible with this version of Phoenix. Make sure your firmware and API major versions match.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+Device firmware could not be retrieved. Check that the device is running v6 firmware, the device ID is correct, the specified CAN bus is correct, and the device is powered.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[Spark Max] IDs: 1, timed out while waiting for Frame Mgr: Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 2, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+Error at java.base/java.io.FileInputStream.open0(Native Method): Unhandled exception: java.io.FileNotFoundException: /home/lvuser/deploy/apriltags/2026_field.json (No such file or directory)
+at java.base/java.io.FileInputStream.open0(Native Method)
+The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+at java.base/java.io.FileInputStream.open(Unknown Source)
+at java.base/java.io.FileInputStream.<init>(Unknown Source)
+at com.fasterxml.jackson.core.TokenStreamFactory._fileInputStream(TokenStreamFactory.java:318)
+at com.fasterxml.jackson.core.JsonFactory.createParser(JsonFactory.java:1219)
+at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3752)
+at edu.wpi.first.apriltag.AprilTagFieldLayout.<init>(AprilTagFieldLayout.java:82)
+at frc.robot.subsystems.Vision.<init>(Vision.java:535)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:313)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+The startCompetition() method (or methods called by it) should have handled the exception above.
+Warning at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:450): The robot program quit unexpectedly. This is usually due to a code error.
+The above stacktrace can help determine where the error occurred.
+See https://wpilib.org/stacktrace for more information.
+Error at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:457): The startCompetition() method (or methods called by it) should have handled the exception above.
+********** Robot program starting **********
+NT: Listening on NT3 port 1735, NT4 port 5810
+DataLog: Logging to '/home/lvuser/logs/FRC_TBD_dacf131fed622776.wpilog' (2.9 GiB free space)
+NT: Got a NT4 connection from 10.31.64.20 port 56432
+NT: CONNECTED NT4 client 'shuffleboard@1' (from 10.31.64.20:56432)
+Could not transmit CAN Frame.
+StatusLogger: It is not recommended to log to RoboRIO internal storage. Plug in a flash drive.
+StatusLogger: Logging REVLOG to '/home/lvuser/logs/REV_TBD_946b5960b0e48987.revlog'
+StatusLogger: Renamed REVLOG from 'REV_TBD_946b5960b0e48987.revlog' to 'REV_20260121_222048.revlog' at '/home/lvuser/logs/REV_20260121_222048.revlog'
+[Spark Max] IDs: 7, timed out while waiting for Period Status 0: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 7, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 7, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:335)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 8, which is not a SPARK MAX. Some functionalities may not work.
+at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80)
+at frc.robot.subsystems.swerve.SwerveModule.<init>(SwerveModule.java:344)
+at frc.robot.subsystems.swerve.SwerveDrive.<init>(SwerveDrive.java:190)
+at frc.robot.RobotContainer.<init>(RobotContainer.java:312)
+at frc.robot.Robot.robotInit(Robot.java:164)
+at edu.wpi.first.wpilibj.TimedRobot.startCompetition(TimedRobot.java:126)
+at edu.wpi.first.wpilibj.RobotBase.runRobot(RobotBase.java:436)
+at edu.wpi.first.wpilibj.RobotBase.startRobot(RobotBase.java:527)
+at frc.robot.Main.main(Main.java:8)
+[Spark Max] IDs: 7, timed out while waiting for Reset Safe Parameters: HAL: CAN Receive has Timed Out
+[Spark Max] IDs: 8, Unable to retrieve SPARK firmware version. Please verify the deviceID field matches the configured CAN ID of the controller, and that the controller is connected to the CAN Bus.
+Could not transmit CAN Frame.
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+[phoenix] Library initialization is complete.
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
+Warning at com.revrobotics.spark.SparkMax.<init>(SparkMax.java:80): CANSparkMax object created for CAN ID 5, which is not a SPARK MAX. Some functionalities may not work.
