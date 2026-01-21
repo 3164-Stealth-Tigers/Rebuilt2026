@@ -15,7 +15,7 @@ package frc.robot.subsystems;
  *   ┌─────────────────┐              ┌─────────────────┐
  *   │   JETSON NANO   │              │     roboRIO     │
  *   │                 │ NetworkTables│                 │
- *   │  Cameras ──►    │ ══════════► │  Vision.java    │
+ *   │  Cameras ──►    │ ══════════►  │  Vision.java    │
  *   │  Processing     │   ~30-60Hz   │  reads data     │
  *   │                 │              │  every 20ms     │
  *   └─────────────────┘              └─────────────────┘
