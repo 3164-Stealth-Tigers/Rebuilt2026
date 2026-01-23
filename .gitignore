@@ -28,6 +28,7 @@ simgui*.json
 ctre_sim/
 
 # Simulator subproject
+simulator/
 simulator/.gradle/
 simulator/build/
 simulator/tmp/
