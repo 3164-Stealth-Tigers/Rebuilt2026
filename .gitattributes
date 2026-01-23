@@ -4,3 +4,6 @@
 
 # Excluding the web stuff
 simulator/** linguist-generated
+
+# Vendored stuff
+vendordeps/** linguist-vendored
