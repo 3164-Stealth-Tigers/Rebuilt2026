@@ -4,7 +4,7 @@
 
 ## Documentation
 
-> Currently undergoing major revisions (we're transitioning to pages, probably, also)
+> Currently undergoing major revisions (we're transitioning to pages and/or wiki, probably, also)
 
 https://github.com/3164-Stealth-Tigers/Rebuilt2026/tree/main/docs
 <hr>
