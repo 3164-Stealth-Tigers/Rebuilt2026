@@ -12,6 +12,7 @@ https://github.com/3164-Stealth-Tigers/Rebuilt2026/tree/main/docs
 ## AI Content
 
 > Just an FYI
+> If you plan on pushing AI-generated content, create a pull request.
 
 - https://github.com/3164-Stealth-Tigers/Rebuilt2026/tree/main/simulator
 
