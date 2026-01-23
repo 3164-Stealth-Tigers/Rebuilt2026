@@ -14,5 +14,3 @@ https://github.com/3164-Stealth-Tigers/Rebuilt2026/tree/main/docs
 > Just an FYI
 
 - https://github.com/3164-Stealth-Tigers/Rebuilt2026/tree/main/simulator
-
-> **Team 3164 - Stealth Tigers** 🐯
