@@ -1,21 +1,42 @@
-.venv/
+# OS files
+.DS_Store
+**/.DS_Store
 
-build/
+# IDE/Editor
+.idea/
+.vscode/
+*.iml
+
+# Gradle
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Java
+bin/
+*.class
+*.jar
+*.war
+*.ear
 *.pdb
 
+# WPILib / FRC specific
 .wpilib/
-.gradle/
-.vscode/
-
-.idea/
-bin/
 networktables.json
+networktables.json.bck
 simgui*.json
 ctre_sim/
+
+# Simulator subproject
+simulator/.gradle/
+simulator/build/
+simulator/tmp/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Other
 swervepy
 deploy/
-docs/.DS_Store
-.DS_Store
-simulator/.gradle/
-simulator/.gradle*
-simulator/tmp/
