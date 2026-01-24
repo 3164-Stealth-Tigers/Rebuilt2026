@@ -534,41 +534,45 @@ public class RobotContainer {
         // ORIGINAL MODES (0-9)
         // ================================================================
         autoChooser.setDefaultOption("0: Do Nothing", AutoRoutines.doNothing());
-        autoChooser.addOption("1: Score & Collect (8 pts)", AutoRoutines.scoreAndCollectAuto(swerve, intake, shooter));
-        autoChooser.addOption("2: Quick Climb (18 pts)", AutoRoutines.quickClimbAuto(swerve, climber, intake, shooter));
-        autoChooser.addOption("3: Score Then Climb (18 pts)", AutoRoutines.scoreThenClimbAuto(swerve, intake, shooter, climber));
-        autoChooser.addOption("4: Depot Raid (5 pts)", AutoRoutines.depotRaidAuto(swerve, intake, shooter));
-        autoChooser.addOption("5: Far Neutral (3-4 pts)", AutoRoutines.farNeutralAuto(swerve, intake, shooter));
-        autoChooser.addOption("6: Preload Only (3 pts)", AutoRoutines.preloadOnlyAuto(swerve, intake, shooter));
-        autoChooser.addOption("7: Max Cycles (8 pts)", AutoRoutines.maxCyclesAuto(swerve, intake, shooter));
-        autoChooser.addOption("8: Climb Support (3 pts)", AutoRoutines.climbSupportAuto(swerve, intake, shooter));
-        autoChooser.addOption("9: Win AUTO (4 pts)", AutoRoutines.winAutoAuto(swerve, intake, shooter));
+        // TODO: Re-enable when intake is fixed (Spark Max ID 9)
+        // autoChooser.addOption("1: Score & Collect (8 pts)", AutoRoutines.scoreAndCollectAuto(swerve, intake, shooter));
+        // autoChooser.addOption("2: Quick Climb (18 pts)", AutoRoutines.quickClimbAuto(swerve, climber, intake, shooter));
+        // autoChooser.addOption("3: Score Then Climb (18 pts)", AutoRoutines.scoreThenClimbAuto(swerve, intake, shooter, climber));
+        // autoChooser.addOption("4: Depot Raid (5 pts)", AutoRoutines.depotRaidAuto(swerve, intake, shooter));
+        // autoChooser.addOption("5: Far Neutral (3-4 pts)", AutoRoutines.farNeutralAuto(swerve, intake, shooter));
+        // autoChooser.addOption("6: Preload Only (3 pts)", AutoRoutines.preloadOnlyAuto(swerve, intake, shooter));
+        // autoChooser.addOption("7: Max Cycles (8 pts)", AutoRoutines.maxCyclesAuto(swerve, intake, shooter));
+        // autoChooser.addOption("8: Climb Support (3 pts)", AutoRoutines.climbSupportAuto(swerve, intake, shooter));
+        // autoChooser.addOption("9: Win AUTO (4 pts)", AutoRoutines.winAutoAuto(swerve, intake, shooter));
 
         // ================================================================
         // OPTIMIZED MODES (10-14) - From Simulator Benchmarking
         // ================================================================
-        autoChooser.addOption("10: Score+Collect+Climb (18 pts)", AutoRoutines.scoreCollectClimbAuto(swerve, intake, shooter, climber));
+        // TODO: Re-enable when intake is fixed (Spark Max ID 9)
+        // autoChooser.addOption("10: Score+Collect+Climb (18 pts)", AutoRoutines.scoreCollectClimbAuto(swerve, intake, shooter, climber));
         autoChooser.addOption("11: Fast Climb (15 pts)", AutoRoutines.fastClimbAuto(swerve, climber));
-        autoChooser.addOption("12: Balanced (18 pts)", AutoRoutines.balancedAuto(swerve, intake, shooter, climber));
-        autoChooser.addOption("13: Depot+Climb OPTIMAL (20 pts)", AutoRoutines.depotClimbAuto(swerve, intake, shooter, climber));
-        autoChooser.addOption("14: Max Points (18 pts)", AutoRoutines.maxPointsAuto(swerve, intake, shooter, climber));
+        // autoChooser.addOption("12: Balanced (18 pts)", AutoRoutines.balancedAuto(swerve, intake, shooter, climber));
+        // autoChooser.addOption("13: Depot+Climb OPTIMAL (20 pts)", AutoRoutines.depotClimbAuto(swerve, intake, shooter, climber));
+        // autoChooser.addOption("14: Max Points (18 pts)", AutoRoutines.maxPointsAuto(swerve, intake, shooter, climber));
 
         // ================================================================
         // STRATEGIC MODES (15-19)
         // ================================================================
-        autoChooser.addOption("15: Safe Climb (15-18 pts)", AutoRoutines.safeClimbAuto(swerve, intake, shooter, climber));
-        autoChooser.addOption("16: Dual Cycle (6-8 pts)", AutoRoutines.dualCycleAuto(swerve, intake, shooter));
-        autoChooser.addOption("17: Deny FUEL (strategic)", AutoRoutines.denyFuelAuto(swerve, intake, shooter));
-        autoChooser.addOption("18: Center Control (strategic)", AutoRoutines.centerControlAuto(swerve, intake, shooter));
-        autoChooser.addOption("19: Alliance Support (strategic)", AutoRoutines.allianceSupportAuto(swerve, intake, shooter));
+        // TODO: Re-enable when intake is fixed (Spark Max ID 9)
+        // autoChooser.addOption("15: Safe Climb (15-18 pts)", AutoRoutines.safeClimbAuto(swerve, intake, shooter, climber));
+        // autoChooser.addOption("16: Dual Cycle (6-8 pts)", AutoRoutines.dualCycleAuto(swerve, intake, shooter));
+        // autoChooser.addOption("17: Deny FUEL (strategic)", AutoRoutines.denyFuelAuto(swerve, intake, shooter));
+        // autoChooser.addOption("18: Center Control (strategic)", AutoRoutines.centerControlAuto(swerve, intake, shooter));
+        // autoChooser.addOption("19: Alliance Support (strategic)", AutoRoutines.allianceSupportAuto(swerve, intake, shooter));
 
         // ================================================================
         // TEST ROUTINES (Not DIP selectable)
         // ================================================================
         autoChooser.addOption("TEST: Drive Forward", AutoRoutines.driveForwardAuto(swerve));
         autoChooser.addOption("TEST: Drive Backward", AutoRoutines.driveBackwardAuto(swerve));
-        autoChooser.addOption("TEST: Drive and Intake", AutoRoutines.driveAndIntakeAuto(swerve, intake));
-        autoChooser.addOption("TEST: Two FUEL Auto", AutoRoutines.twoFuelAuto(swerve, intake, shooter));
+        // TODO: Re-enable when intake is fixed (Spark Max ID 9)
+        // autoChooser.addOption("TEST: Drive and Intake", AutoRoutines.driveAndIntakeAuto(swerve, intake));
+        // autoChooser.addOption("TEST: Two FUEL Auto", AutoRoutines.twoFuelAuto(swerve, intake, shooter));
     }
 
     // ================================================================
