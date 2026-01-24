@@ -21,7 +21,6 @@ bin/
 *.pdb
 
 # WPILib / FRC specific
-.wpilib/
 networktables.json
 networktables.json.bck
 simgui*.json
