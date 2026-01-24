@@ -532,7 +532,7 @@ public class Vision extends SubsystemBase {
   public Vision() {
     try {
       fieldLayout = new AprilTagFieldLayout(
-          Filesystem.getDeployDirectory().toPath().resolve("apriltags/2026_field.json"));
+          Filesystem.getDeployDirectory().toPath().resolve("2026-rebuilt-welded.json"));
     } catch (IOException e) {
       throw new RuntimeException("Failed to load AprilTag layout", e);
     }
