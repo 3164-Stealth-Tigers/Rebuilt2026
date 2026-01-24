@@ -312,11 +312,12 @@ public class RobotContainer {
         swerve = new SwerveDrive();
         vision = new Vision();
         shooter = new Shooter(vision, swerve);  // Shooter needs vision for targeting
-        intake = new Intake();
+        // intake = new Intake();  // DISABLED - Spark Max ID 9 not connected
+        intake = null;
         climber = new Climber();
 
         // Superstructure holds references to all subsystems for coordination
-        superstructure = new Superstructure(swerve, vision, shooter, intake, climber);
+        superstructure = new Superstructure(swerve, vision, shooter, null, climber);
 
         // ================================================================
         // STEP 4: SET DEFAULT COMMANDS
@@ -474,15 +475,15 @@ public class RobotContainer {
                 new InstantCommand(() -> speedExponent = (speedExponent == 1) ? 2 : 1));
 
         // ----------------------------------------------------------------
-        // INTAKE CONTROLS
+        // INTAKE CONTROLS - DISABLED (Spark Max ID 9 not connected)
         // ----------------------------------------------------------------
 
         // Intake FUEL while trigger is held
         // holdToIntakeCommand(): deploys intake, runs rollers, retracts when released
-        driverJoystick.intake().whileTrue(intake.holdToIntakeCommand());
+        // driverJoystick.intake().whileTrue(intake.holdToIntakeCommand());
 
         // Outtake (eject) FUEL while button is held
-        driverJoystick.outtake().whileTrue(intake.outtakeCommand());
+        // driverJoystick.outtake().whileTrue(intake.outtakeCommand());
 
         // ----------------------------------------------------------------
         // CLIMBER CONTROLS
