@@ -1,0 +1,6 @@
+# Placeholder for RKNN model files
+# Place your converted models here:
+# - robot_detector.rknn
+# - fuel_detector.rknn
+#
+# See README.md for model conversion instructions
