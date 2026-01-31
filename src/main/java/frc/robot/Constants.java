@@ -248,18 +248,6 @@ public final class Constants {
         public static final int MAX_FUEL_CAPACITY = 8;
     }
 
-    public static final class ClimberConstants {
-        public static final int CLIMBER_MOTOR_ID = 11;
-
-        // Heights from game manual
-        public static final double L1_HEIGHT = 0.686;  // Low rung (27")
-        public static final double L2_HEIGHT = 1.143;  // Mid rung (45")
-        public static final double L3_HEIGHT = 1.60;   // High rung (63")
-        public static final double STOWED_HEIGHT = 0.0;
-
-        public static final double POSITION_TOLERANCE = 0.05;
-    }
-
     public static final class AutoConstants {
         // ================================================================
         // DIP SWITCH CONFIGURATION
