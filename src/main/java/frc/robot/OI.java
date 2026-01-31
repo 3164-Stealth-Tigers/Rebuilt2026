@@ -62,22 +62,6 @@ public final class OI {
 
         /** Hold to run outtake (eject FUEL) */
         Trigger outtake();
-
-        // ================================================================
-        // CLIMBER CONTROLS
-        // ================================================================
-
-        /** Climb to Level 1 (Low Rung) */
-        Trigger climbL1();
-
-        /** Climb to Level 2 (Mid Rung) */
-        Trigger climbL2();
-
-        /** Climb to Level 3 (High Rung) */
-        Trigger climbL3();
-
-        /** Stow the climber */
-        Trigger stowClimber();
     }
 
     public static class XboxDriver implements DriverActionSet {
@@ -142,31 +126,6 @@ public final class OI {
         @Override
         public Trigger outtake() {
             return stick.leftBumper();
-        }
-
-        // ================================================================
-        // CLIMBER CONTROLS
-        // ================================================================
-
-        @Override
-        public Trigger climbL1() {
-            return stick.povDown();
-        }
-
-        @Override
-        public Trigger climbL2() {
-            // Left or Right on D-pad for L2
-            return stick.povLeft().or(stick.povRight());
-        }
-
-        @Override
-        public Trigger climbL3() {
-            return stick.povUp();
-        }
-
-        @Override
-        public Trigger stowClimber() {
-            return stick.b();
         }
     }
 }

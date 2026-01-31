@@ -1,6 +1,5 @@
 package frc.robot;
 
-import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Vision;
@@ -17,15 +16,13 @@ public class Superstructure {
     private final Shooter shooter;
     private final Vision vision;
     private final Intake intake;
-    private final Climber climber;
 
     public Superstructure(SwerveDrive swerve, Vision vision, Shooter shooter,
-                          Intake intake, Climber climber) {
+                          Intake intake) {
         this.swerve = swerve;
         this.shooter = shooter;
         this.vision = vision;
         this.intake = intake;
-        this.climber = climber;
     }
 
     public SwerveDrive getSwerve() {
@@ -42,9 +39,5 @@ public class Superstructure {
 
     public Intake getIntake() {
         return intake;
-    }
-
-    public Climber getClimber() {
-        return climber;
     }
 }

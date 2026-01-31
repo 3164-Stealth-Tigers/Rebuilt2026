@@ -101,7 +101,6 @@ import frc.robot.commands.SwerveCommands;
 import frc.robot.Superstructure;
 import frc.robot.OI.DriverActionSet;
 import frc.robot.OI.XboxDriver;
-import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Vision;
@@ -177,11 +176,6 @@ public class RobotContainer {
      * Intake subsystem - collects FUEL from the ground.
      */
     private final Intake intake;
-
-    /**
-     * Climber subsystem - climbs the tower rungs.
-     */
-    private final Climber climber;
 
     /**
      * Superstructure - coordinates multiple subsystems.
@@ -314,10 +308,9 @@ public class RobotContainer {
         shooter = new Shooter(vision, swerve);  // Shooter needs vision for targeting
         // intake = new Intake();  // DISABLED - Spark Max ID 9 not connected
         intake = null;
-        climber = new Climber();
 
         // Superstructure holds references to all subsystems for coordination
-        superstructure = new Superstructure(swerve, vision, shooter, null, climber);
+        superstructure = new Superstructure(swerve, vision, shooter, null);
 
         // ================================================================
         // STEP 4: SET DEFAULT COMMANDS
@@ -484,19 +477,6 @@ public class RobotContainer {
 
         // Outtake (eject) FUEL while button is held
         // driverJoystick.outtake().whileTrue(intake.outtakeCommand());
-
-        // ----------------------------------------------------------------
-        // CLIMBER CONTROLS
-        // ----------------------------------------------------------------
-
-        // Climb to different rung levels
-        // Each button press starts the climb to that level
-        driverJoystick.climbL1().onTrue(climber.climbToL1Command());  // Low rung (15 pts)
-        driverJoystick.climbL2().onTrue(climber.climbToL2Command());  // Mid rung
-        driverJoystick.climbL3().onTrue(climber.climbToL3Command());  // High rung
-
-        // Stow climber (retract to starting position)
-        driverJoystick.stowClimber().onTrue(climber.stowCommand());
     }
 
     // ================================================================
@@ -546,20 +526,9 @@ public class RobotContainer {
         // autoChooser.addOption("9: Win AUTO (4 pts)", AutoRoutines.winAutoAuto(swerve, intake, shooter));
 
         // ================================================================
-        // OPTIMIZED MODES (10-14) - From Simulator Benchmarking
-        // ================================================================
-        // TODO: Re-enable when intake is fixed (Spark Max ID 9)
-        // autoChooser.addOption("10: Score+Collect+Climb (18 pts)", AutoRoutines.scoreCollectClimbAuto(swerve, intake, shooter, climber));
-        autoChooser.addOption("11: Fast Climb (15 pts)", AutoRoutines.fastClimbAuto(swerve, climber));
-        // autoChooser.addOption("12: Balanced (18 pts)", AutoRoutines.balancedAuto(swerve, intake, shooter, climber));
-        // autoChooser.addOption("13: Depot+Climb OPTIMAL (20 pts)", AutoRoutines.depotClimbAuto(swerve, intake, shooter, climber));
-        // autoChooser.addOption("14: Max Points (18 pts)", AutoRoutines.maxPointsAuto(swerve, intake, shooter, climber));
-
-        // ================================================================
         // STRATEGIC MODES (15-19)
         // ================================================================
         // TODO: Re-enable when intake is fixed (Spark Max ID 9)
-        // autoChooser.addOption("15: Safe Climb (15-18 pts)", AutoRoutines.safeClimbAuto(swerve, intake, shooter, climber));
         // autoChooser.addOption("16: Dual Cycle (6-8 pts)", AutoRoutines.dualCycleAuto(swerve, intake, shooter));
         // autoChooser.addOption("17: Deny FUEL (strategic)", AutoRoutines.denyFuelAuto(swerve, intake, shooter));
         // autoChooser.addOption("18: Center Control (strategic)", AutoRoutines.centerControlAuto(swerve, intake, shooter));
@@ -611,7 +580,7 @@ public class RobotContainer {
             // Lock the selection at the start of auto to prevent mid-match changes
             dipSwitchSelector.lockSelection();
             int selection = dipSwitchSelector.getSelection();
-            return AutoRoutines.getAutoFromSelection(selection, swerve, intake, shooter, climber);
+            return AutoRoutines.getAutoFromSelection(selection, swerve, intake, shooter);
         } else {
             return autoChooser.getSelected();
         }

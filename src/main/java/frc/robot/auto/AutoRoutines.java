@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.swerve.SwerveDrive;
@@ -162,66 +161,6 @@ public final class AutoRoutines {
             AutoCommands.stopDriving(swerve),
             AutoCommands.logMessage("Mode 1 Complete")
         ).withName("1: Score & Collect");
-    }
-
-    // ================================================================
-    // MODE 2: QUICK CLIMB (18 pts)
-    // ================================================================
-
-    /**
-     * Mode 2: Score preload, then climb L1.
-     * Expected Points: 3 FUEL + 15 climb = 18 pts
-     */
-    public static Command quickClimbAuto(SwerveDrive swerve, Climber climber, Intake intake, Shooter shooter) {
-        return Commands.sequence(
-            AutoCommands.logMessage("Mode 2: Quick Climb"),
-
-            // Phase 1: Score preload
-            AutoCommands.shootAllFuel(shooter, intake),
-
-            // Phase 2: Drive to tower
-            AutoCommands.driveToPose(swerve, getTowerPose()),
-            AutoCommands.stopDriving(swerve),
-
-            // Phase 3: Climb L1
-            Commands.runOnce(climber::climbToL1, climber),
-            Commands.waitUntil(climber::isAtL1).withTimeout(AutoConstants.CLIMB_TIMEOUT),
-            Commands.runOnce(climber::stop, climber),
-
-            AutoCommands.logMessage("Mode 2 Complete (18 pts)")
-        ).withName("2: Quick Climb");
-    }
-
-    // ================================================================
-    // MODE 3: SCORE THEN CLIMB (18 pts)
-    // ================================================================
-
-    /**
-     * Mode 3: Rapid fire preload, then climb L1 (optimized timing).
-     * Expected Points: 3 FUEL + 15 climb = 18 pts
-     */
-    public static Command scoreThenClimbAuto(SwerveDrive swerve, Intake intake,
-                                              Shooter shooter, Climber climber) {
-        return Commands.sequence(
-            AutoCommands.logMessage("Mode 3: Score Then Climb"),
-
-            // Phase 1: Rapid fire preload (time-limited)
-            Commands.race(
-                AutoCommands.shootAllFuel(shooter, intake),
-                Commands.waitSeconds(6.0)
-            ),
-
-            // Phase 2: Fast drive to tower
-            AutoCommands.driveToPose(swerve, getTowerPose()),
-            AutoCommands.stopDriving(swerve),
-
-            // Phase 3: Climb L1
-            Commands.runOnce(climber::climbToL1, climber),
-            Commands.waitUntil(climber::isAtL1).withTimeout(10.0),
-            Commands.runOnce(climber::stop, climber),
-
-            AutoCommands.logMessage("Mode 3 Complete (18 pts)")
-        ).withName("3: Score Then Climb");
     }
 
     // ================================================================
@@ -410,227 +349,6 @@ public final class AutoRoutines {
             AutoCommands.stopDriving(swerve),
             AutoCommands.logMessage("Mode 9 Complete")
         ).withName("9: Win AUTO");
-    }
-
-    // ================================================================
-    // MODE 10: SCORE+COLLECT+CLIMB (18 pts)
-    // ================================================================
-
-    /**
-     * Mode 10: Score preload, quick collect, score, then climb.
-     * Expected Points: 3-4 FUEL + 15 climb = 18-19 pts
-     */
-    public static Command scoreCollectClimbAuto(SwerveDrive swerve, Intake intake,
-                                                 Shooter shooter, Climber climber) {
-        return Commands.sequence(
-            AutoCommands.logMessage("Mode 10: Score+Collect+Climb"),
-
-            // Phase 1: Score preload
-            AutoCommands.shootAllFuel(shooter, intake),
-
-            // Phase 2: Quick collect (if time permits)
-            AutoCommands.driveToPose(swerve, getNeutralPose(false)),
-            Commands.parallel(
-                AutoCommands.driveForward(swerve, 1.0, AutoConstants.AUTO_FAST_DRIVE_SPEED),
-                Commands.sequence(
-                    Commands.runOnce(intake::deploy, intake),
-                    Commands.waitUntil(intake::isDeployed),
-                    Commands.run(intake::runIntake, intake)
-                )
-            ).withTimeout(2.0),
-            Commands.runOnce(intake::stopRollers, intake),
-            Commands.runOnce(intake::retract, intake),
-
-            // Phase 3: Score collected
-            AutoCommands.driveToPose(swerve, getShootingPose()),
-            AutoCommands.shootAllFuel(shooter, intake),
-
-            // Phase 4: Climb L1
-            AutoCommands.driveToPose(swerve, getTowerPose()),
-            Commands.runOnce(climber::climbToL1, climber),
-            Commands.waitUntil(climber::isAtL1).withTimeout(8.0),
-            Commands.runOnce(climber::stop, climber),
-
-            AutoCommands.logMessage("Mode 10 Complete")
-        ).withName("10: Score+Collect+Climb");
-    }
-
-    // ================================================================
-    // MODE 11: FAST CLIMB (15 pts)
-    // ================================================================
-
-    /**
-     * Mode 11: Drive directly to tower, climb immediately.
-     * Expected Points: 15 climb pts (guaranteed)
-     */
-    public static Command fastClimbAuto(SwerveDrive swerve, Climber climber) {
-        return Commands.sequence(
-            AutoCommands.logMessage("Mode 11: Fast Climb"),
-
-            // Drive directly to tower
-            AutoCommands.driveToPose(swerve, getTowerPose()),
-            AutoCommands.stopDriving(swerve),
-
-            // Climb L1
-            Commands.runOnce(climber::climbToL1, climber),
-            Commands.waitUntil(climber::isAtL1).withTimeout(10.0),
-            Commands.runOnce(climber::stop, climber),
-
-            AutoCommands.logMessage("Mode 11 Complete (15 pts)")
-        ).withName("11: Fast Climb");
-    }
-
-    // ================================================================
-    // MODE 12: BALANCED (18 pts)
-    // ================================================================
-
-    /**
-     * Mode 12: Score preload + climb (optimized timing).
-     * Expected Points: 3 FUEL + 15 climb = 18 pts
-     */
-    public static Command balancedAuto(SwerveDrive swerve, Intake intake,
-                                        Shooter shooter, Climber climber) {
-        return Commands.sequence(
-            AutoCommands.logMessage("Mode 12: Balanced"),
-
-            // Score preload
-            AutoCommands.shootAllFuel(shooter, intake),
-
-            // Drive to tower
-            AutoCommands.driveToPose(swerve, getTowerPose()),
-            AutoCommands.stopDriving(swerve),
-
-            // Climb L1
-            Commands.runOnce(climber::climbToL1, climber),
-            Commands.waitUntil(climber::isAtL1).withTimeout(10.0),
-            Commands.runOnce(climber::stop, climber),
-
-            AutoCommands.logMessage("Mode 12 Complete (18 pts)")
-        ).withName("12: Balanced");
-    }
-
-    // ================================================================
-    // MODE 13: DEPOT+CLIMB - BEST MODE (20 pts)
-    // ================================================================
-
-    /**
-     * Mode 13: Depot collection then climb - OPTIMAL STRATEGY.
-     * Expected Points: 5 FUEL + 15 climb = 20 pts
-     *
-     * This is the BEST autonomous mode discovered through simulation!
-     * - Collects 2 FUEL from depot (faster than neutral zone)
-     * - Scores all 5 FUEL (3 preload + 2 depot)
-     * - Completes L1 climb for 15 bonus points
-     */
-    public static Command depotClimbAuto(SwerveDrive swerve, Intake intake,
-                                          Shooter shooter, Climber climber) {
-        return Commands.sequence(
-            AutoCommands.logMessage("Mode 13: Depot+Climb (OPTIMAL - 20 pts)"),
-
-            // Phase 1: Drive to depot
-            AutoCommands.driveToPose(swerve, getDepotPose()),
-
-            // Phase 2: Collect from depot (faster than neutral zone)
-            Commands.runOnce(intake::deploy, intake),
-            Commands.waitUntil(intake::isDeployed),
-            Commands.parallel(
-                Commands.run(intake::runIntake, intake),
-                Commands.sequence(
-                    AutoCommands.driveForward(swerve, 0.5, 0.5),
-                    AutoCommands.driveBackward(swerve, 0.5, 0.5)
-                )
-            ).withTimeout(AutoConstants.DEPOT_COLLECTION_TIME),
-            Commands.runOnce(intake::stopRollers, intake),
-            Commands.runOnce(intake::retract, intake),
-
-            // Phase 3: Drive to scoring position and score all FUEL
-            AutoCommands.driveToPose(swerve, getShootingPose()),
-            AutoCommands.shootAllFuel(shooter, intake),
-
-            // Phase 4: Drive to tower and climb
-            AutoCommands.driveToPose(swerve, getTowerPose()),
-            AutoCommands.stopDriving(swerve),
-            Commands.runOnce(climber::climbToL1, climber),
-            Commands.waitUntil(climber::isAtL1).withTimeout(8.0),
-            Commands.runOnce(climber::stop, climber),
-
-            AutoCommands.logMessage("Mode 13 Complete (20 pts!)")
-        ).withName("13: Depot+Climb");
-    }
-
-    // ================================================================
-    // MODE 14: MAX POINTS (18 pts)
-    // ================================================================
-
-    /**
-     * Mode 14: Dynamically maximize total points.
-     * Expected Points: 3+ FUEL + 15 climb = 18+ pts
-     */
-    public static Command maxPointsAuto(SwerveDrive swerve, Intake intake,
-                                         Shooter shooter, Climber climber) {
-        return Commands.sequence(
-            AutoCommands.logMessage("Mode 14: Max Points"),
-
-            // Score preload first
-            AutoCommands.shootAllFuel(shooter, intake),
-
-            // Quick neutral zone attempt
-            AutoCommands.driveToPose(swerve, getNeutralPose(false)),
-            Commands.parallel(
-                AutoCommands.driveForward(swerve, 1.5, AutoConstants.AUTO_FAST_DRIVE_SPEED),
-                Commands.sequence(
-                    Commands.runOnce(intake::deploy, intake),
-                    Commands.waitUntil(intake::isDeployed),
-                    Commands.run(intake::runIntake, intake)
-                )
-            ).withTimeout(2.5),
-            Commands.runOnce(intake::stopRollers, intake),
-            Commands.runOnce(intake::retract, intake),
-
-            // Score any collected FUEL
-            AutoCommands.driveToPose(swerve, getShootingPose()),
-            AutoCommands.shootAllFuel(shooter, intake),
-
-            // Always try to climb
-            AutoCommands.driveToPose(swerve, getTowerPose()),
-            Commands.runOnce(climber::climbToL1, climber),
-            Commands.waitUntil(climber::isAtL1).withTimeout(8.0),
-            Commands.runOnce(climber::stop, climber),
-
-            AutoCommands.logMessage("Mode 14 Complete")
-        ).withName("14: Max Points");
-    }
-
-    // ================================================================
-    // MODE 15: SAFE CLIMB (15-18 pts)
-    // ================================================================
-
-    /**
-     * Mode 15: Conservative climb with fallback.
-     * Expected Points: 15-18 pts
-     */
-    public static Command safeClimbAuto(SwerveDrive swerve, Intake intake,
-                                         Shooter shooter, Climber climber) {
-        return Commands.sequence(
-            AutoCommands.logMessage("Mode 15: Safe Climb"),
-
-            // Try to score preload (with timeout)
-            Commands.race(
-                AutoCommands.shootAllFuel(shooter, intake),
-                Commands.waitSeconds(4.0)
-            ),
-
-            // Drive to tower (priority: get to tower)
-            AutoCommands.driveToPose(swerve, getTowerPose()),
-            AutoCommands.stopDriving(swerve),
-
-            // Climb L1 (extended timeout for safety)
-            Commands.runOnce(climber::climbToL1, climber),
-            Commands.waitUntil(climber::isAtL1).withTimeout(AutoConstants.CLIMB_TIMEOUT),
-            Commands.runOnce(climber::stop, climber),
-
-            AutoCommands.logMessage("Mode 15 Complete")
-        ).withName("15: Safe Climb");
     }
 
     // ================================================================
@@ -868,21 +586,15 @@ public final class AutoRoutines {
      * @param swerve The swerve drive subsystem
      * @param intake The intake subsystem
      * @param shooter The shooter subsystem
-     * @param climber The climber subsystem
      * @return The selected autonomous command
      */
     public static Command getAutoFromSelection(int selection, SwerveDrive swerve,
-                                                Intake intake, Shooter shooter,
-                                                Climber climber) {
+                                                Intake intake, Shooter shooter) {
         switch (selection) {
             case AutoConstants.AUTO_DO_NOTHING:
                 return doNothing();
             case AutoConstants.AUTO_SCORE_AND_COLLECT:
                 return scoreAndCollectAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_QUICK_CLIMB:
-                return quickClimbAuto(swerve, climber, intake, shooter);
-            case AutoConstants.AUTO_SCORE_THEN_CLIMB:
-                return scoreThenClimbAuto(swerve, intake, shooter, climber);
             case AutoConstants.AUTO_DEPOT_RAID:
                 return depotRaidAuto(swerve, intake, shooter);
             case AutoConstants.AUTO_FAR_NEUTRAL:
@@ -895,18 +607,6 @@ public final class AutoRoutines {
                 return climbSupportAuto(swerve, intake, shooter);
             case AutoConstants.AUTO_WIN_AUTO:
                 return winAutoAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_SCORE_COLLECT_CLIMB:
-                return scoreCollectClimbAuto(swerve, intake, shooter, climber);
-            case AutoConstants.AUTO_FAST_CLIMB:
-                return fastClimbAuto(swerve, climber);
-            case AutoConstants.AUTO_BALANCED:
-                return balancedAuto(swerve, intake, shooter, climber);
-            case AutoConstants.AUTO_DEPOT_CLIMB:
-                return depotClimbAuto(swerve, intake, shooter, climber);
-            case AutoConstants.AUTO_MAX_POINTS:
-                return maxPointsAuto(swerve, intake, shooter, climber);
-            case AutoConstants.AUTO_SAFE_CLIMB:
-                return safeClimbAuto(swerve, intake, shooter, climber);
             case AutoConstants.AUTO_DUAL_CYCLE:
                 return dualCycleAuto(swerve, intake, shooter);
             case AutoConstants.AUTO_DENY_FUEL:
