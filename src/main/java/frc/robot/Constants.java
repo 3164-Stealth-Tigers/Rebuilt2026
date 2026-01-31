@@ -24,6 +24,30 @@ public final class Constants {
     }
 
     public static final class VisionConstants {
+        // ================================================================
+        // ORANGE PI NETWORK CONFIGURATION
+        // ================================================================
+        // These values must match the Orange Pi's static IP configuration.
+        // See Vision.java header for full setup instructions.
+
+        /** Orange Pi static IP address (must be in 10.TE.AM.x range) */
+        public static final String ORANGE_PI_IP = "10.31.64.11";
+
+        /** PhotonVision web interface port */
+        public static final int PHOTONVISION_PORT = 5800;
+
+        /** PhotonVision HTTP API port */
+        public static final int PHOTONVISION_API_PORT = 5800;
+
+        /**
+         * Full URL to PhotonVision dashboard.
+         * Access this from a laptop on the robot network to configure cameras.
+         */
+        public static final String PHOTONVISION_URL = "http://" + ORANGE_PI_IP + ":" + PHOTONVISION_PORT;
+
+        // ================================================================
+        // CAMERA CONFIGURATION
+        // ================================================================
         // Camera names (must match what's in PhotonVision)
         public static final String[] CAMERA_NAMES = { "example_cam_1", "example_cam_2" }; // (placeholder TODO)
         public static final double AMBIGUITY_THRESHOLD = 0.4; // (placeholder TODO)

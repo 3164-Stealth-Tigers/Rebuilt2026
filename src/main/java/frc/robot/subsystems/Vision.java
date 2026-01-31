@@ -5,15 +5,201 @@ package frc.robot.subsystems;
  * VISION SUBSYSTEM - Camera Processing & Target Detection
  * ========================================================================
  *
- * ARCHITECTURE OVERVIEW:
- * ----------------------
- * The vision system runs on a JETSON NANO coprocessor, which handles
+ * ========================================================================
+ * ORANGE PI HARDWARE SETUP & WIRING GUIDE
+ * ========================================================================
+ *
+ * RECOMMENDED MODEL:
+ * ------------------
+ * Orange Pi 5 (4GB or 8GB RAM recommended)
+ * - RK3588S processor with NPU for ML acceleration
+ * - Gigabit Ethernet for reliable NetworkTables communication
+ * - USB 3.0 ports for high-bandwidth camera connections
+ *
+ * Alternative: Orange Pi 5 Plus (if running multiple cameras or heavy ML)
+ *
+ * WIRING DIAGRAM:
+ * ---------------
+ *
+ *   ┌─────────────────────────────────────────────────────────────────┐
+ *   │                        ROBOT ELECTRICAL PANEL                   │
+ *   │                                                                 │
+ *   │  ┌─────────┐    ┌─────────┐    ┌─────────────┐                 │
+ *   │  │   PDP   │    │  VRM    │    │   RADIO     │                 │
+ *   │  │  /PDH   │───►│ 12V/5V  │    │  (OpenMesh  │                 │
+ *   │  └─────────┘    └────┬────┘    │   or new)   │                 │
+ *   │                      │         └──────┬──────┘                 │
+ *   │                      │                │                        │
+ *   │              5V 3A   │        Ethernet│                        │
+ *   │              (USB-C) │                │                        │
+ *   │                      ▼                ▼                        │
+ *   │               ┌─────────────────────────────┐                  │
+ *   │               │        ORANGE PI 5          │                  │
+ *   │               │                             │                  │
+ *   │               │  USB-C ◄── Power (5V/3A)    │                  │
+ *   │               │  ETH   ◄── Robot Network    │                  │
+ *   │               │  USB3  ◄── Camera 1         │                  │
+ *   │               │  USB3  ◄── Camera 2         │                  │
+ *   │               │                             │                  │
+ *   │               └─────────────────────────────┘                  │
+ *   │                                                                 │
+ *   └─────────────────────────────────────────────────────────────────┘
+ *
+ * POWER WIRING:
+ * -------------
+ * Option 1 (Recommended): USB-C Power from VRM
+ *   - VRM 5V/2A output → USB-C cable → Orange Pi USB-C power port
+ *   - Use a quality USB-C cable rated for 3A
+ *   - Note: VRM 5V/2A may be marginal; consider Option 2 for stability
+ *
+ * Option 2 (More Reliable): Dedicated 5V Regulator
+ *   - PDP/PDH → 5V/5A buck converter → USB-C breakout → Orange Pi
+ *   - Recommended: Pololu 5V 5A Step-Down (D24V50F5)
+ *   - Add 1000uF capacitor on output for stability
+ *
+ * Option 3: GPIO Header Power (Advanced)
+ *   - 5V regulated supply → Pin 2 & 4 (5V), Pin 6 (GND)
+ *   - CAUTION: No reverse polarity protection on GPIO!
+ *   - Must be exactly 5V (4.8V-5.2V tolerance)
+ *
+ * ETHERNET WIRING:
+ * ----------------
+ * - Use CAT5e or CAT6 Ethernet cable (keep under 3 meters on robot)
+ * - Connect to robot radio's extra Ethernet port
+ * - Or use an Ethernet switch if radio port is occupied:
+ *     Radio ──► 5-port Gigabit Switch ──► Orange Pi
+ *                                     └──► roboRIO
+ *
+ * CAMERA CONNECTIONS:
+ * -------------------
+ * - USB 3.0 cameras: Connect to blue USB 3.0 ports
+ * - Recommended cameras:
+ *     - Arducam OV9281 (global shutter, great for AprilTags)
+ *     - Logitech C920/C922 (good general purpose)
+ *     - See5CAM_CU135 (high resolution, wide FOV)
+ * - Use short USB cables (<1m) or use powered USB hub
+ * - Secure cables with zip ties to prevent disconnection
+ *
+ * ========================================================================
+ * ORANGE PI SOFTWARE CONFIGURATION
+ * ========================================================================
+ *
+ * STEP 1: Install Operating System
+ * ---------------------------------
+ * 1. Download Orange Pi OS (Debian-based) from orangepi.org
+ *    - Use "Orangepi5_x.x.x_debian_bookworm_server_linux6.x.x.img"
+ * 2. Flash to microSD card using balenaEtcher or Raspberry Pi Imager
+ * 3. Insert microSD and power on Orange Pi
+ * 4. Default login: orangepi / orangepi
+ *
+ * STEP 2: Configure Static IP Address
+ * ------------------------------------
+ * The Orange Pi MUST have a static IP in the 10.TE.AM.x range.
+ * For team 3164, use 10.31.64.11 (or any .11-.19 address)
+ *
+ * Edit /etc/network/interfaces:
+ * ```
+ * auto eth0
+ * iface eth0 inet static
+ *     address 10.31.64.11
+ *     netmask 255.255.255.0
+ *     gateway 10.31.64.1
+ * ```
+ *
+ * Or using nmcli:
+ * ```
+ * sudo nmcli con mod "Wired connection 1" ipv4.addresses 10.31.64.11/24
+ * sudo nmcli con mod "Wired connection 1" ipv4.gateway 10.31.64.1
+ * sudo nmcli con mod "Wired connection 1" ipv4.method manual
+ * sudo nmcli con up "Wired connection 1"
+ * ```
+ *
+ * STEP 3: Install PhotonVision
+ * ----------------------------
+ * ```bash
+ * # Update system
+ * sudo apt update && sudo apt upgrade -y
+ *
+ * # Install Java (required for PhotonVision)
+ * sudo apt install openjdk-17-jdk -y
+ *
+ * # Download and install PhotonVision
+ * wget https://github.com/PhotonVision/photonvision/releases/latest/download/photonvision-linux_arm64.jar
+ * sudo mkdir -p /opt/photonvision
+ * sudo mv photonvision-linux_arm64.jar /opt/photonvision/photonvision.jar
+ *
+ * # Create systemd service for auto-start
+ * sudo tee /etc/systemd/system/photonvision.service << EOF
+ * [Unit]
+ * Description=PhotonVision
+ * After=network.target
+ *
+ * [Service]
+ * ExecStart=/usr/bin/java -jar /opt/photonvision/photonvision.jar
+ * WorkingDirectory=/opt/photonvision
+ * Restart=always
+ * User=root
+ *
+ * [Install]
+ * WantedBy=multi-user.target
+ * EOF
+ *
+ * sudo systemctl enable photonvision
+ * sudo systemctl start photonvision
+ * ```
+ *
+ * STEP 4: Configure PhotonVision
+ * ------------------------------
+ * 1. Connect laptop to robot network
+ * 2. Open browser to http://10.31.64.11:5800
+ * 3. Add cameras and configure pipelines
+ * 4. Set camera names to match VisionConstants.CAMERA_NAMES
+ *    - Default: "example_cam_1", "example_cam_2"
+ * 5. Configure AprilTag pipeline:
+ *    - Select "AprilTag" pipeline type
+ *    - Set tag family to "36h11" (2024+ FRC standard)
+ *    - Adjust exposure for your lighting conditions
+ *
+ * STEP 5: Verify Connection
+ * -------------------------
+ * 1. On driver station laptop, open OutlineViewer or Shuffleboard
+ * 2. Look for "photonvision" table in NetworkTables
+ * 3. Check for camera data updating in real-time
+ *
+ * TROUBLESHOOTING:
+ * ----------------
+ * - No NetworkTables connection:
+ *     - Verify static IP is set correctly (ping 10.31.64.11)
+ *     - Check Ethernet cable connection
+ *     - Ensure robot radio is configured for your team number
+ *
+ * - Cameras not detected:
+ *     - Run `lsusb` to check if camera appears
+ *     - Try different USB port (use USB 3.0 ports)
+ *     - Check camera is compatible with Linux/V4L2
+ *
+ * - High latency / dropped frames:
+ *     - Lower camera resolution (640x480 recommended for AprilTags)
+ *     - Reduce exposure time
+ *     - Use USB 3.0 instead of USB 2.0
+ *     - Check CPU temperature: `cat /sys/class/thermal/thermal_zone0/temp`
+ *
+ * - Orange Pi overheating:
+ *     - Add heatsink to RK3588S chip (included with most kits)
+ *     - Add small 5V fan if in enclosed space
+ *     - Reduce camera resolution/framerate
+ *
+ * ========================================================================
+ * ARCHITECTURE OVERVIEW
+ * ========================================================================
+ *
+ * The vision system runs on an Orange Pi coprocessor, which handles
  * computationally expensive tasks like neural network inference and
- * AprilTag detection. The Jetson publishes results to NetworkTables,
+ * AprilTag detection. The Orange Pi publishes results to NetworkTables,
  * which this subsystem reads every 20ms.
  *
  *   ┌─────────────────┐              ┌─────────────────┐
- *   │   JETSON NANO   │              │     roboRIO     │
+ *   │    ORANGE PI    │              │     roboRIO     │
  *   │                 │ NetworkTables│                 │
  *   │  Cameras ──►    │ ══════════►  │  Vision.java    │
  *   │  Processing     │   ~30-60Hz   │  reads data     │
@@ -39,10 +225,10 @@ package frc.robot.subsystems;
  *    - Can track multiple FUEL simultaneously
  *
  * ========================================================================
- * JETSON → ROBORIO DATA CONTRACTS (NetworkTables)
+ * ORANGE PI → ROBORIO DATA CONTRACTS (NetworkTables)
  * ========================================================================
  *
- * The Jetson will publish data to these NetworkTables paths.
+ * The Orange Pi will publish data to these NetworkTables paths.
  * This documents what we EXPECT to receive.
  *
  * ┌────────────────────────────────────────────────────────────────────────┐
@@ -203,7 +389,7 @@ package frc.robot.subsystems;
  * │  captured. This is crucial because:                                    │
  * │                                                                        │
  * │  1. Camera capture: 0ms                                                │
- * │  2. Image transfer to Jetson: ~5ms                                     │
+ * │  2. Image transfer to Orange Pi: ~5ms                                     │
  * │  3. Processing (AprilTag/ML): ~20-40ms                                 │
  * │  4. NetworkTables publish: ~5ms                                        │
  * │  5. roboRIO reads data: ~0-20ms (depends on timing)                    │
@@ -251,7 +437,7 @@ import frc.robot.Constants.VisionConstants;
  * Vision subsystem for camera-based detection and positioning.
  *
  * Currently implements AprilTag detection via PhotonVision.
- * FUEL and Robot detection will be added when Jetson integration is complete.
+ * FUEL and Robot detection will be added when Orange Pi integration is complete.
  */
 public class Vision extends SubsystemBase {
 
@@ -281,13 +467,13 @@ public class Vision extends SubsystemBase {
   }
 
   // ========================================================================
-  // STUB RECORDS - Data structures for Jetson integration (TODO: implement)
+  // STUB RECORDS - Data structures for Orange Pi integration (TODO: implement)
   // ========================================================================
 
   /**
-   * STUB: Detected robot data from Jetson ML model.
+   * STUB: Detected robot data from Orange Pi ML model.
    *
-   * [JETSON WILL PROVIDE]
+   * [ORANGE PI WILL PROVIDE]
    * - Position relative to our robot (robot-centric coordinates)
    * - Estimated velocity for prediction
    * - Alliance color if determinable
@@ -330,9 +516,9 @@ public class Vision extends SubsystemBase {
   }
 
   /**
-   * STUB: Detected FUEL (game piece) data from Jetson.
+   * STUB: Detected FUEL (game piece) data from Orange Pi.
    *
-   * [JETSON WILL PROVIDE]
+   * [ORANGE PI WILL PROVIDE]
    * - Position relative to robot (for driving to it)
    * - Position on field (if AprilTags visible)
    * - Intake alignment assistance
@@ -385,16 +571,16 @@ public class Vision extends SubsystemBase {
   }
 
   /**
-   * STUB: Complete vision frame from Jetson containing all detections.
+   * STUB: Complete vision frame from Orange Pi containing all detections.
    *
-   * [JETSON PUBLISHES ONE OF THESE EACH FRAME]
+   * [ORANGE PI PUBLISHES ONE OF THESE EACH FRAME]
    * Contains all detections from a single camera frame.
    *
    * @param timestamp When the image was captured (FPGA time)
    * @param robots List of detected robots (may be empty)
    * @param fuels List of detected FUEL (may be empty)
    * @param aprilTagPose Robot pose from AprilTags (empty if no tags)
-   * @param processingTimeMs How long Jetson took to process (for monitoring)
+   * @param processingTimeMs How long Orange Pi took to process (for monitoring)
    */
   public record VisionFrame(
       double timestamp,
@@ -431,12 +617,12 @@ public class Vision extends SubsystemBase {
   }
 
   // ========================================================================
-  // NETWORKTABLES KEYS - Where Jetson publishes data (for reference)
+  // NETWORKTABLES KEYS - Where Orange Pi publishes data (for reference)
   // ========================================================================
 
   /**
-   * NetworkTables paths where Jetson will publish data.
-   * These are constants for consistency between Jetson and roboRIO code.
+   * NetworkTables paths where Orange Pi will publish data.
+   * These are constants for consistency between Orange Pi and roboRIO code.
    */
   public static final class NTKeys {
     // AprilTag data
@@ -479,7 +665,7 @@ public class Vision extends SubsystemBase {
   // ========================================================================
   //
   // This section handles AprilTag detection using PhotonVision.
-  // PhotonVision runs on a coprocessor (Raspberry Pi, Orange Pi, or Jetson)
+  // PhotonVision runs on a coprocessor (Raspberry Pi or Orange Pi)
   // and handles the image processing. Results come via NetworkTables.
   //
 
@@ -512,10 +698,10 @@ public class Vision extends SubsystemBase {
           PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR));
 
   // ========================================================================
-  // TODO: JETSON INTEGRATION FIELDS
+  // TODO: ORANGE PI INTEGRATION FIELDS
   // ========================================================================
   //
-  // When Jetson integration is implemented, add these fields:
+  // When Orange Pi integration is implemented, add these fields:
   //
   // private final NetworkTable robotDetectionTable;
   // private final NetworkTable fuelDetectionTable;
@@ -706,11 +892,11 @@ public class Vision extends SubsystemBase {
   }
 
   // ========================================================================
-  // TODO: JETSON INTEGRATION - Robot Detection Methods
+  // TODO: ORANGE PI INTEGRATION - Robot Detection Methods
   // ========================================================================
   //
   // These methods will read robot detection data from NetworkTables.
-  // Uncomment and implement when Jetson integration is ready.
+  // Uncomment and implement when Orange Pi integration is ready.
   //
   // /**
   //  * Get the closest detected robot.
@@ -774,7 +960,7 @@ public class Vision extends SubsystemBase {
   // }
 
   // ========================================================================
-  // TODO: JETSON INTEGRATION - FUEL Detection Methods
+  // TODO: ORANGE PI INTEGRATION - FUEL Detection Methods
   // ========================================================================
   //
   // /**
@@ -856,21 +1042,21 @@ public class Vision extends SubsystemBase {
   // }
 
   // ========================================================================
-  // TODO: PERIODIC - Read Jetson data each loop
+  // TODO: PERIODIC - Read Orange Pi data each loop
   // ========================================================================
   //
   // @Override
   // public void periodic() {
   //     // Read AprilTag data (already handled by PhotonVision)
   //
-  //     // Read robot detection data from Jetson
+  //     // Read robot detection data from Orange Pi
   //     // updateRobotDetections();
   //
-  //     // Read FUEL detection data from Jetson
+  //     // Read FUEL detection data from Orange Pi
   //     // updateFuelDetections();
   //
   //     // Log to SmartDashboard for debugging
-  //     // logJetsonData();
+  //     // logOrangePiData();
   // }
   //
   // private void updateRobotDetections() {
