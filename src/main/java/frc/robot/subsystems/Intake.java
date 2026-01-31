@@ -9,7 +9,6 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -22,8 +21,6 @@ import frc.robot.Constants.IntakeConstants;
  * Features:
  * - Deploy/retract mechanism to lower/raise intake
  * - Roller system to pull in FUEL
- * - Beam break sensor to detect FUEL presence
- * - FUEL count tracking
  */
 public class Intake extends SubsystemBase {
 
@@ -43,9 +40,6 @@ public class Intake extends SubsystemBase {
     /** PID controller for deploy position */
     private final SparkClosedLoopController deployController;
 
-    /** Beam break sensor to detect FUEL in intake */
-    private final DigitalInput beamBreak;
-
     // ================================================================
     // STATE TRACKING
     // ================================================================
@@ -53,14 +47,8 @@ public class Intake extends SubsystemBase {
     /** Current state of the intake */
     private IntakeState state = IntakeState.STOWED;
 
-    /** Number of FUEL currently held */
-    private int fuelCount = 0;
-
     /** Target position for deploy mechanism */
     private double targetPosition = IntakeConstants.STOWED_POSITION;
-
-    /** Whether the beam was broken in the previous cycle (for edge detection) */
-    private boolean previousBeamBroken = false;
 
     // ================================================================
     // STATE ENUM
@@ -88,9 +76,6 @@ public class Intake extends SubsystemBase {
 
         // Initialize roller motor
         rollerMotor = new SparkMax(IntakeConstants.ROLLER_MOTOR_ID, MotorType.kBrushless);
-
-        // Initialize beam break sensor (returns false when broken)
-        beamBreak = new DigitalInput(IntakeConstants.BEAM_BREAK_DIO_PORT);
 
         configureMotors();
     }
@@ -191,57 +176,17 @@ public class Intake extends SubsystemBase {
     }
 
     // ================================================================
-    // SENSOR METHODS
-    // ================================================================
-
-    /** Check if FUEL is detected by beam break sensor */
-    public boolean hasFuel() {
-        // Beam break sensors typically return false when broken (object detected)
-        return !beamBreak.get();
-    }
-
-    /** Get current FUEL count */
-    public int getFuelCount() {
-        return fuelCount;
-    }
-
-    /** Increment FUEL count (called when FUEL is collected) */
-    public void incrementFuelCount() {
-        if (fuelCount < IntakeConstants.MAX_FUEL_CAPACITY) {
-            fuelCount++;
-        }
-    }
-
-    /** Decrement FUEL count (called when FUEL is shot) */
-    public void decrementFuelCount() {
-        if (fuelCount > 0) {
-            fuelCount--;
-        }
-    }
-
-    /** Reset FUEL count to zero */
-    public void resetFuelCount() {
-        fuelCount = 0;
-    }
-
-    // ================================================================
     // COMMAND FACTORIES
     // ================================================================
 
-    /** Command to deploy intake, run rollers until FUEL detected, then stop */
+    /** Command to deploy intake and run rollers */
     public Command intakeCommand() {
         return Commands.sequence(
             // Deploy the intake
             Commands.runOnce(this::deploy, this),
             Commands.waitUntil(this::isDeployed),
-            // Run rollers until FUEL detected
-            Commands.runOnce(this::runIntake, this),
-            Commands.waitUntil(this::hasFuel),
-            // Stop and increment count
-            Commands.runOnce(() -> {
-                stopRollers();
-                incrementFuelCount();
-            }, this)
+            // Run rollers
+            Commands.runOnce(this::runIntake, this)
         ).withName("Intake FUEL");
     }
 
@@ -301,18 +246,9 @@ public class Intake extends SubsystemBase {
             state = IntakeState.STOWED;
         }
 
-        // Edge detection for FUEL counting during intake
-        boolean currentBeamBroken = hasFuel();
-        if (currentBeamBroken && !previousBeamBroken && state == IntakeState.INTAKING) {
-            incrementFuelCount();
-        }
-        previousBeamBroken = currentBeamBroken;
-
         // Update SmartDashboard
         SmartDashboard.putString("Intake/State", state.toString());
         SmartDashboard.putNumber("Intake/Position", deployEncoder.getPosition());
-        SmartDashboard.putBoolean("Intake/HasFuel", hasFuel());
-        SmartDashboard.putNumber("Intake/FuelCount", fuelCount);
         SmartDashboard.putBoolean("Intake/IsDeployed", isDeployed());
         SmartDashboard.putBoolean("Intake/IsStowed", isStowed());
     }

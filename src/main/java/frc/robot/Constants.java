@@ -236,7 +236,6 @@ public final class Constants {
     public static final class IntakeConstants {
         public static final int DEPLOY_MOTOR_ID = 9;
         public static final int ROLLER_MOTOR_ID = 10;
-        public static final int BEAM_BREAK_DIO_PORT = 0;
 
         public static final double DEPLOYED_POSITION = 1.0;
         public static final double STOWED_POSITION = 0.0;
@@ -245,7 +244,6 @@ public final class Constants {
         public static final double DEPLOY_kP = 0.1;
         public static final double INTAKE_SPEED = 0.8;
         public static final double OUTTAKE_SPEED = -0.5;
-        public static final int MAX_FUEL_CAPACITY = 8;
     }
 
     public static final class AutoConstants {

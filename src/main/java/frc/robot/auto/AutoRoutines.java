@@ -149,14 +149,8 @@ public final class AutoRoutines {
             Commands.runOnce(intake::retract, intake),
 
             // Phase 5: Return and score
-            Commands.either(
-                Commands.sequence(
-                    AutoCommands.driveToPose(swerve, getShootingPose()),
-                    AutoCommands.shootAllFuel(shooter, intake)
-                ),
-                AutoCommands.stopDriving(swerve),
-                () -> intake.getFuelCount() > 0
-            ),
+            AutoCommands.driveToPose(swerve, getShootingPose()),
+            AutoCommands.shootAllFuel(shooter, intake),
 
             AutoCommands.stopDriving(swerve),
             AutoCommands.logMessage("Mode 1 Complete")
