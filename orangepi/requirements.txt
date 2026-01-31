@@ -1,0 +1,11 @@
+# Orange Pi Vision System Dependencies
+
+# NetworkTables client for communication with roboRIO
+pynetworktables>=2021.0.0
+
+# Computer vision
+opencv-python-headless>=4.5.0
+numpy>=1.20.0
+
+# RKNN inference (install separately via install.sh)
+# rknn-toolkit2-lite  # Installed from Rockchip SDK
