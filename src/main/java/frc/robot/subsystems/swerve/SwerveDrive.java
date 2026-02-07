@@ -1,14 +1,14 @@
 package frc.robot.subsystems.swerve;
 
 /*
- * - Change max speed: Constants.java → SwerveConstants.MAX_SPEED
+ * - Change max speed: Constants.java -> SwerveConstants.MAX_SPEED
  * - Change wheel positions: SwerveConstants.WHEEL_BASE / TRACK_WIDTH
  * - Tune module angles: SwerveConstants.XX_ENCODER_OFFSET
  *
- * → Drive the robot: swerve.drive(translation, rotation, fieldRelative, openLoop)
- * → Get current position: swerve.getPose()
- * → Reset gyro: swerve.resetYaw(angle)
- * → Lock wheels (X pattern): swerve.setX()
+ * -> Drive the robot: swerve.drive(translation, rotation, fieldRelative, openLoop)
+ * -> Get current position: swerve.getPose()
+ * -> Reset gyro: swerve.resetYaw(angle)
+ * -> Lock wheels (X pattern): swerve.setX()
  *
  * ========================================================================
  */
@@ -150,12 +150,9 @@ public class SwerveDrive extends SubsystemBase {
         // Think of it like a coordinate system:
         //
         //          +X (forward)
-        //           ↑
-        //           │
-        //    +Y ←───┼───→ -Y
-        //     (left)│    (right)
-        //           │
-        //           ↓
+        //
+        //    +Y (left)  center  -Y (right)
+        //
         //          -X (backward)
         //
         // WHEEL_BASE = front-to-back distance
@@ -295,7 +292,7 @@ public class SwerveDrive extends SubsystemBase {
                 translation.getX(),  // Field X velocity
                 translation.getY(),  // Field Y velocity
                 rotation,            // Rotation velocity
-                getYaw()             // Current robot heading (to convert field→robot)
+                getYaw()             // Current robot heading (to convert field->robot)
             );
         } else {
             // ROBOT-RELATIVE: No adjustment needed
@@ -345,14 +342,14 @@ public class SwerveDrive extends SubsystemBase {
      * to push us. Great for defense!
      *
      *   X PATTERN:
-     *      ╲   ╱
-     *       ╲ ╱
+     *      \   /
+     *       \ /
      *        X
-     *       ╱ ╲
-     *      ╱   ╲
+     *       / \
+     *      /   \
      */
     public void setX() {
-        // Set each wheel to point toward/away from center at 45° angles
+        // Set each wheel to point toward/away from center at 45 degree angles
         modules[0].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)), true);   // FL
         modules[1].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)), true);  // FR
         modules[2].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)), true);  // RL
@@ -376,7 +373,7 @@ public class SwerveDrive extends SubsystemBase {
      * Get the current yaw angle from the gyro.
      *
      * YAW = rotation around the vertical axis (spinning like a top)
-     * 0° typically means facing the far end of the field.
+     * 0 degrees typically means facing the far end of the field.
      *
      * @return The current yaw as a Rotation2d
      */
@@ -588,7 +585,7 @@ public class SwerveDrive extends SubsystemBase {
      * [WHEN TO USE]
      * When the robot starts a match facing YOUR driver station,
      * you're looking at the robot from behind. From the robot's
-     * perspective, it's facing 180° (toward you).
+     * perspective, it's facing 180 degrees (toward you).
      *
      * Press this at the start of a match when lined up.
      *

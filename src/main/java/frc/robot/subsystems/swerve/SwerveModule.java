@@ -22,13 +22,8 @@ package frc.robot.subsystems.swerve;
  *   - Strafe sideways
  *
  *   TANK DRIVE:              SWERVE DRIVE:
- *   Can only go ↑ ↓          Can go in ANY direction!
- *
- *   ┌─────────┐              ┌─────────┐
- *   │ ║     ║ │              │ ◇     ◇ │  ← Modules can rotate
- *   │ ║     ║ │              │         │
- *   │ ║     ║ │              │ ◇     ◇ │
- *   └─────────┘              └─────────┘
+ *   Can only go forward/backward   Can go in ANY direction!
+ *   Fixed wheels                   Modules can rotate
  *
  * HARDWARE IN EACH MODULE:
  * ------------------------
@@ -59,25 +54,25 @@ package frc.robot.subsystems.swerve;
  *
  * ENCODER OFFSET:
  * ---------------
- * When you install a CANCoder, it probably won't read 0° when the wheel
+ * When you install a CANCoder, it probably won't read 0 degrees when the wheel
  * is pointing forward. The OFFSET corrects for this:
  *
- *   True Forward: 0°
- *   CANCoder reads: 47°
- *   Offset: -47°
- *   After offset: 47° + (-47°) = 0° ✓
+ *   True Forward: 0 degrees
+ *   CANCoder reads: 47 degrees
+ *   Offset: -47 degrees
+ *   After offset: 47 degrees + (-47 degrees) = 0 degrees OK
  *
  * To calibrate: Point wheel forward manually, read CANCoder value,
  * that's your offset.
  *
  * STATE OPTIMIZATION:
  * -------------------
- * Instead of rotating 180° to go backward, we can reverse the drive
- * motor and only rotate 90°. This is called "optimization."
+ * Instead of rotating 180 degrees to go backward, we can reverse the drive
+ * motor and only rotate 90 degrees. This is called "optimization."
  *
  *   Without optimization:    With optimization:
- *   Rotate 180°, drive +     Rotate 0°, drive -
- *   ◇ → ↻↻↻ → ◇              ◇ (just reverse motor)
+ *   Rotate 180 degrees, drive +     Rotate 0 degrees, drive -
+ *   (wheel rotates 180)      (just reverse motor)
  *
  * HOW TO MODIFY:
  * --------------
@@ -89,11 +84,11 @@ package frc.robot.subsystems.swerve;
  *
  * QUICK REFERENCE:
  * ----------------
- * → Get wheel angle: module.getAngle()
- * → Get wheel speed: module.getVelocity()
- * → Get position: module.getModulePosition()
- * → Set desired state: module.setDesiredState(state, openLoop)
- * → Reset encoder: module.resetToAbsolute()
+ * -> Get wheel angle: module.getAngle()
+ * -> Get wheel speed: module.getVelocity()
+ * -> Get position: module.getModulePosition()
+ * -> Set desired state: module.setDesiredState(state, openLoop)
+ * -> Reset encoder: module.resetToAbsolute()
  *
  * ========================================================================
  */
@@ -131,14 +126,8 @@ import frc.robot.Constants.SwerveConstants;
  *
  * [WHAT IS A MODULE?]
  *
- *        ┌───────┐
- *        │       │
- *   ═════╪═══════╪═════  ← Wheel can spin (drive)
- *        │       │
- *        └───────┘
- *            ↑
- *            │
- *            ╧  ← Entire assembly can rotate (azimuth)
+ * The module consists of a wheel that can spin (drive motor)
+ * mounted on an assembly that can rotate 360 degrees (azimuth motor).
  *
  * The module controls:
  *   - Wheel SPEED (drive motor)
@@ -252,7 +241,7 @@ public class SwerveModule {
      * Takes a target angle (degrees) and rotates the wheel
      * to that position.
      *
-     * Uses position wrapping (360° = 0°) for continuous rotation.
+     * Uses position wrapping (360 degrees = 0 degrees) for continuous rotation.
      */
     private final SparkClosedLoopController azimuthController;
 
@@ -284,7 +273,7 @@ public class SwerveModule {
      * Offset to correct CANCoder reading to "true forward."
      *
      * [WHY THIS EXISTS]
-     * When the CANCoder is installed, it probably doesn't read 0°
+     * When the CANCoder is installed, it probably doesn't read 0 degrees
      * when the wheel is pointing forward. This offset corrects that.
      *
      * [HOW TO CALIBRATE]
@@ -321,7 +310,7 @@ public class SwerveModule {
      * @param driveMotorId CAN ID of the drive motor SparkMAX
      * @param azimuthMotorId CAN ID of the azimuth motor SparkMAX
      * @param canCoderId CAN ID of the CANCoder (absolute encoder)
-     * @param encoderOffset Offset to make CANCoder read 0° when forward (degrees)
+     * @param encoderOffset Offset to make CANCoder read 0 degrees when forward (degrees)
      */
     public SwerveModule(int moduleNumber, int driveMotorId, int azimuthMotorId,
                         int canCoderId, double encoderOffset) {
@@ -358,7 +347,7 @@ public class SwerveModule {
         driveFeedforward = new SimpleMotorFeedforward(
             SwerveConstants.DRIVE_kS,  // Static friction (voltage to overcome friction)
             SwerveConstants.DRIVE_kV,  // Velocity constant (voltage per m/s)
-            SwerveConstants.DRIVE_kA   // Acceleration constant (voltage per m/s²)
+            SwerveConstants.DRIVE_kA   // Acceleration constant (voltage per m/s^2)
         );
 
         // ----------------------------------------------------------------
@@ -386,12 +375,12 @@ public class SwerveModule {
      * [CONVERSION FACTORS EXPLAINED]
      * The NEO encoder counts motor rotations. We need real units:
      *
-     *   Drive: rotations → meters traveled
+     *   Drive: rotations -> meters traveled
      *   Formula: circumference / gear_ratio
      *   If gear ratio is 6.75:1 and wheel is 0.1m circumference:
      *     1 motor rotation = 0.1 / 6.75 = 0.0148m
      *
-     *   Azimuth: rotations → degrees rotated
+     *   Azimuth: rotations -> degrees rotated
      *   Formula: 360 / gear_ratio
      *   If gear ratio is 21.43:1:
      *     1 motor rotation = 360 / 21.43 = 16.8 degrees
@@ -409,7 +398,7 @@ public class SwerveModule {
             .closedLoopRampRate(SwerveConstants.DRIVE_CLOSED_LOOP_RAMP);  // Smooth auto
 
         // ----------------------------------------------------------------
-        // ENCODER CONVERSION: Motor rotations → Meters
+        // ENCODER CONVERSION: Motor rotations -> Meters
         // ----------------------------------------------------------------
         // Position: How far the robot has traveled (meters)
         double drivePositionFactor = SwerveConstants.WHEEL_CIRCUMFERENCE / SwerveConstants.DRIVE_GEAR_RATIO;
@@ -444,7 +433,7 @@ public class SwerveModule {
             .inverted(true);  // May need to flip depending on gearbox setup
 
         // ----------------------------------------------------------------
-        // ENCODER CONVERSION: Motor rotations → Degrees
+        // ENCODER CONVERSION: Motor rotations -> Degrees
         // ----------------------------------------------------------------
         double azimuthPositionFactor = 360.0 / SwerveConstants.AZIMUTH_GEAR_RATIO;
         double azimuthVelocityFactor = azimuthPositionFactor / 60.0;
@@ -456,17 +445,17 @@ public class SwerveModule {
         // ----------------------------------------------------------------
         // PID GAINS with POSITION WRAPPING
         // ----------------------------------------------------------------
-        // Position wrapping makes 0° and 360° the same point
+        // Position wrapping makes 0 degrees and 360 degrees the same point
         // This is essential for continuous rotation!
-        // Without it, going from 350° to 10° would go the long way (340° rotation)
-        // With it, we go the short way (20° rotation)
+        // Without it, going from 350 degrees to 10 degrees would go the long way (340 degrees rotation)
+        // With it, we go the short way (20 degrees rotation)
         azimuthConfig.closedLoop
             .p(SwerveConstants.AZIMUTH_kP)
             .i(SwerveConstants.AZIMUTH_kI)
             .d(SwerveConstants.AZIMUTH_kD)
             .positionWrappingEnabled(true)   // Enable wraparound
-            .positionWrappingMinInput(0)     // Minimum is 0°
-            .positionWrappingMaxInput(360);  // Maximum is 360° (wraps to 0°)
+            .positionWrappingMinInput(0)     // Minimum is 0 degrees
+            .positionWrappingMaxInput(360);  // Maximum is 360 degrees (wraps to 0 degrees)
 
         azimuthMotor.configure(azimuthConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
@@ -518,9 +507,9 @@ public class SwerveModule {
      * For normal operation, use getAngle() (relative encoder is faster).
      *
      * [OFFSET EXPLAINED]
-     * The raw CANCoder reading minus the offset gives "true forward = 0°"
+     * The raw CANCoder reading minus the offset gives "true forward = 0 degrees"
      *
-     * @return The absolute angle as a Rotation2d (0° = forward)
+     * @return The absolute angle as a Rotation2d (0 degrees = forward)
      */
     public Rotation2d getAbsoluteAngle() {
         // CANCoder returns 0-1 rotations, multiply by 360 for degrees
@@ -537,7 +526,7 @@ public class SwerveModule {
      * Use this for all normal operations. It's faster than CANCoder
      * and is already synced to the correct value.
      *
-     * @return The current angle as a Rotation2d (0° = forward)
+     * @return The current angle as a Rotation2d (0 degrees = forward)
      */
     public Rotation2d getAngle() {
         return Rotation2d.fromDegrees(azimuthEncoder.getPosition());
@@ -624,11 +613,11 @@ public class SwerveModule {
      * [STATE OPTIMIZATION]
      * The optimize() call is KEY for swerve efficiency.
      * If we need to go backward, instead of:
-     *   - Rotating 180° and driving forward
+     *   - Rotating 180 degrees and driving forward
      * We do:
      *   - Keep pointing same direction, drive backward
      *
-     * This means we NEVER rotate more than 90°!
+     * This means we NEVER rotate more than 90 degrees!
      *
      * @param desiredState The desired state (speed and angle)
      * @param openLoop True for teleop (percentage control), false for auto (PID control)
@@ -639,19 +628,19 @@ public class SwerveModule {
         // OPTIMIZATION - Smart angle selection
         // ================================================================
         // This is the magic that makes swerve efficient!
-        // If target is more than 90° away, flip the angle and negate speed
+        // If target is more than 90 degrees away, flip the angle and negate speed
         //
         // Example:
-        //   Current: 0°, Target: 170°
-        //   Without optimization: rotate 170°
-        //   With optimization: rotate -10°, drive backward
+        //   Current: 0 degrees, Target: 170 degrees
+        //   Without optimization: rotate 170 degrees
+        //   With optimization: rotate -10 degrees, drive backward
         desiredState = SwerveModuleState.optimize(desiredState, getAngle());
 
         // ================================================================
         // AZIMUTH CONTROL - Point the wheel
         // ================================================================
         // Tell the PID controller what angle we want
-        // Position wrapping handles the 0°/360° boundary
+        // Position wrapping handles the 0 degrees/360 degrees boundary
         azimuthController.setReference(
             desiredState.angle.getDegrees(),
             SparkMax.ControlType.kPosition  // Position control mode
