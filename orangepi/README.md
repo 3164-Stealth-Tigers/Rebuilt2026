@@ -197,23 +197,23 @@ For accurate distance estimation, calibrate your camera:
 
 ```
 orangepi/
-├── README.md                    # This file
-├── requirements.txt             # Python dependencies
-├── install.sh                   # Installation script
-├── vision_service.py            # Main entry point
-├── config.py                    # Configuration
-├── detectors/
-│   ├── base_detector.py         # Abstract detector class
-│   ├── robot_detector.py        # Robot detection
-│   └── fuel_detector.py         # FUEL detection
-├── network/
-│   └── nt_publisher.py          # NetworkTables publisher
-├── utils/
-│   ├── camera.py                # Camera utilities
-│   └── geometry.py              # Coordinate transforms
-├── models/                      # RKNN model files
-└── systemd/
-    └── orangepi-vision.service  # Systemd service
++-- README.md                    # This file
++-- requirements.txt             # Python dependencies
++-- install.sh                   # Installation script
++-- vision_service.py            # Main entry point
++-- config.py                    # Configuration
++-- detectors/
+|   +-- base_detector.py         # Abstract detector class
+|   +-- robot_detector.py        # Robot detection
+|   +-- fuel_detector.py         # FUEL detection
++-- network/
+|   +-- nt_publisher.py          # NetworkTables publisher
++-- utils/
+|   +-- camera.py                # Camera utilities
+|   +-- geometry.py              # Coordinate transforms
++-- models/                      # RKNN model files
++-- systemd/
+    +-- orangepi-vision.service  # Systemd service
 ```
 
 ## License

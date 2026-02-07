@@ -105,7 +105,7 @@ java -jar build/libs/reefscape-sim.jar
 | `E` | Rotate clockwise |
 | `X` | Toggle slow mode (30% speed) |
 | `C` | Toggle field-relative mode |
-| `G` | Reset gyro to 180° |
+| `G` | Reset gyro to 180 deg |
 | `V` | Ski stop (lock wheels in X pattern) |
 
 ### Scoring
@@ -124,8 +124,8 @@ java -jar build/libs/reefscape-sim.jar
 
 | Key | Action |
 |-----|--------|
-| `↑` | Climber up |
-| `↓` | Climber down |
+| `^` | Climber up |
+| `v` | Climber down |
 | `P` | Debug: Instantly pickup coral |
 | `Esc` | Reset robot to starting position |
 
@@ -165,25 +165,25 @@ java -jar build/libs/reefscape-sim.jar
 
 ```
 simulator/
-├── src/main/java/team3164/simulator/
-│   ├── Main.java                 # Entry point, CLI handling
-│   ├── Constants.java            # Robot/field constants
-│   ├── engine/
-│   │   ├── SimulationEngine.java # 50Hz physics loop
-│   │   ├── RobotState.java       # Complete robot state
-│   │   └── InputState.java       # Keyboard input state
-│   ├── physics/
-│   │   ├── SwervePhysics.java    # Holonomic drive simulation
-│   │   ├── ElevatorPhysics.java  # Trapezoidal motion profile
-│   │   ├── ArmPhysics.java       # Angular motion simulation
-│   │   ├── ClawPhysics.java      # Intake state machine
-│   │   └── ClimberPhysics.java   # Simple velocity control
-│   └── web/
-│       └── SimulatorServer.java  # HTTP + WebSocket server
-└── src/main/resources/web/
-    ├── index.html                # Main UI
-    ├── style.css                 # Dark theme styling
-    └── app.js                    # Canvas rendering, controls
++-- src/main/java/team3164/simulator/
+|   +-- Main.java                 # Entry point, CLI handling
+|   +-- Constants.java            # Robot/field constants
+|   +-- engine/
+|   |   +-- SimulationEngine.java # 50Hz physics loop
+|   |   +-- RobotState.java       # Complete robot state
+|   |   +-- InputState.java       # Keyboard input state
+|   +-- physics/
+|   |   +-- SwervePhysics.java    # Holonomic drive simulation
+|   |   +-- ElevatorPhysics.java  # Trapezoidal motion profile
+|   |   +-- ArmPhysics.java       # Angular motion simulation
+|   |   +-- ClawPhysics.java      # Intake state machine
+|   |   +-- ClimberPhysics.java   # Simple velocity control
+|   +-- web/
+|       +-- SimulatorServer.java  # HTTP + WebSocket server
++-- src/main/resources/web/
+    +-- index.html                # Main UI
+    +-- style.css                 # Dark theme styling
+    +-- app.js                    # Canvas rendering, controls
 ```
 
 ## Physics Simulation
@@ -197,18 +197,18 @@ The simulator models real robot behavior:
 - Field-relative transformation
 
 ### Elevator
-- Trapezoidal motion profile (accelerate → cruise → decelerate)
+- Trapezoidal motion profile (accelerate -> cruise -> decelerate)
 - Max velocity: 150 in/s
-- Max acceleration: 200 in/s²
+- Max acceleration: 200 in/s^2
 - Soft limits: 30.5" to 78.5"
 
 ### Arm
 - Angular motion with trapezoidal profile
-- Angle limits: -50° to +90°
-- Tolerance: 3°
+- Angle limits: -50 deg to +90 deg
+- Tolerance: 3 deg
 
 ### Claw
-- State machine: EMPTY → INTAKING → HOLDING → OUTTAKING
+- State machine: EMPTY -> INTAKING -> HOLDING -> OUTTAKING
 - Intake time: 0.5s
 - Outtake time: 0.3s
 
@@ -265,7 +265,7 @@ The simulator logs events to the terminal:
 
 ```
 [00:00:00] Simulation started
-[00:00:05] Set level 3 (height=45.3", angle=-35°)
+[00:00:05] Set level 3 (height=45.3", angle=-35 deg)
 [00:00:08] Field-relative: OFF
 [00:00:12] SCORED! Level 3 (+4 pts, total: 4)
 [00:00:15] Robot state reset
