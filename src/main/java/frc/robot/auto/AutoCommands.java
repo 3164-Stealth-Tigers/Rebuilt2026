@@ -140,7 +140,7 @@ public final class AutoCommands {
    * @return Command that collects one FUEL
    */
   public static Command intakeFuel(Intake intake) {
-    return IntakeCommands.fullIntakeSequence(intake).withName("Auto Intake FUEL");
+    return IntakeCommands.intakeFuelCommand(intake).withName("Auto Intake FUEL");
   }
 
   /**
@@ -168,7 +168,7 @@ public final class AutoCommands {
    * @return Command that collects FUEL or times out
    */
   public static Command intakeFuelWithTimeout(Intake intake, double timeoutSeconds) {
-    return IntakeCommands.fullIntakeSequence(intake)
+    return IntakeCommands.intakeFuelCommand(intake)
         .withTimeout(timeoutSeconds)
         .withName("Auto Intake (timeout)");
   }
@@ -187,10 +187,10 @@ public final class AutoCommands {
   public static Command shootAllFuel(Shooter shooter, Intake intake) {
     return Commands.sequence(
             // Spin up shooter
-            Commands.runOnce(shooter::shootHub, shooter),
+            Commands.runOnce(shooter::spinUp, shooter),
             Commands.waitSeconds(0.5), // Wait for shooter to spin up
             // Feed all FUEL
-            IntakeCommands.feedAllCommand(intake, shooter),
+            IntakeCommands.feedCommand(intake),
             // Stop shooter
             Commands.waitSeconds(0.5))
         .withName("Shoot All FUEL");
@@ -205,9 +205,9 @@ public final class AutoCommands {
    */
   public static Command shootOneFuel(Shooter shooter, Intake intake) {
     return Commands.sequence(
-            Commands.runOnce(shooter::shootHub, shooter),
+            Commands.runOnce(shooter::spinUp, shooter),
             Commands.waitSeconds(0.5),
-            IntakeCommands.feedOneCommand(intake),
+            IntakeCommands.feedCommand(intake),
             Commands.waitSeconds(0.3))
         .withName("Shoot One FUEL");
   }

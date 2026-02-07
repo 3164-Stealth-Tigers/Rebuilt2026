@@ -1,8 +1,8 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -126,7 +126,8 @@ public class Shooter extends SubsystemBase {
         .p(ShooterConstants.FLYWHEEL_kP)
         .i(ShooterConstants.FLYWHEEL_kI)
         .d(ShooterConstants.FLYWHEEL_kD)
-        .velocityFF(ShooterConstants.FLYWHEEL_kFF);
+        .feedForward
+        .kV(ShooterConstants.FLYWHEEL_kFF);
 
     flywheelMotor.configure(
         flywheelConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -198,7 +199,7 @@ public class Shooter extends SubsystemBase {
       flywheelMotor.set(0);
       state = ShooterState.IDLE;
     } else {
-      flywheelController.setReference(rpm, SparkMax.ControlType.kVelocity);
+      flywheelController.setSetpoint(rpm, SparkMax.ControlType.kVelocity);
       state = ShooterState.SPINNING_UP;
     }
   }
