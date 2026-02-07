@@ -708,7 +708,11 @@ public class Vision extends SubsystemBase {
   private Optional<VisionUpdate> getSingleCameraUpdate(
       PhotonCamera camera, PhotonPoseEstimator estimator, Pose2d robotPose) {
 
-    PhotonPipelineResult result = camera.getLatestResult();
+    List<PhotonPipelineResult> results = camera.getAllUnreadResults();
+    if (results.isEmpty()) {
+      return Optional.empty();
+    }
+    PhotonPipelineResult result = results.get(results.size() - 1);
 
     /* FILTERS */
 

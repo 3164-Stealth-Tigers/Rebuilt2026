@@ -249,7 +249,7 @@ public class Robot extends TimedRobot {
     if (autonomousCommand != null) {
       // schedule() tells the CommandScheduler to start running this command
       // The command will run during robotPeriodic() via the scheduler
-      autonomousCommand.schedule();
+      CommandScheduler.getInstance().schedule(autonomousCommand);
     }
   }
 

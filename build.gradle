@@ -120,9 +120,15 @@ spotless {
 }
 
 // Install git pre-commit hook automatically
-tasks.register('installGitHook', Copy) {
-    from '.hooks/pre-commit'
-    into '.git/hooks'
-    fileMode 0755
+tasks.register('installGitHook') {
+    doLast {
+        def source = file('.hooks/pre-commit')
+        def target = file('.git/hooks/pre-commit')
+        if (source.exists()) {
+            target.parentFile.mkdirs()
+            target.text = source.text
+            target.setExecutable(true)
+        }
+    }
 }
 tasks.named('compileJava') { dependsOn 'installGitHook' }

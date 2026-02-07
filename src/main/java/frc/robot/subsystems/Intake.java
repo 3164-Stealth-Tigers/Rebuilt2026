@@ -1,8 +1,8 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -109,7 +109,7 @@ public class Intake extends SubsystemBase {
   /** Deploy the intake to collect FUEL */
   public void deploy() {
     targetPosition = IntakeConstants.DEPLOYED_POSITION;
-    deployController.setReference(targetPosition, SparkMax.ControlType.kPosition);
+    deployController.setSetpoint(targetPosition, SparkMax.ControlType.kPosition);
     state = IntakeState.DEPLOYING;
   }
 
@@ -117,7 +117,7 @@ public class Intake extends SubsystemBase {
   public void retract() {
     stopRollers();
     targetPosition = IntakeConstants.STOWED_POSITION;
-    deployController.setReference(targetPosition, SparkMax.ControlType.kPosition);
+    deployController.setSetpoint(targetPosition, SparkMax.ControlType.kPosition);
     state = IntakeState.RETRACTING;
   }
 

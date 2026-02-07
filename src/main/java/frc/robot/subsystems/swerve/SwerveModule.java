@@ -101,10 +101,10 @@ package frc.robot.subsystems.swerve;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -565,14 +565,14 @@ public class SwerveModule {
     //   Current: 0 deg, Target: 170 deg
     //   Without optimization: rotate 170 deg
     //   With optimization: rotate -10 deg, drive backward
-    desiredState = SwerveModuleState.optimize(desiredState, getAngle());
+    desiredState.optimize(getAngle());
 
     // ================================================================
     // AZIMUTH CONTROL - Point the wheel
     // ================================================================
     // Tell the PID controller what angle we want
     // Position wrapping handles the 0 deg/360 deg boundary
-    azimuthController.setReference(
+    azimuthController.setSetpoint(
         desiredState.angle.getDegrees(), SparkMax.ControlType.kPosition // Position control mode
         );
 
@@ -596,7 +596,7 @@ public class SwerveModule {
       double feedforward = driveFeedforward.calculate(desiredState.speedMetersPerSecond);
 
       // Use PID to get to exact velocity, with feedforward as base power
-      driveController.setReference(
+      driveController.setSetpoint(
           desiredState.speedMetersPerSecond, // Target velocity
           SparkMax.ControlType.kVelocity, // Velocity control mode
           ClosedLoopSlot.kSlot0, // PID slot 0
