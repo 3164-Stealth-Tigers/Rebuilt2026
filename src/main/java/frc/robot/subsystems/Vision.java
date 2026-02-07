@@ -21,44 +21,44 @@ package frc.robot.subsystems;
  * WIRING DIAGRAM:
  * ---------------
  *
- *   ┌─────────────────────────────────────────────────────────────────┐
- *   │                        ROBOT ELECTRICAL PANEL                   │
- *   │                                                                 │
- *   │  ┌─────────┐    ┌─────────┐    ┌─────────────┐                 │
- *   │  │   PDP   │    │  VRM    │    │   RADIO     │                 │
- *   │  │  /PDH   │───►│ 12V/5V  │    │  (OpenMesh  │                 │
- *   │  └─────────┘    └────┬────┘    │   or new)   │                 │
- *   │                      │         └──────┬──────┘                 │
- *   │                      │                │                        │
- *   │              5V 3A   │        Ethernet│                        │
- *   │              (USB-C) │                │                        │
- *   │                      ▼                ▼                        │
- *   │               ┌─────────────────────────────┐                  │
- *   │               │        ORANGE PI 5          │                  │
- *   │               │                             │                  │
- *   │               │  USB-C ◄── Power (5V/3A)    │                  │
- *   │               │  ETH   ◄── Robot Network    │                  │
- *   │               │  USB3  ◄── Camera 1         │                  │
- *   │               │  USB3  ◄── Camera 2         │                  │
- *   │               │                             │                  │
- *   │               └─────────────────────────────┘                  │
- *   │                                                                 │
- *   └─────────────────────────────────────────────────────────────────┘
+ *   +-----------------------------------------------------------------+
+ *   |                        ROBOT ELECTRICAL PANEL                   |
+ *   |                                                                 |
+ *   |  +---------+    +---------+    +-------------+                 |
+ *   |  |   PDP   |    |  VRM    |    |   RADIO     |                 |
+ *   |  |  /PDH   |--->| 12V/5V  |    |  (OpenMesh  |                 |
+ *   |  +---------+    +----+----+    |   or new)   |                 |
+ *   |                      |         +------+------+                 |
+ *   |                      |                |                        |
+ *   |              5V 3A   |        Ethernet|                        |
+ *   |              (USB-C) |                |                        |
+ *   |                      v                v                        |
+ *   |               +-----------------------------+                  |
+ *   |               |        ORANGE PI 5          |                  |
+ *   |               |                             |                  |
+ *   |               |  USB-C <-- Power (5V/3A)    |                  |
+ *   |               |  ETH   <-- Robot Network    |                  |
+ *   |               |  USB3  <-- Camera 1         |                  |
+ *   |               |  USB3  <-- Camera 2         |                  |
+ *   |               |                             |                  |
+ *   |               +-----------------------------+                  |
+ *   |                                                                 |
+ *   +-----------------------------------------------------------------+
  *
  * POWER WIRING:
  * -------------
  * Option 1 (Recommended): USB-C Power from VRM
- *   - VRM 5V/2A output → USB-C cable → Orange Pi USB-C power port
+ *   - VRM 5V/2A output -> USB-C cable -> Orange Pi USB-C power port
  *   - Use a quality USB-C cable rated for 3A
  *   - Note: VRM 5V/2A may be marginal; consider Option 2 for stability
  *
  * Option 2 (More Reliable): Dedicated 5V Regulator
- *   - PDP/PDH → 5V/5A buck converter → USB-C breakout → Orange Pi
+ *   - PDP/PDH -> 5V/5A buck converter -> USB-C breakout -> Orange Pi
  *   - Recommended: Pololu 5V 5A Step-Down (D24V50F5)
  *   - Add 1000uF capacitor on output for stability
  *
  * Option 3: GPIO Header Power (Advanced)
- *   - 5V regulated supply → Pin 2 & 4 (5V), Pin 6 (GND)
+ *   - 5V regulated supply -> Pin 2 & 4 (5V), Pin 6 (GND)
  *   - CAUTION: No reverse polarity protection on GPIO!
  *   - Must be exactly 5V (4.8V-5.2V tolerance)
  *
@@ -67,8 +67,8 @@ package frc.robot.subsystems;
  * - Use CAT5e or CAT6 Ethernet cable (keep under 3 meters on robot)
  * - Connect to robot radio's extra Ethernet port
  * - Or use an Ethernet switch if radio port is occupied:
- *     Radio ──► 5-port Gigabit Switch ──► Orange Pi
- *                                     └──► roboRIO
+ *     Radio --> 5-port Gigabit Switch --> Orange Pi
+ *                                     +--> roboRIO
  *
  * CAMERA CONNECTIONS:
  * -------------------
@@ -198,13 +198,13 @@ package frc.robot.subsystems;
  * AprilTag detection. The Orange Pi publishes results to NetworkTables,
  * which this subsystem reads every 20ms.
  *
- *   ┌─────────────────┐              ┌─────────────────┐
- *   │    ORANGE PI    │              │     roboRIO     │
- *   │                 │ NetworkTables│                 │
- *   │  Cameras ──►    │ ══════════►  │  Vision.java    │
- *   │  Processing     │   ~30-60Hz   │  reads data     │
- *   │                 │              │  every 20ms     │
- *   └─────────────────┘              └─────────────────┘
+ *   +-----------------+              +-----------------+
+ *   |    ORANGE PI    |              |     roboRIO     |
+ *   |                 | NetworkTables|                 |
+ *   |  Cameras -->    | ==========>  |  Vision.java    |
+ *   |  Processing     |   ~30-60Hz   |  reads data     |
+ *   |                 |              |  every 20ms     |
+ *   +-----------------+              +-----------------+
  *
  * THREE TYPES OF VISION DATA:
  * ---------------------------
@@ -225,203 +225,191 @@ package frc.robot.subsystems;
  *    - Can track multiple FUEL simultaneously
  *
  * ========================================================================
- * ORANGE PI → ROBORIO DATA CONTRACTS (NetworkTables)
+ * ORANGE PI -> ROBORIO DATA CONTRACTS (NetworkTables)
  * ========================================================================
  *
  * The Orange Pi will publish data to these NetworkTables paths.
  * This documents what we EXPECT to receive.
  *
- * ┌────────────────────────────────────────────────────────────────────────┐
- * │ 1. APRILTAG DATA                                                       │
- * │    NetworkTables Path: "Vision/AprilTag/"                              │
- * ├────────────────────────────────────────────────────────────────────────┤
- * │                                                                        │
- * │  KEY                    TYPE        DESCRIPTION                        │
- * │  ───                    ────        ───────────                        │
- * │  hasTarget              boolean     True if any AprilTag detected      │
- * │  tagCount               int         Number of tags currently visible   │
- * │  primaryTagId           int         ID of best/closest tag             │
- * │  timestamp              double      FPGA timestamp of measurement      │
- * │                                                                        │
- * │  // Robot pose calculated from AprilTags                               │
- * │  robotPoseX             double      Robot X position (meters)          │
- * │  robotPoseY             double      Robot Y position (meters)          │
- * │  robotPoseTheta         double      Robot heading (radians)            │
- * │                                                                        │
- * │  // Quality metrics                                                    │
- * │  avgAmbiguity           double      0-1, lower is better               │
- * │  avgDistanceToTags      double      Avg distance to visible tags (m)   │
- * │  poseConfidence         double      0-1, confidence in pose estimate   │
- * │                                                                        │
- * │  // Per-tag data (arrays, indexed by detection order)                  │
- * │  tagIds                 int[]       IDs of all visible tags            │
- * │  tagDistances           double[]    Distance to each tag (meters)      │
- * │  tagAmbiguities         double[]    Ambiguity of each detection        │
- * │                                                                        │
- * │  EXAMPLE VALUES:                                                       │
- * │  ───────────────                                                       │
- * │  hasTarget = true                                                      │
- * │  tagCount = 2                                                          │
- * │  robotPoseX = 5.2        // 5.2 meters from origin                     │
- * │  robotPoseY = 3.1        // 3.1 meters from origin                     │
- * │  robotPoseTheta = 1.57   // ~90 degrees (π/2 radians)                  │
- * │  avgAmbiguity = 0.15     // Good quality detection                     │
- * │  timestamp = 45.123      // FPGA time when image was captured          │
- * │                                                                        │
- * └────────────────────────────────────────────────────────────────────────┘
+ * +------------------------------------------------------------------------+
+ * | 1. APRILTAG DATA                                                       |
+ * |    NetworkTables Path: "Vision/AprilTag/"                              |
+ * +------------------------------------------------------------------------+
+ * |                                                                        |
+ * |  KEY                    TYPE        DESCRIPTION                        |
+ * |  ---                    ----        -----------                        |
+ * |  hasTarget              boolean     True if any AprilTag detected      |
+ * |  tagCount               int         Number of tags currently visible   |
+ * |  primaryTagId           int         ID of best/closest tag             |
+ * |  timestamp              double      FPGA timestamp of measurement      |
+ * |                                                                        |
+ * |  // Robot pose calculated from AprilTags                               |
+ * |  robotPoseX             double      Robot X position (meters)          |
+ * |  robotPoseY             double      Robot Y position (meters)          |
+ * |  robotPoseTheta         double      Robot heading (radians)            |
+ * |                                                                        |
+ * |  // Quality metrics                                                    |
+ * |  avgAmbiguity           double      0-1, lower is better               |
+ * |  avgDistanceToTags      double      Avg distance to visible tags (m)   |
+ * |  poseConfidence         double      0-1, confidence in pose estimate   |
+ * |                                                                        |
+ * |  // Per-tag data (arrays, indexed by detection order)                  |
+ * |  tagIds                 int[]       IDs of all visible tags            |
+ * |  tagDistances           double[]    Distance to each tag (meters)      |
+ * |  tagAmbiguities         double[]    Ambiguity of each detection        |
+ * |                                                                        |
+ * |  EXAMPLE VALUES:                                                       |
+ * |  ---------------                                                       |
+ * |  hasTarget = true                                                      |
+ * |  tagCount = 2                                                          |
+ * |  robotPoseX = 5.2        // 5.2 meters from origin                     |
+ * |  robotPoseY = 3.1        // 3.1 meters from origin                     |
+ * |  robotPoseTheta = 1.57   // ~90 degrees (pi/2 radians)                  |
+ * |  avgAmbiguity = 0.15     // Good quality detection                     |
+ * |  timestamp = 45.123      // FPGA time when image was captured          |
+ * |                                                                        |
+ * +------------------------------------------------------------------------+
  *
- * ┌────────────────────────────────────────────────────────────────────────┐
- * │ 2. ROBOT DETECTION DATA                                                │
- * │    NetworkTables Path: "Vision/Robots/"                                │
- * ├────────────────────────────────────────────────────────────────────────┤
- * │                                                                        │
- * │  KEY                    TYPE        DESCRIPTION                        │
- * │  ───                    ────        ───────────                        │
- * │  robotCount             int         Number of robots detected          │
- * │  timestamp              double      FPGA timestamp of detection        │
- * │                                                                        │
- * │  // Closest robot data (most relevant for collision avoidance)         │
- * │  closestRobotX          double      X position relative to us (m)      │
- * │  closestRobotY          double      Y position relative to us (m)      │
- * │  closestRobotDistance   double      Distance to closest robot (m)      │
- * │  closestRobotAngle      double      Angle to robot (radians, 0=front)  │
- * │  closestRobotVelX       double      Estimated X velocity (m/s)         │
- * │  closestRobotVelY       double      Estimated Y velocity (m/s)         │
- * │  closestRobotAlliance   string      "red", "blue", or "unknown"        │
- * │                                                                        │
- * │  // Detection confidence                                               │
- * │  closestConfidence      double      0-1, ML model confidence           │
- * │  closestBoundingBox     double[]    [x, y, width, height] in pixels    │
- * │                                                                        │
- * │  // All detected robots (arrays, up to 5 robots)                       │
- * │  robotXs                double[]    X positions of all detected        │
- * │  robotYs                double[]    Y positions of all detected        │
- * │  robotDistances         double[]    Distances to each robot            │
- * │  robotConfidences       double[]    Confidence for each detection      │
- * │                                                                        │
- * │  EXAMPLE VALUES:                                                       │
- * │  ───────────────                                                       │
- * │  robotCount = 2                                                        │
- * │  closestRobotX = 1.5     // 1.5m in front of us                        │
- * │  closestRobotY = 0.3     // 0.3m to our left                           │
- * │  closestRobotDistance = 1.53  // √(1.5² + 0.3²)                        │
- * │  closestRobotAngle = 0.197    // atan2(0.3, 1.5) ≈ 11.3°               │
- * │  closestRobotVelX = -0.5      // Moving toward us at 0.5 m/s           │
- * │  closestConfidence = 0.87     // 87% confident it's a robot            │
- * │                                                                        │
- * │  COORDINATE SYSTEM:                                                    │
- * │  ──────────────────                                                    │
- * │  Positions are ROBOT-RELATIVE (not field-relative)                     │
- * │                                                                        │
- * │              +X (front of robot)                                       │
- * │                    ↑                                                   │
- * │                    │                                                   │
- * │       +Y (left) ←──┼──→ -Y (right)                                     │
- * │                    │                                                   │
- * │                    ↓                                                   │
- * │              -X (back)                                                 │
- * │                                                                        │
- * └────────────────────────────────────────────────────────────────────────┘
+ * +------------------------------------------------------------------------+
+ * | 2. ROBOT DETECTION DATA                                                |
+ * |    NetworkTables Path: "Vision/Robots/"                                |
+ * +------------------------------------------------------------------------+
+ * |                                                                        |
+ * |  KEY                    TYPE        DESCRIPTION                        |
+ * |  ---                    ----        -----------                        |
+ * |  robotCount             int         Number of robots detected          |
+ * |  timestamp              double      FPGA timestamp of detection        |
+ * |                                                                        |
+ * |  // Closest robot data (most relevant for collision avoidance)         |
+ * |  closestRobotX          double      X position relative to us (m)      |
+ * |  closestRobotY          double      Y position relative to us (m)      |
+ * |  closestRobotDistance   double      Distance to closest robot (m)      |
+ * |  closestRobotAngle      double      Angle to robot (radians, 0=front)  |
+ * |  closestRobotVelX       double      Estimated X velocity (m/s)         |
+ * |  closestRobotVelY       double      Estimated Y velocity (m/s)         |
+ * |  closestRobotAlliance   string      "red", "blue", or "unknown"        |
+ * |                                                                        |
+ * |  // Detection confidence                                               |
+ * |  closestConfidence      double      0-1, ML model confidence           |
+ * |  closestBoundingBox     double[]    [x, y, width, height] in pixels    |
+ * |                                                                        |
+ * |  // All detected robots (arrays, up to 5 robots)                       |
+ * |  robotXs                double[]    X positions of all detected        |
+ * |  robotYs                double[]    Y positions of all detected        |
+ * |  robotDistances         double[]    Distances to each robot            |
+ * |  robotConfidences       double[]    Confidence for each detection      |
+ * |                                                                        |
+ * |  EXAMPLE VALUES:                                                       |
+ * |  ---------------                                                       |
+ * |  robotCount = 2                                                        |
+ * |  closestRobotX = 1.5     // 1.5m in front of us                        |
+ * |  closestRobotY = 0.3     // 0.3m to our left                           |
+ * |  closestRobotDistance = 1.53  // sqrt(1.5^2 + 0.3^2)                        |
+ * |  closestRobotAngle = 0.197    // atan2(0.3, 1.5) ~ 11.3 deg               |
+ * |  closestRobotVelX = -0.5      // Moving toward us at 0.5 m/s           |
+ * |  closestConfidence = 0.87     // 87% confident it's a robot            |
+ * |                                                                        |
+ * |  COORDINATE SYSTEM:                                                    |
+ * |  ------------------                                                    |
+ * |  Positions are ROBOT-RELATIVE (not field-relative)                     |
+ * |                                                                        |
+ * |              +X (front of robot)                                       |
+ * |                    ^                                                   |
+ * |                    |                                                   |
+ * |       +Y (left) <---+---> -Y (right)                                     |
+ * |                    |                                                   |
+ * |                    v                                                   |
+ * |              -X (back)                                                 |
+ * |                                                                        |
+ * +------------------------------------------------------------------------+
  *
- * ┌────────────────────────────────────────────────────────────────────────┐
- * │ 3. FUEL DETECTION DATA                                                 │
- * │    NetworkTables Path: "Vision/Fuel/"                                  │
- * ├────────────────────────────────────────────────────────────────────────┤
- * │                                                                        │
- * │  KEY                    TYPE        DESCRIPTION                        │
- * │  ───                    ────        ───────────                        │
- * │  fuelCount              int         Number of FUEL detected            │
- * │  hasFuel                boolean     True if any FUEL visible           │
- * │  timestamp              double      FPGA timestamp of detection        │
- * │                                                                        │
- * │  // Best FUEL target (closest or most confident)                       │
- * │  bestFuelX              double      X position relative to robot (m)   │
- * │  bestFuelY              double      Y position relative to robot (m)   │
- * │  bestFuelDistance       double      Distance to FUEL (meters)          │
- * │  bestFuelAngle          double      Angle to FUEL (radians)            │
- * │  bestFuelConfidence     double      0-1, detection confidence          │
- * │  bestFuelInIntakeRange  boolean     True if close enough to intake     │
- * │                                                                        │
- * │  // Targeting assistance                                               │
- * │  angleToIntake          double      Angle robot should turn (rad)      │
- * │  distanceToIntake       double      Distance to drive (meters)         │
- * │  intakeReady            boolean     True if aligned for intake         │
- * │                                                                        │
- * │  // All detected FUEL (arrays, up to 10 FUEL)                          │
- * │  fuelXs                 double[]    X positions of all FUEL            │
- * │  fuelYs                 double[]    Y positions of all FUEL            │
- * │  fuelDistances          double[]    Distances to each FUEL             │
- * │  fuelConfidences        double[]    Confidence for each detection      │
- * │                                                                        │
- * │  // Field-relative positions (if AprilTags visible)                    │
- * │  fuelFieldXs            double[]    Field X positions (meters)         │
- * │  fuelFieldYs            double[]    Field Y positions (meters)         │
- * │  hasFieldPosition       boolean     True if field coords available     │
- * │                                                                        │
- * │  EXAMPLE VALUES:                                                       │
- * │  ───────────────                                                       │
- * │  fuelCount = 3                                                         │
- * │  hasFuel = true                                                        │
- * │  bestFuelX = 0.8         // 0.8m in front of robot                     │
- * │  bestFuelY = -0.1        // 0.1m to the right                          │
- * │  bestFuelDistance = 0.806                                              │
- * │  bestFuelAngle = -0.124  // Turn right ~7° to align                    │
- * │  bestFuelConfidence = 0.94                                             │
- * │  bestFuelInIntakeRange = true  // Within 1m, ready to intake           │
- * │  angleToIntake = -0.124  // Same as bestFuelAngle                      │
- * │  intakeReady = false     // Need to turn 7° first                      │
- * │                                                                        │
- * │  FUEL DETECTION NOTES:                                                 │
- * │  ─────────────────────                                                 │
- * │  - FUEL is a yellow ball, ~7" diameter                                 │
- * │  - Detection uses color filtering + ML for robustness                  │
- * │  - Floor FUEL vs held FUEL distinguished by height                     │
- * │  - "InIntakeRange" threshold: ~1.0 meter                               │
- * │  - "intakeReady" requires: distance < 0.5m AND |angle| < 5°            │
- * │                                                                        │
- * └────────────────────────────────────────────────────────────────────────┘
+ * +------------------------------------------------------------------------+
+ * | 3. FUEL DETECTION DATA                                                 |
+ * |    NetworkTables Path: "Vision/Fuel/"                                  |
+ * +------------------------------------------------------------------------+
+ * |                                                                        |
+ * |  KEY                    TYPE        DESCRIPTION                        |
+ * |  ---                    ----        -----------                        |
+ * |  fuelCount              int         Number of FUEL detected            |
+ * |  hasFuel                boolean     True if any FUEL visible           |
+ * |  timestamp              double      FPGA timestamp of detection        |
+ * |                                                                        |
+ * |  // Best FUEL target (closest or most confident)                       |
+ * |  bestFuelX              double      X position relative to robot (m)   |
+ * |  bestFuelY              double      Y position relative to robot (m)   |
+ * |  bestFuelDistance       double      Distance to FUEL (meters)          |
+ * |  bestFuelAngle          double      Angle to FUEL (radians)            |
+ * |  bestFuelConfidence     double      0-1, detection confidence          |
+ * |  bestFuelInIntakeRange  boolean     True if close enough to intake     |
+ * |                                                                        |
+ * |  // Targeting assistance                                               |
+ * |  angleToIntake          double      Angle robot should turn (rad)      |
+ * |  distanceToIntake       double      Distance to drive (meters)         |
+ * |  intakeReady            boolean     True if aligned for intake         |
+ * |                                                                        |
+ * |  // All detected FUEL (arrays, up to 10 FUEL)                          |
+ * |  fuelXs                 double[]    X positions of all FUEL            |
+ * |  fuelYs                 double[]    Y positions of all FUEL            |
+ * |  fuelDistances          double[]    Distances to each FUEL             |
+ * |  fuelConfidences        double[]    Confidence for each detection      |
+ * |                                                                        |
+ * |  // Field-relative positions (if AprilTags visible)                    |
+ * |  fuelFieldXs            double[]    Field X positions (meters)         |
+ * |  fuelFieldYs            double[]    Field Y positions (meters)         |
+ * |  hasFieldPosition       boolean     True if field coords available     |
+ * |                                                                        |
+ * |  EXAMPLE VALUES:                                                       |
+ * |  ---------------                                                       |
+ * |  fuelCount = 3                                                         |
+ * |  hasFuel = true                                                        |
+ * |  bestFuelX = 0.8         // 0.8m in front of robot                     |
+ * |  bestFuelY = -0.1        // 0.1m to the right                          |
+ * |  bestFuelDistance = 0.806                                              |
+ * |  bestFuelAngle = -0.124  // Turn right ~7 deg to align                    |
+ * |  bestFuelConfidence = 0.94                                             |
+ * |  bestFuelInIntakeRange = true  // Within 1m, ready to intake           |
+ * |  angleToIntake = -0.124  // Same as bestFuelAngle                      |
+ * |  intakeReady = false     // Need to turn 7 deg first                      |
+ * |                                                                        |
+ * |  FUEL DETECTION NOTES:                                                 |
+ * |  ---------------------                                                 |
+ * |  - FUEL is a yellow ball, ~7" diameter                                 |
+ * |  - Detection uses color filtering + ML for robustness                  |
+ * |  - Floor FUEL vs held FUEL distinguished by height                     |
+ * |  - "InIntakeRange" threshold: ~1.0 meter                               |
+ * |  - "intakeReady" requires: distance < 0.5m AND |angle| < 5 deg            |
+ * |                                                                        |
+ * +------------------------------------------------------------------------+
  *
- * ┌────────────────────────────────────────────────────────────────────────┐
- * │ LATENCY COMPENSATION                                                   │
- * ├────────────────────────────────────────────────────────────────────────┤
- * │                                                                        │
- * │  All vision data includes a TIMESTAMP from when the image was          │
- * │  captured. This is crucial because:                                    │
- * │                                                                        │
- * │  1. Camera capture: 0ms                                                │
- * │  2. Image transfer to Orange Pi: ~5ms                                     │
- * │  3. Processing (AprilTag/ML): ~20-40ms                                 │
- * │  4. NetworkTables publish: ~5ms                                        │
- * │  5. roboRIO reads data: ~0-20ms (depends on timing)                    │
- * │                                                                        │
- * │  TOTAL LATENCY: 30-70ms                                                │
- * │                                                                        │
- * │  For pose estimation, we use the timestamp to "rewind" the robot's     │
- * │  position to where it WAS when the image was taken:                    │
- * │                                                                        │
- * │    poseEstimator.addVisionMeasurement(pose, timestamp);                │
- * │                                                                        │
- * │  For FUEL/robot tracking, we can extrapolate current position:         │
- * │                                                                        │
- * │    double age = Timer.getFPGATimestamp() - timestamp;                  │
- * │    double currentX = detectedX + (velocityX * age);                    │
- * │                                                                        │
- * └────────────────────────────────────────────────────────────────────────┘
+ * +------------------------------------------------------------------------+
+ * | LATENCY COMPENSATION                                                   |
+ * +------------------------------------------------------------------------+
+ * |                                                                        |
+ * |  All vision data includes a TIMESTAMP from when the image was          |
+ * |  captured. This is crucial because:                                    |
+ * |                                                                        |
+ * |  1. Camera capture: 0ms                                                |
+ * |  2. Image transfer to Orange Pi: ~5ms                                     |
+ * |  3. Processing (AprilTag/ML): ~20-40ms                                 |
+ * |  4. NetworkTables publish: ~5ms                                        |
+ * |  5. roboRIO reads data: ~0-20ms (depends on timing)                    |
+ * |                                                                        |
+ * |  TOTAL LATENCY: 30-70ms                                                |
+ * |                                                                        |
+ * |  For pose estimation, we use the timestamp to "rewind" the robot's     |
+ * |  position to where it WAS when the image was taken:                    |
+ * |                                                                        |
+ * |    poseEstimator.addVisionMeasurement(pose, timestamp);                |
+ * |                                                                        |
+ * |  For FUEL/robot tracking, we can extrapolate current position:         |
+ * |                                                                        |
+ * |    double age = Timer.getFPGATimestamp() - timestamp;                  |
+ * |    double currentX = detectedX + (velocityX * age);                    |
+ * |                                                                        |
+ * +------------------------------------------------------------------------+
  *
  * ========================================================================
  */
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.photonvision.EstimatedRobotPose;
-import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.PhotonPoseEstimator.PoseStrategy;
-import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -432,12 +420,22 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.VisionConstants;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 /**
  * Vision subsystem for camera-based detection and positioning.
  *
- * Currently implements AprilTag detection via PhotonVision.
- * FUEL and Robot detection will be added when Orange Pi integration is complete.
+ * <p>Currently implements AprilTag detection via PhotonVision. FUEL and Robot detection will be
+ * added when Orange Pi integration is complete.
  */
 public class Vision extends SubsystemBase {
 
@@ -445,26 +443,17 @@ public class Vision extends SubsystemBase {
   // DATA RECORDS - Structures for vision data
   // ========================================================================
 
-  /**
-   * Configuration for a single camera.
-   */
-  public record CameraConfig(
-      String name,
-      Transform3d robotToCamera,
-      PoseStrategy strategy) {
-  }
+  /** Configuration for a single camera. */
+  public record CameraConfig(String name, Transform3d robotToCamera, PoseStrategy strategy) {}
 
-  /**
-   * AprilTag-based pose update from vision system.
-   */
+  /** AprilTag-based pose update from vision system. */
   public record VisionUpdate(
       Pose3d pose3d,
       Pose2d pose2d,
       double timestampSeconds,
       int tagCount,
       double avgDistanceMeters,
-      double avgAmbiguity) {
-  }
+      double avgAmbiguity) {}
 
   // ========================================================================
   // STUB RECORDS - Data structures for Orange Pi integration (TODO: implement)
@@ -473,11 +462,9 @@ public class Vision extends SubsystemBase {
   /**
    * STUB: Detected robot data from Orange Pi ML model.
    *
-   * [ORANGE PI WILL PROVIDE]
-   * - Position relative to our robot (robot-centric coordinates)
-   * - Estimated velocity for prediction
-   * - Alliance color if determinable
-   * - Confidence score from ML model
+   * <p>[ORANGE PI WILL PROVIDE] - Position relative to our robot (robot-centric coordinates) -
+   * Estimated velocity for prediction - Alliance color if determinable - Confidence score from ML
+   * model
    *
    * @param x X position relative to robot (meters, positive = front)
    * @param y Y position relative to robot (meters, positive = left)
@@ -502,6 +489,7 @@ public class Vision extends SubsystemBase {
 
     /**
      * Check if this robot is on a collision course with us.
+     *
      * @param timeHorizon How far ahead to predict (seconds)
      * @param safeDistance Minimum safe distance (meters)
      * @return True if predicted to be within safeDistance
@@ -518,10 +506,8 @@ public class Vision extends SubsystemBase {
   /**
    * STUB: Detected FUEL (game piece) data from Orange Pi.
    *
-   * [ORANGE PI WILL PROVIDE]
-   * - Position relative to robot (for driving to it)
-   * - Position on field (if AprilTags visible)
-   * - Intake alignment assistance
+   * <p>[ORANGE PI WILL PROVIDE] - Position relative to robot (for driving to it) - Position on
+   * field (if AprilTags visible) - Intake alignment assistance
    *
    * @param x X position relative to robot (meters)
    * @param y Y position relative to robot (meters)
@@ -543,28 +529,22 @@ public class Vision extends SubsystemBase {
       double timestamp) {
 
     /** Distance threshold for "ready to intake" */
-    public static final double INTAKE_RANGE = 1.0;  // meters
+    public static final double INTAKE_RANGE = 1.0; // meters
 
     /** Angle threshold for "aligned with intake" */
-    public static final double INTAKE_ANGLE_TOLERANCE = Math.toRadians(5);  // 5 degrees
+    public static final double INTAKE_ANGLE_TOLERANCE = Math.toRadians(5); // 5 degrees
 
-    /**
-     * Check if FUEL is close enough to intake.
-     */
+    /** Check if FUEL is close enough to intake. */
     public boolean inIntakeRange() {
       return distance < INTAKE_RANGE;
     }
 
-    /**
-     * Check if robot is aligned to intake this FUEL.
-     */
+    /** Check if robot is aligned to intake this FUEL. */
     public boolean isAligned() {
       return Math.abs(angle) < INTAKE_ANGLE_TOLERANCE;
     }
 
-    /**
-     * Check if field position is known (AprilTags were visible).
-     */
+    /** Check if field position is known (AprilTags were visible). */
     public boolean hasFieldPosition() {
       return !Double.isNaN(fieldX) && !Double.isNaN(fieldY);
     }
@@ -573,8 +553,8 @@ public class Vision extends SubsystemBase {
   /**
    * STUB: Complete vision frame from Orange Pi containing all detections.
    *
-   * [ORANGE PI PUBLISHES ONE OF THESE EACH FRAME]
-   * Contains all detections from a single camera frame.
+   * <p>[ORANGE PI PUBLISHES ONE OF THESE EACH FRAME] Contains all detections from a single camera
+   * frame.
    *
    * @param timestamp When the image was captured (FPGA time)
    * @param robots List of detected robots (may be empty)
@@ -589,30 +569,21 @@ public class Vision extends SubsystemBase {
       Optional<VisionUpdate> aprilTagPose,
       double processingTimeMs) {
 
-    /**
-     * Get the closest detected robot, if any.
-     */
+    /** Get the closest detected robot, if any. */
     public Optional<DetectedRobot> getClosestRobot() {
-      return robots.stream()
-          .min((a, b) -> Double.compare(a.distance(), b.distance()));
+      return robots.stream().min((a, b) -> Double.compare(a.distance(), b.distance()));
     }
 
-    /**
-     * Get the best FUEL to target (closest with high confidence).
-     */
+    /** Get the best FUEL to target (closest with high confidence). */
     public Optional<DetectedFuel> getBestFuel() {
       return fuels.stream()
-          .filter(f -> f.confidence() > 0.5)  // Minimum confidence
+          .filter(f -> f.confidence() > 0.5) // Minimum confidence
           .min((a, b) -> Double.compare(a.distance(), b.distance()));
     }
 
-    /**
-     * Get all robots that are collision threats.
-     */
+    /** Get all robots that are collision threats. */
     public List<DetectedRobot> getCollisionThreats(double timeHorizon, double safeDistance) {
-      return robots.stream()
-          .filter(r -> r.isCollisionThreat(timeHorizon, safeDistance))
-          .toList();
+      return robots.stream().filter(r -> r.isCollisionThreat(timeHorizon, safeDistance)).toList();
     }
   }
 
@@ -621,8 +592,8 @@ public class Vision extends SubsystemBase {
   // ========================================================================
 
   /**
-   * NetworkTables paths where Orange Pi will publish data.
-   * These are constants for consistency between Orange Pi and roboRIO code.
+   * NetworkTables paths where Orange Pi will publish data. These are constants for consistency
+   * between Orange Pi and roboRIO code.
    */
   public static final class NTKeys {
     // AprilTag data
@@ -681,21 +652,20 @@ public class Vision extends SubsystemBase {
   /**
    * Camera configurations - add more cameras by adding to this list.
    *
-   * Each camera needs:
-   * - name: Must match the camera name in PhotonVision
-   * - robotToCamera: Transform from robot center to camera position
-   * - strategy: How to calculate pose (MULTI_TAG is best)
+   * <p>Each camera needs: - name: Must match the camera name in PhotonVision - robotToCamera:
+   * Transform from robot center to camera position - strategy: How to calculate pose (MULTI_TAG is
+   * best)
    */
-  private final List<CameraConfig> cameraConfigs = List.of(
-      new CameraConfig(
-          "example_cam_1",
-          VisionConstants.EXAMPLE_CAMERA_TRANSFORM_1,
-          PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR),
-
-      new CameraConfig(
-          "example_cam_2",
-          VisionConstants.EXAMPLE_CAMERA_TRANSFORM_2,
-          PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR));
+  private final List<CameraConfig> cameraConfigs =
+      List.of(
+          new CameraConfig(
+              "example_cam_1",
+              VisionConstants.EXAMPLE_CAMERA_TRANSFORM_1,
+              PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR),
+          new CameraConfig(
+              "example_cam_2",
+              VisionConstants.EXAMPLE_CAMERA_TRANSFORM_2,
+              PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR));
 
   // ========================================================================
   // TODO: ORANGE PI INTEGRATION FIELDS
@@ -717,8 +687,9 @@ public class Vision extends SubsystemBase {
 
   public Vision() {
     try {
-      fieldLayout = new AprilTagFieldLayout(
-          Filesystem.getDeployDirectory().toPath().resolve("2026-rebuilt-welded.json"));
+      fieldLayout =
+          new AprilTagFieldLayout(
+              Filesystem.getDeployDirectory().toPath().resolve("2026-rebuilt-welded.json"));
     } catch (IOException e) {
       throw new RuntimeException("Failed to load AprilTag layout", e);
     }
@@ -726,10 +697,8 @@ public class Vision extends SubsystemBase {
     // Initialize cameras & estimators w/ config data
     for (CameraConfig cfg : cameraConfigs) {
       PhotonCamera cam = new PhotonCamera(cfg.name());
-      PhotonPoseEstimator estimator = new PhotonPoseEstimator(
-          fieldLayout,
-          cfg.strategy(),
-          cfg.robotToCamera());
+      PhotonPoseEstimator estimator =
+          new PhotonPoseEstimator(fieldLayout, cfg.strategy(), cfg.robotToCamera());
 
       cameras.add(cam);
       estimators.add(estimator);
@@ -737,9 +706,7 @@ public class Vision extends SubsystemBase {
   }
 
   private Optional<VisionUpdate> getSingleCameraUpdate(
-      PhotonCamera camera,
-      PhotonPoseEstimator estimator,
-      Pose2d robotPose) {
+      PhotonCamera camera, PhotonPoseEstimator estimator, Pose2d robotPose) {
 
     PhotonPipelineResult result = camera.getLatestResult();
 
@@ -758,10 +725,8 @@ public class Vision extends SubsystemBase {
 
     List<PhotonTrackedTarget> targets = result.getTargets();
     int tagCount = targets.size();
-    double avgAmbiguity = targets.stream()
-        .mapToDouble(PhotonTrackedTarget::getPoseAmbiguity)
-        .average()
-        .orElse(1.0);
+    double avgAmbiguity =
+        targets.stream().mapToDouble(PhotonTrackedTarget::getPoseAmbiguity).average().orElse(1.0);
 
     // Is this tag legal?
     for (PhotonTrackedTarget t : targets) {
@@ -776,8 +741,7 @@ public class Vision extends SubsystemBase {
     }
 
     // Are there enough tags for us to make a good guess?
-    if (tagCount < VisionConstants.MIN_TAG_COUNT)
-      return Optional.empty();
+    if (tagCount < VisionConstants.MIN_TAG_COUNT) return Optional.empty();
 
     // Does data meet our custom, personal standards?
     if (avgAmbiguity > VisionConstants.AMBIGUITY_THRESHOLD) {
@@ -797,28 +761,33 @@ public class Vision extends SubsystemBase {
     Pose2d pose2d = est.estimatedPose.toPose2d();
 
     // Did we do a crazy change from our last position?
-    if (pose2d.getTranslation().getDistance(robotPose.getTranslation()) > VisionConstants.MAX_POSE_DIFFERENCE) {
+    if (pose2d.getTranslation().getDistance(robotPose.getTranslation())
+        > VisionConstants.MAX_POSE_DIFFERENCE) {
       return Optional.empty();
     }
 
-    double avgDistance = targets.stream().mapToDouble(t -> t.getBestCameraToTarget().getTranslation().getNorm())
-        .average().orElse(5.0);
-    if (avgDistance > VisionConstants.MAX_TAG_DISTANCE)
-      return Optional.empty();
+    double avgDistance =
+        targets.stream()
+            .mapToDouble(t -> t.getBestCameraToTarget().getTranslation().getNorm())
+            .average()
+            .orElse(5.0);
+    if (avgDistance > VisionConstants.MAX_TAG_DISTANCE) return Optional.empty();
 
     SmartDashboard.putNumber("Vision/" + camera.getName() + "/TagCount", tagCount);
     SmartDashboard.putNumber("Vision/" + camera.getName() + "/AvgAmbiguity", avgAmbiguity);
     SmartDashboard.putNumber("Vision/" + camera.getName() + "/AvgDistance", avgDistance);
-    SmartDashboard.putNumberArray("Vision/" + camera.getName() + "/Pose2d",
-        new double[] { pose2d.getX(), pose2d.getY(), pose2d.getRotation().getDegrees() });
+    SmartDashboard.putNumberArray(
+        "Vision/" + camera.getName() + "/Pose2d",
+        new double[] {pose2d.getX(), pose2d.getY(), pose2d.getRotation().getDegrees()});
 
-    return Optional.of(new VisionUpdate(
-        est.estimatedPose,
-        est.estimatedPose.toPose2d(),
-        est.timestampSeconds,
-        tagCount,
-        avgDistance,
-        avgAmbiguity));
+    return Optional.of(
+        new VisionUpdate(
+            est.estimatedPose,
+            est.estimatedPose.toPose2d(),
+            est.timestampSeconds,
+            tagCount,
+            avgDistance,
+            avgAmbiguity));
   }
 
   public Optional<VisionUpdate> getBestVisionUpdate(Pose2d robotPose) {
@@ -842,9 +811,8 @@ public class Vision extends SubsystemBase {
       score += 1.5 * (1.0 / (update.avgDistanceMeters() + 0.1)); // less distance is good
       score += 1.0 * (1.0 - Math.min(update.avgAmbiguity(), 1.0)); // certainty is good
 
-      double odomDistance = update.pose2d()
-          .getTranslation()
-          .getDistance(robotPose.getTranslation());
+      double odomDistance =
+          update.pose2d().getTranslation().getDistance(robotPose.getTranslation());
       score -= odomDistance / 2; // Difference when compared to 'official' odometry results
 
       if (score > bestScore) {
@@ -877,8 +845,7 @@ public class Vision extends SubsystemBase {
    * @return 3D pose if available
    */
   public Optional<Pose3d> getPose3d(Pose2d robotPose) {
-    return getBestVisionUpdate(robotPose)
-        .map(update -> update.pose3d());
+    return getBestVisionUpdate(robotPose).map(update -> update.pose3d());
   }
 
   /**
@@ -1085,4 +1052,4 @@ public class Vision extends SubsystemBase {
   //     }
   // }
 
-}  // End of Vision class
+} // End of Vision class

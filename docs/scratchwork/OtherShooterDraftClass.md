@@ -47,7 +47,7 @@ public class OtherShooterDraftClass {
      * <hr>
      * 
      * @apiNote Updates the x and y values of the hub depending on our alliance
-     * @apiNote Sets X to -180.0° if we're not on an alliance, signaling catastrophe
+     * @apiNote Sets X to -180.0 deg if we're not on an alliance, signaling catastrophe
      */
     @SuppressWarnings("unlikely-arg-type")
     private void UpdateHubLocation() {

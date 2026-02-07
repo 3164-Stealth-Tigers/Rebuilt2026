@@ -1,0 +1,13 @@
+#!/bin/bash
+# Pre-commit hook: runs formatting and ASCII checks via Spotless.
+# Installed automatically by ./gradlew compileJava (installGitHook task).
+
+echo "Running spotlessCheck..."
+./gradlew spotlessCheck --daemon
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked: formatting or ASCII issues found."
+    echo "Run './gradlew spotlessApply' to fix, then re-stage and commit."
+    exit 1
+fi

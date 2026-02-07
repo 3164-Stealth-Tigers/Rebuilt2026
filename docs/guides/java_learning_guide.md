@@ -38,9 +38,9 @@ If the website doesn't automatically detect Windows, click on "Other platforms" 
 3. If Windows asks "Do you want to allow this app to make changes?" click **Yes**
 4. The installer wizard will open. Click **Next**
 5. On the "Custom Setup" screen, make sure these options are checked:
-   - ✅ Add to PATH
-   - ✅ Set JAVA_HOME variable
-   - ✅ JavaSoft (Oracle) registry keys
+   - [x] Add to PATH
+   - [x] Set JAVA_HOME variable
+   - [x] JavaSoft (Oracle) registry keys
 6. Click **Next**, then click **Install**
 7. Wait for the installation to complete
 8. Click **Finish**
@@ -96,10 +96,10 @@ IntelliJ IDEA is an IDE (Integrated Development Environment) - a program that he
 4. Click **Next** on the welcome screen
 5. Choose the installation location (the default is fine) and click **Next**
 6. On the "Installation Options" screen, check these boxes:
-   - ✅ 64-bit launcher (creates a desktop shortcut)
-   - ✅ Add "Open Folder as Project" (helpful for opening projects)
-   - ✅ .java (associates Java files with IntelliJ)
-   - ✅ Add launchers dir to the PATH
+   - [x] 64-bit launcher (creates a desktop shortcut)
+   - [x] Add "Open Folder as Project" (helpful for opening projects)
+   - [x] .java (associates Java files with IntelliJ)
+   - [x] Add launchers dir to the PATH
 7. Click **Next**
 8. Click **Install**
 9. Wait for the installation to complete
@@ -139,10 +139,10 @@ Now let's write your first Java program that prints "Hello, World!" to the scree
 1. In the left panel, you'll see your project structure:
    ```
    HelloWorld
-   └── src
+   +-- src
    ```
 2. Right-click on the **src** folder
-3. Select **New** → **Java Class**
+3. Select **New** -> **Java Class**
 4. Type `Main` for the name and press Enter
 5. IntelliJ creates a new file with this code:
    ```java
@@ -177,7 +177,7 @@ public class Main {
 
 **Method 1: Using the Green Play Button**
 1. Look at the left margin next to line 1 or line 2
-2. You'll see a small green **▶** (play) icon
+2. You'll see a small green **>** (play) icon
 3. Click on it
 4. Select **"Run 'Main.main()'"**
 
@@ -197,7 +197,7 @@ Hello, World!
 Process finished with exit code 0
 ```
 
-**Congratulations!** 🎉 You've written and run your first Java program!
+**Congratulations!**  You've written and run your first Java program!
 
 ---
 
@@ -284,12 +284,12 @@ public class Main {
 ### Error: "Cannot resolve symbol 'String'" or "Cannot resolve symbol 'System'"
 - **Cause:** The JDK is not configured in your IntelliJ project
 - **Fix:** You need to tell IntelliJ where Java is installed:
-  1. Go to **File** → **Project Structure** (or press `Ctrl + Alt + Shift + S`)
+  1. Go to **File** -> **Project Structure** (or press `Ctrl + Alt + Shift + S`)
   2. In the left panel, click **Project**
   3. Look at the **SDK** dropdown at the top
      - If it says `<No SDK>`, click the dropdown
      - Select **17** (temurin-17) or any version 17
-     - If no JDK appears in the list, click **Add SDK** → **Download JDK**
+     - If no JDK appears in the list, click **Add SDK** -> **Download JDK**
        - Version: **17**
        - Vendor: **Eclipse Temurin** (or any vendor)
        - Click **Download**
@@ -300,7 +300,7 @@ public class Main {
 **Alternative quick fix:**
 1. Look at the bottom-right corner of IntelliJ
 2. If you see "No SDK" or a warning icon, click it
-3. Select **Setup SDK** → choose version 17
+3. Select **Setup SDK** -> choose version 17
 
 ### Error: "Cannot resolve symbol" (other symbols)
 - **Cause:** You misspelled something or forgot to import a class
@@ -355,9 +355,9 @@ public class Main {
 
 Instead of typing everything out, IntelliJ has shortcuts:
 
-1. Type `sout` and press **Tab** → expands to `System.out.println();`
-2. Type `psvm` and press **Tab** → expands to `public static void main(String[] args) { }`
-3. Type `fori` and press **Tab** → creates a for loop template
+1. Type `sout` and press **Tab** -> expands to `System.out.println();`
+2. Type `psvm` and press **Tab** -> expands to `public static void main(String[] args) { }`
+3. Type `fori` and press **Tab** -> creates a for loop template
 
 ### Auto-Import
 
@@ -1701,18 +1701,18 @@ Motor RPM: 5000 (input)
 Gear Ratio: 8.14 (motor turns per wheel turn)
 
           Motor RPM      5000
-Wheel RPM = ──────────  = ────── ≈ 614.25 RPM
+Wheel RPM = ----------  = ------ ~ 614.25 RPM
           Gear Ratio     8.14
 
-+──────────────────────────────────────────────+
-│                                              │
-│   MOTOR ──(8.14:1 gears)──> WHEEL           │
-│   5000 RPM                   614 RPM        │
-│                                              │
-│   For every 8.14 motor rotations,           │
-│   the wheel rotates once.                   │
-│                                              │
-+──────────────────────────────────────────────+
++----------------------------------------------+
+|                                              |
+|   MOTOR --(8.14:1 gears)--> WHEEL           |
+|   5000 RPM                   614 RPM        |
+|                                              |
+|   For every 8.14 motor rotations,           |
+|   the wheel rotates once.                   |
+|                                              |
++----------------------------------------------+
 ```
 
 ```java
@@ -1723,7 +1723,7 @@ public double motorToWheelRpm(double motorRpm, double gearRatio) {
 
 ## Exercise 2: Conditionals
 ```
-Height (inches) ──────────────────────────────────────────>
+Height (inches) ------------------------------------------>
      0        35         45         70         78.5
      |         |          |          |          |
      +---------+----------+----------+----------+
@@ -1904,7 +1904,7 @@ public String getRobotState(boolean hasPiece, boolean nearTarget, boolean elevat
 ## Exercise 16: String Formatting
 ```java
 public String formatTelemetry(int motorId, double voltage, double current, double temp) {
-    return String.format("Motor %d: %.2fV, %.2fA, %.1f°C",
+    return String.format("Motor %d: %.2fV, %.2fA, %.1f degC",
         motorId, voltage, current, temp);
 }
 ```

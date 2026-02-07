@@ -1,6 +1,7 @@
 plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
+    id "com.diffplug.spotless" version "7.0.2"
 }
 
 java {
@@ -102,3 +103,26 @@ wpi.java.configureExecutableTasks(jar)
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
 }
+
+// Spotless: code formatting + ASCII enforcement
+spotless {
+    java {
+        target 'src/**/*.java'
+        googleJavaFormat()
+        custom 'no-non-ascii', { text ->
+            def matcher = (text =~ /[^\x00-\x7F]/)
+            if (matcher.find()) {
+                throw new AssertionError("Non-ASCII character found. Run: ./gradlew spotlessApply")
+            }
+            return text
+        }
+    }
+}
+
+// Install git pre-commit hook automatically
+tasks.register('installGitHook', Copy) {
+    from '.hooks/pre-commit'
+    into '.git/hooks'
+    fileMode 0755
+}
+tasks.named('compileJava') { dependsOn 'installGitHook' }

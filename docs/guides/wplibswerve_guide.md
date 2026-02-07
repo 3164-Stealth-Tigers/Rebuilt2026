@@ -56,28 +56,28 @@ WPILib provides native swerve drive classes that handle all the mathematics for 
 
 ```
 src_java/frc/robot/
-├── Constants.java                    # All swerve constants
-├── subsystems/
-│   └── swerve/
-│       ├── SwerveDrive.java         # Main swerve subsystem
-│       └── SwerveModule.java        # Individual module control
-└── commands/
-    └── SwerveCommands.java          # Swerve-related commands
++-- Constants.java                    # All swerve constants
++-- subsystems/
+|   +-- swerve/
+|       +-- SwerveDrive.java         # Main swerve subsystem
+|       +-- SwerveModule.java        # Individual module control
++-- commands/
+    +-- SwerveCommands.java          # Swerve-related commands
 ```
 
 ### Component Hierarchy
 
 ```
 SwerveDrive (SubsystemBase)
-├── Pigeon2 Gyro (CAN ID 0)
-├── SwerveDriveKinematics
-├── SwerveDrivePoseEstimator
-└── SwerveModules (4x SwerveModule)
-    ├── SparkMax Drive Motor (NEO)
-    │   └── Integrated Encoder
-    ├── SparkMax Azimuth Motor (NEO)
-    │   └── Integrated Encoder
-    └── CANCoder (Absolute Position)
++-- Pigeon2 Gyro (CAN ID 0)
++-- SwerveDriveKinematics
++-- SwerveDrivePoseEstimator
++-- SwerveModules (4x SwerveModule)
+    +-- SparkMax Drive Motor (NEO)
+    |   +-- Integrated Encoder
+    +-- SparkMax Azimuth Motor (NEO)
+    |   +-- Integrated Encoder
+    +-- CANCoder (Absolute Position)
 ```
 
 ### WPILib Swerve Classes
@@ -86,29 +86,29 @@ SwerveDrive (SubsystemBase)
 +-----------------------------------+
 |     SwerveDriveKinematics        |
 |-----------------------------------|
-| • Converts ChassisSpeeds to      |
+| * Converts ChassisSpeeds to      |
 |   SwerveModuleState[]            |
-| • Converts module states to      |
+| * Converts module states to      |
 |   ChassisSpeeds                  |
-| • Desaturates wheel speeds       |
+| * Desaturates wheel speeds       |
 +-----------------------------------+
            |
            v
 +-----------------------------------+
 |     SwerveDrivePoseEstimator     |
 |-----------------------------------|
-| • Combines odometry + vision     |
-| • Tracks robot position          |
-| • Returns Pose2d                 |
+| * Combines odometry + vision     |
+| * Tracks robot position          |
+| * Returns Pose2d                 |
 +-----------------------------------+
            |
            v
 +-----------------------------------+
 |     SwerveModuleState            |
 |-----------------------------------|
-| • speedMetersPerSecond           |
-| • angle (Rotation2d)             |
-| • optimize() - reduces rotation  |
+| * speedMetersPerSecond           |
+| * angle (Rotation2d)             |
+| * optimize() - reduces rotation  |
 +-----------------------------------+
 ```
 

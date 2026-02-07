@@ -18,13 +18,13 @@ package frc.robot.subsystems.vision;
  * knowing where it is on the field, we can calculate where WE are.
  *
  *   AprilTag example:
- *   ┌─────────────┐
- *   │ ▓░▓░▓░▓░▓░▓ │
- *   │ ░▓░▓░▓░▓░▓░ │
- *   │ ▓░   ID   ░▓ │
- *   │ ░▓░▓░▓░▓░▓░ │
- *   │ ▓░▓░▓░▓░▓░▓ │
- *   └─────────────┘
+ *   +-------------+
+ *   | #.#.#.#.#.# |
+ *   | .#.#.#.#.#. |
+ *   | #.   ID   .# |
+ *   | .#.#.#.#.#. |
+ *   | #.#.#.#.#.# |
+ *   +-------------+
  *
  * HOW POSE ESTIMATION WORKS:
  * --------------------------
@@ -35,9 +35,9 @@ package frc.robot.subsystems.vision;
  *   4. Knowing camera position on robot, we calculate robot position
  *
  *      AprilTag                    Camera
- *      ┌───┐                      [   ]
- *      │ # │  ←─ distance ─→      [===]
- *      └───┘                      Robot
+ *      +---+                      [   ]
+ *      | # |  <-- distance -->      [===]
+ *      +---+                      Robot
  *      (known position)           (calculated position)
  *
  * MULTI-TAG PNP:
@@ -60,8 +60,8 @@ package frc.robot.subsystems.vision;
  *
  * QUICK REFERENCE:
  * ----------------
- * → Get robot pose estimate: vision.getPoseEstimation(currentPose)
- * → Test cameras: vision.testCameras()
+ * -> Get robot pose estimate: vision.getPoseEstimation(currentPose)
+ * -> Test cameras: vision.testCameras()
  *
  * ========================================================================
  */
@@ -184,7 +184,7 @@ public class ReefscapeVision extends SubsystemBase {
      *   - Roll, pitch, yaw angles of the camera
      *
      *   Robot Center    Camera
-     *       ○ ─────────→ [□]
+     *       o ----------> [[]]
      *           transform
      *
      * [POSE STRATEGY]

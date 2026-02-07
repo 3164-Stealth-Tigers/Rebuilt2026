@@ -389,8 +389,8 @@ The following values are displayed on SmartDashboard:
 
 ## Code References
 
-- Constants: `Constants.java` → `AutoConstants`
+- Constants: `Constants.java` -> `AutoConstants`
 - DIP Switch Reader: `util/DipSwitchSelector.java`
 - Auto Routines: `auto/AutoRoutines.java`
-- Selection Logic: `RobotContainer.java` → `getAutonomousCommand()`
+- Selection Logic: `RobotContainer.java` -> `getAutonomousCommand()`
 - Simulator Controller: `simulator/engine/AutonomousController.java`

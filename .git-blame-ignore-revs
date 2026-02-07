@@ -1,0 +1,5 @@
+# Formatting commits to ignore in git blame
+# Usage: git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Add the SHA of the Spotless formatting commit below after committing:
+# <FORMATTING_COMMIT_SHA>

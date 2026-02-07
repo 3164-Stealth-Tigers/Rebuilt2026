@@ -15,117 +15,108 @@ import frc.robot.subsystems.swerve.SwerveDrive;
 /**
  * Complete autonomous routines for the REBUILT 2026 game.
  *
- * Contains 20 autonomous modes selectable via 5-bit DIP switch.
- * Modes have been optimized using simulator benchmarking with 1000+ simulations each.
+ * <p>Contains 20 autonomous modes selectable via 5-bit DIP switch. Modes have been optimized using
+ * simulator benchmarking with 1000+ simulations each.
  *
- * BENCHMARK RESULTS (from simulator):
- * - Mode 13 (Depot+Climb): 20 pts - BEST OVERALL
- * - Mode 2/3/12 (Climb modes): 18 pts - Reliable
- * - Mode 1/7 (FUEL only): 8 pts - Max FUEL
- * - Mode 11 (Fast Climb): 15 pts - Guaranteed climb
+ * <p>BENCHMARK RESULTS (from simulator): - Mode 13 (Depot+Climb): 20 pts - BEST OVERALL - Mode
+ * 2/3/12 (Climb modes): 18 pts - Reliable - Mode 1/7 (FUEL only): 8 pts - Max FUEL - Mode 11 (Fast
+ * Climb): 15 pts - Guaranteed climb
  *
- * SCORING:
- * - FUEL: 1 point each
- * - L1 Climb in AUTO: 15 points
- * - Preload: 3 FUEL (3 pts)
- * - Depot collection: 2 FUEL
- * - Neutral zone: up to 5 FUEL
+ * <p>SCORING: - FUEL: 1 point each - L1 Climb in AUTO: 15 points - Preload: 3 FUEL (3 pts) - Depot
+ * collection: 2 FUEL - Neutral zone: up to 5 FUEL
  */
 public final class AutoRoutines {
 
-    private AutoRoutines() {
-        // Utility class - prevent instantiation
-    }
+  private AutoRoutines() {
+    // Utility class - prevent instantiation
+  }
 
-    // ================================================================
-    // ALLIANCE-AWARE POSITION HELPERS
-    // ================================================================
+  // ================================================================
+  // ALLIANCE-AWARE POSITION HELPERS
+  // ================================================================
 
-    /** Get alliance-appropriate HUB X position */
-    private static double getHubX() {
-        return isRedAlliance() ? FieldConstants.RED_HUB_X : FieldConstants.BLUE_HUB_X;
-    }
+  /** Get alliance-appropriate HUB X position */
+  private static double getHubX() {
+    return isRedAlliance() ? FieldConstants.RED_HUB_X : FieldConstants.BLUE_HUB_X;
+  }
 
-    /** Get alliance-appropriate Tower X position */
-    private static double getTowerX() {
-        return isRedAlliance() ? FieldConstants.RED_TOWER_X : FieldConstants.BLUE_TOWER_X;
-    }
+  /** Get alliance-appropriate Tower X position */
+  private static double getTowerX() {
+    return isRedAlliance() ? FieldConstants.RED_TOWER_X : FieldConstants.BLUE_TOWER_X;
+  }
 
-    /** Get alliance-appropriate Tower Y position */
-    private static double getTowerY() {
-        return isRedAlliance() ? FieldConstants.RED_TOWER_Y : FieldConstants.BLUE_TOWER_Y;
-    }
+  /** Get alliance-appropriate Tower Y position */
+  private static double getTowerY() {
+    return isRedAlliance() ? FieldConstants.RED_TOWER_Y : FieldConstants.BLUE_TOWER_Y;
+  }
 
-    /** Get alliance-appropriate Depot X position */
-    private static double getDepotX() {
-        return isRedAlliance() ? FieldConstants.RED_DEPOT_X : FieldConstants.BLUE_DEPOT_X;
-    }
+  /** Get alliance-appropriate Depot X position */
+  private static double getDepotX() {
+    return isRedAlliance() ? FieldConstants.RED_DEPOT_X : FieldConstants.BLUE_DEPOT_X;
+  }
 
-    /** Get alliance-appropriate Depot Y position */
-    private static double getDepotY() {
-        return isRedAlliance() ? FieldConstants.RED_DEPOT_Y : FieldConstants.BLUE_DEPOT_Y;
-    }
+  /** Get alliance-appropriate Depot Y position */
+  private static double getDepotY() {
+    return isRedAlliance() ? FieldConstants.RED_DEPOT_Y : FieldConstants.BLUE_DEPOT_Y;
+  }
 
-    /** Check if we're on the red alliance */
-    private static boolean isRedAlliance() {
-        return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
-    }
+  /** Check if we're on the red alliance */
+  private static boolean isRedAlliance() {
+    return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+  }
 
-    /** Get direction multiplier for X movement (1 for red, -1 for blue) */
-    private static double getAllianceDirection() {
-        return isRedAlliance() ? -1.0 : 1.0;
-    }
+  /** Get direction multiplier for X movement (1 for red, -1 for blue) */
+  private static double getAllianceDirection() {
+    return isRedAlliance() ? -1.0 : 1.0;
+  }
 
-    /** Get shooting position (in alliance zone, safe distance from hub) */
-    private static Pose2d getShootingPose() {
-        double x = isRedAlliance() ?
-            FieldConstants.FIELD_LENGTH - 2.5 : 2.5;
-        return new Pose2d(x, FieldConstants.CENTER_Y, Rotation2d.fromDegrees(isRedAlliance() ? 180 : 0));
-    }
+  /** Get shooting position (in alliance zone, safe distance from hub) */
+  private static Pose2d getShootingPose() {
+    double x = isRedAlliance() ? FieldConstants.FIELD_LENGTH - 2.5 : 2.5;
+    return new Pose2d(
+        x, FieldConstants.CENTER_Y, Rotation2d.fromDegrees(isRedAlliance() ? 180 : 0));
+  }
 
-    /** Get tower approach position */
-    private static Pose2d getTowerPose() {
-        double offset = isRedAlliance() ? -1.0 : 1.0;
-        return new Pose2d(getTowerX() + offset, getTowerY(), Rotation2d.fromDegrees(0));
-    }
+  /** Get tower approach position */
+  private static Pose2d getTowerPose() {
+    double offset = isRedAlliance() ? -1.0 : 1.0;
+    return new Pose2d(getTowerX() + offset, getTowerY(), Rotation2d.fromDegrees(0));
+  }
 
-    /** Get depot position */
-    private static Pose2d getDepotPose() {
-        return new Pose2d(getDepotX(), getDepotY(), Rotation2d.fromDegrees(0));
-    }
+  /** Get depot position */
+  private static Pose2d getDepotPose() {
+    return new Pose2d(getDepotX(), getDepotY(), Rotation2d.fromDegrees(0));
+  }
 
-    /** Get neutral zone collection position */
-    private static Pose2d getNeutralPose(boolean farSide) {
-        double offset = farSide ? FieldConstants.NEUTRAL_FAR_OFFSET : FieldConstants.NEUTRAL_CLOSE_OFFSET;
-        double x = FieldConstants.CENTER_X + (isRedAlliance() ? -offset : offset);
-        return new Pose2d(x, FieldConstants.CENTER_Y, Rotation2d.fromDegrees(0));
-    }
+  /** Get neutral zone collection position */
+  private static Pose2d getNeutralPose(boolean farSide) {
+    double offset =
+        farSide ? FieldConstants.NEUTRAL_FAR_OFFSET : FieldConstants.NEUTRAL_CLOSE_OFFSET;
+    double x = FieldConstants.CENTER_X + (isRedAlliance() ? -offset : offset);
+    return new Pose2d(x, FieldConstants.CENTER_Y, Rotation2d.fromDegrees(0));
+  }
 
-    // ================================================================
-    // MODE 0: DO NOTHING (Safety Default)
-    // ================================================================
+  // ================================================================
+  // MODE 0: DO NOTHING (Safety Default)
+  // ================================================================
 
-    /**
-     * Mode 0: Do Nothing - Safety default.
-     * Expected Points: 0
-     */
-    public static Command doNothing() {
-        return Commands.sequence(
-            AutoCommands.logMessage("Mode 0: Do Nothing"),
-            Commands.waitSeconds(15.0)
-        ).withName("0: Do Nothing");
-    }
+  /** Mode 0: Do Nothing - Safety default. Expected Points: 0 */
+  public static Command doNothing() {
+    return Commands.sequence(
+            AutoCommands.logMessage("Mode 0: Do Nothing"), Commands.waitSeconds(15.0))
+        .withName("0: Do Nothing");
+  }
 
-    // ================================================================
-    // MODE 1: SCORE & COLLECT (8 pts)
-    // ================================================================
+  // ================================================================
+  // MODE 1: SCORE & COLLECT (8 pts)
+  // ================================================================
 
-    /**
-     * Mode 1: Score preload, drive to neutral zone, collect FUEL, return and score.
-     * Expected Points: 8 FUEL = 8 pts
-     */
-    public static Command scoreAndCollectAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /**
+   * Mode 1: Score preload, drive to neutral zone, collect FUEL, return and score. Expected Points:
+   * 8 FUEL = 8 pts
+   */
+  public static Command scoreAndCollectAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 1: Score & Collect"),
 
             // Phase 1: Score all preloaded FUEL
@@ -136,13 +127,12 @@ public final class AutoRoutines {
 
             // Phase 3: Collect FUEL while moving
             Commands.parallel(
-                AutoCommands.driveForward(swerve, 2.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED),
-                Commands.sequence(
-                    Commands.runOnce(intake::deploy, intake),
-                    Commands.waitUntil(intake::isDeployed),
-                    Commands.run(intake::runIntake, intake)
-                )
-            ).withTimeout(AutoConstants.INTAKE_TIMEOUT),
+                    AutoCommands.driveForward(swerve, 2.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED),
+                    Commands.sequence(
+                        Commands.runOnce(intake::deploy, intake),
+                        Commands.waitUntil(intake::isDeployed),
+                        Commands.run(intake::runIntake, intake)))
+                .withTimeout(AutoConstants.INTAKE_TIMEOUT),
 
             // Phase 4: Stop intake and retract
             Commands.runOnce(intake::stopRollers, intake),
@@ -151,22 +141,18 @@ public final class AutoRoutines {
             // Phase 5: Return and score
             AutoCommands.driveToPose(swerve, getShootingPose()),
             AutoCommands.shootAllFuel(shooter, intake),
-
             AutoCommands.stopDriving(swerve),
-            AutoCommands.logMessage("Mode 1 Complete")
-        ).withName("1: Score & Collect");
-    }
+            AutoCommands.logMessage("Mode 1 Complete"))
+        .withName("1: Score & Collect");
+  }
 
-    // ================================================================
-    // MODE 4: DEPOT RAID (5 pts)
-    // ================================================================
+  // ================================================================
+  // MODE 4: DEPOT RAID (5 pts)
+  // ================================================================
 
-    /**
-     * Mode 4: Drive to depot, collect FUEL, score all.
-     * Expected Points: 5 FUEL = 5 pts
-     */
-    public static Command depotRaidAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /** Mode 4: Drive to depot, collect FUEL, score all. Expected Points: 5 FUEL = 5 pts */
+  public static Command depotRaidAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 4: Depot Raid"),
 
             // Phase 1: Drive to depot
@@ -176,34 +162,32 @@ public final class AutoRoutines {
             Commands.runOnce(intake::deploy, intake),
             Commands.waitUntil(intake::isDeployed),
             Commands.parallel(
-                Commands.run(intake::runIntake, intake),
-                Commands.sequence(
-                    AutoCommands.driveForward(swerve, 0.5, 0.5),
-                    AutoCommands.driveBackward(swerve, 0.5, 0.5)
-                )
-            ).withTimeout(AutoConstants.DEPOT_COLLECTION_TIME),
+                    Commands.run(intake::runIntake, intake),
+                    Commands.sequence(
+                        AutoCommands.driveForward(swerve, 0.5, 0.5),
+                        AutoCommands.driveBackward(swerve, 0.5, 0.5)))
+                .withTimeout(AutoConstants.DEPOT_COLLECTION_TIME),
             Commands.runOnce(intake::stopRollers, intake),
             Commands.runOnce(intake::retract, intake),
 
             // Phase 3: Drive to scoring position and score
             AutoCommands.driveToPose(swerve, getShootingPose()),
             AutoCommands.shootAllFuel(shooter, intake),
-
             AutoCommands.stopDriving(swerve),
-            AutoCommands.logMessage("Mode 4 Complete")
-        ).withName("4: Depot Raid");
-    }
+            AutoCommands.logMessage("Mode 4 Complete"))
+        .withName("4: Depot Raid");
+  }
 
-    // ================================================================
-    // MODE 5: FAR NEUTRAL (3-4 pts)
-    // ================================================================
+  // ================================================================
+  // MODE 5: FAR NEUTRAL (3-4 pts)
+  // ================================================================
 
-    /**
-     * Mode 5: Score preload, drive to far neutral, collect, score.
-     * Expected Points: 3-4 FUEL = 3-4 pts
-     */
-    public static Command farNeutralAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /**
+   * Mode 5: Score preload, drive to far neutral, collect, score. Expected Points: 3-4 FUEL = 3-4
+   * pts
+   */
+  public static Command farNeutralAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 5: Far Neutral"),
 
             // Phase 1: Score preload
@@ -216,49 +200,42 @@ public final class AutoRoutines {
             Commands.runOnce(intake::deploy, intake),
             Commands.waitUntil(intake::isDeployed),
             Commands.parallel(
-                Commands.run(intake::runIntake, intake),
-                AutoCommands.driveForward(swerve, 1.5, AutoConstants.AUTO_SLOW_DRIVE_SPEED)
-            ).withTimeout(3.0),
+                    Commands.run(intake::runIntake, intake),
+                    AutoCommands.driveForward(swerve, 1.5, AutoConstants.AUTO_SLOW_DRIVE_SPEED))
+                .withTimeout(3.0),
             Commands.runOnce(intake::stopRollers, intake),
             Commands.runOnce(intake::retract, intake),
 
             // Phase 4: Return and score
             AutoCommands.driveToPose(swerve, getShootingPose()),
             AutoCommands.shootAllFuel(shooter, intake),
-
             AutoCommands.stopDriving(swerve),
-            AutoCommands.logMessage("Mode 5 Complete")
-        ).withName("5: Far Neutral");
-    }
+            AutoCommands.logMessage("Mode 5 Complete"))
+        .withName("5: Far Neutral");
+  }
 
-    // ================================================================
-    // MODE 6: PRELOAD ONLY (3 pts)
-    // ================================================================
+  // ================================================================
+  // MODE 6: PRELOAD ONLY (3 pts)
+  // ================================================================
 
-    /**
-     * Mode 6: Just score preload, hold position.
-     * Expected Points: 3 FUEL = 3 pts
-     */
-    public static Command preloadOnlyAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /** Mode 6: Just score preload, hold position. Expected Points: 3 FUEL = 3 pts */
+  public static Command preloadOnlyAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 6: Preload Only"),
             AutoCommands.shootAllFuel(shooter, intake),
             AutoCommands.stopDriving(swerve),
             AutoCommands.holdPosition(swerve, 10.0),
-            AutoCommands.logMessage("Mode 6 Complete (3 pts)")
-        ).withName("6: Preload Only");
-    }
+            AutoCommands.logMessage("Mode 6 Complete (3 pts)"))
+        .withName("6: Preload Only");
+  }
 
-    // ================================================================
-    // MODE 7: MAX CYCLES (8 pts)
-    // ================================================================
+  // ================================================================
+  // MODE 7: MAX CYCLES (8 pts)
+  // ================================================================
 
-    /**
-     * Mode 7: Pure scoring loop - shoot, collect, shoot, repeat.
-     * Expected Points: 8 FUEL = 8 pts
-     */
-    public static Command maxCyclesAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /** Mode 7: Pure scoring loop - shoot, collect, shoot, repeat. Expected Points: 8 FUEL = 8 pts */
+  public static Command maxCyclesAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 7: Max Cycles"),
 
             // Cycle 1: Score preload
@@ -267,33 +244,31 @@ public final class AutoRoutines {
             // Cycle 2: Collect and score
             AutoCommands.driveToPose(swerve, getNeutralPose(false)),
             Commands.parallel(
-                AutoCommands.driveForward(swerve, 2.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED),
-                Commands.sequence(
-                    Commands.runOnce(intake::deploy, intake),
-                    Commands.waitUntil(intake::isDeployed),
-                    Commands.run(intake::runIntake, intake)
-                )
-            ).withTimeout(AutoConstants.INTAKE_TIMEOUT),
+                    AutoCommands.driveForward(swerve, 2.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED),
+                    Commands.sequence(
+                        Commands.runOnce(intake::deploy, intake),
+                        Commands.waitUntil(intake::isDeployed),
+                        Commands.run(intake::runIntake, intake)))
+                .withTimeout(AutoConstants.INTAKE_TIMEOUT),
             Commands.runOnce(intake::stopRollers, intake),
             Commands.runOnce(intake::retract, intake),
             AutoCommands.driveToPose(swerve, getShootingPose()),
             AutoCommands.shootAllFuel(shooter, intake),
-
             AutoCommands.stopDriving(swerve),
-            AutoCommands.logMessage("Mode 7 Complete")
-        ).withName("7: Max Cycles");
-    }
+            AutoCommands.logMessage("Mode 7 Complete"))
+        .withName("7: Max Cycles");
+  }
 
-    // ================================================================
-    // MODE 8: CLIMB SUPPORT (3 pts)
-    // ================================================================
+  // ================================================================
+  // MODE 8: CLIMB SUPPORT (3 pts)
+  // ================================================================
 
-    /**
-     * Mode 8: Score preload, position for TELEOP climb assist.
-     * Expected Points: 3 FUEL = 3 pts (sets up for TELEOP)
-     */
-    public static Command climbSupportAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /**
+   * Mode 8: Score preload, position for TELEOP climb assist. Expected Points: 3 FUEL = 3 pts (sets
+   * up for TELEOP)
+   */
+  public static Command climbSupportAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 8: Climb Support"),
 
             // Score preload
@@ -303,21 +278,17 @@ public final class AutoRoutines {
             AutoCommands.driveToPose(swerve, getTowerPose()),
             AutoCommands.stopDriving(swerve),
             AutoCommands.holdPosition(swerve, 10.0),
+            AutoCommands.logMessage("Mode 8 Complete - Ready for TELEOP climb"))
+        .withName("8: Climb Support");
+  }
 
-            AutoCommands.logMessage("Mode 8 Complete - Ready for TELEOP climb")
-        ).withName("8: Climb Support");
-    }
+  // ================================================================
+  // MODE 9: WIN AUTO (4 pts)
+  // ================================================================
 
-    // ================================================================
-    // MODE 9: WIN AUTO (4 pts)
-    // ================================================================
-
-    /**
-     * Mode 9: Aggressive scoring to win AUTO period.
-     * Expected Points: ~4 FUEL = 4 pts
-     */
-    public static Command winAutoAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /** Mode 9: Aggressive scoring to win AUTO period. Expected Points: ~4 FUEL = 4 pts */
+  public static Command winAutoAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 9: Win AUTO"),
 
             // Rapid score preload
@@ -326,35 +297,30 @@ public final class AutoRoutines {
             // Quick collect cycle
             AutoCommands.driveToPose(swerve, getNeutralPose(false)),
             Commands.parallel(
-                AutoCommands.driveForward(swerve, 1.0, AutoConstants.AUTO_FAST_DRIVE_SPEED),
-                Commands.sequence(
-                    Commands.runOnce(intake::deploy, intake),
-                    Commands.waitUntil(intake::isDeployed),
-                    Commands.run(intake::runIntake, intake)
-                )
-            ).withTimeout(2.0),
+                    AutoCommands.driveForward(swerve, 1.0, AutoConstants.AUTO_FAST_DRIVE_SPEED),
+                    Commands.sequence(
+                        Commands.runOnce(intake::deploy, intake),
+                        Commands.waitUntil(intake::isDeployed),
+                        Commands.run(intake::runIntake, intake)))
+                .withTimeout(2.0),
             Commands.runOnce(intake::stopRollers, intake),
             Commands.runOnce(intake::retract, intake),
 
             // Quick score
             AutoCommands.driveToPose(swerve, getShootingPose()),
             AutoCommands.shootAllFuel(shooter, intake),
-
             AutoCommands.stopDriving(swerve),
-            AutoCommands.logMessage("Mode 9 Complete")
-        ).withName("9: Win AUTO");
-    }
+            AutoCommands.logMessage("Mode 9 Complete"))
+        .withName("9: Win AUTO");
+  }
 
-    // ================================================================
-    // MODE 16: DUAL CYCLE (6-8 pts)
-    // ================================================================
+  // ================================================================
+  // MODE 16: DUAL CYCLE (6-8 pts)
+  // ================================================================
 
-    /**
-     * Mode 16: Two full scoring cycles.
-     * Expected Points: 6-8 FUEL = 6-8 pts
-     */
-    public static Command dualCycleAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /** Mode 16: Two full scoring cycles. Expected Points: 6-8 FUEL = 6-8 pts */
+  public static Command dualCycleAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 16: Dual Cycle"),
 
             // Cycle 1: Score preload
@@ -363,13 +329,12 @@ public final class AutoRoutines {
             // Collect from neutral
             AutoCommands.driveToPose(swerve, getNeutralPose(false)),
             Commands.parallel(
-                AutoCommands.driveForward(swerve, 1.5, AutoConstants.AUTO_INTAKE_DRIVE_SPEED),
-                Commands.sequence(
-                    Commands.runOnce(intake::deploy, intake),
-                    Commands.waitUntil(intake::isDeployed),
-                    Commands.run(intake::runIntake, intake)
-                )
-            ).withTimeout(3.0),
+                    AutoCommands.driveForward(swerve, 1.5, AutoConstants.AUTO_INTAKE_DRIVE_SPEED),
+                    Commands.sequence(
+                        Commands.runOnce(intake::deploy, intake),
+                        Commands.waitUntil(intake::isDeployed),
+                        Commands.run(intake::runIntake, intake)))
+                .withTimeout(3.0),
             Commands.runOnce(intake::stopRollers, intake),
             Commands.runOnce(intake::retract, intake),
 
@@ -380,35 +345,30 @@ public final class AutoRoutines {
             // Cycle 2: Collect again
             AutoCommands.driveToPose(swerve, getNeutralPose(false)),
             Commands.parallel(
-                AutoCommands.driveForward(swerve, 1.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED),
-                Commands.sequence(
-                    Commands.runOnce(intake::deploy, intake),
-                    Commands.waitUntil(intake::isDeployed),
-                    Commands.run(intake::runIntake, intake)
-                )
-            ).withTimeout(2.0),
+                    AutoCommands.driveForward(swerve, 1.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED),
+                    Commands.sequence(
+                        Commands.runOnce(intake::deploy, intake),
+                        Commands.waitUntil(intake::isDeployed),
+                        Commands.run(intake::runIntake, intake)))
+                .withTimeout(2.0),
             Commands.runOnce(intake::stopRollers, intake),
             Commands.runOnce(intake::retract, intake),
 
             // Score cycle 2
             AutoCommands.driveToPose(swerve, getShootingPose()),
             AutoCommands.shootAllFuel(shooter, intake),
-
             AutoCommands.stopDriving(swerve),
-            AutoCommands.logMessage("Mode 16 Complete")
-        ).withName("16: Dual Cycle");
-    }
+            AutoCommands.logMessage("Mode 16 Complete"))
+        .withName("16: Dual Cycle");
+  }
 
-    // ================================================================
-    // MODE 17: DENY FUEL (Strategic)
-    // ================================================================
+  // ================================================================
+  // MODE 17: DENY FUEL (Strategic)
+  // ================================================================
 
-    /**
-     * Mode 17: Collect FUEL to deny opponents.
-     * Expected Points: Variable (strategic)
-     */
-    public static Command denyFuelAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /** Mode 17: Collect FUEL to deny opponents. Expected Points: Variable (strategic) */
+  public static Command denyFuelAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 17: Deny FUEL"),
 
             // Score preload first
@@ -419,80 +379,71 @@ public final class AutoRoutines {
             Commands.runOnce(intake::deploy, intake),
             Commands.waitUntil(intake::isDeployed),
             Commands.parallel(
-                Commands.run(intake::runIntake, intake),
-                Commands.sequence(
-                    AutoCommands.driveForward(swerve, 3.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED),
-                    AutoCommands.strafeLeft(swerve, 1.0, AutoConstants.AUTO_SLOW_DRIVE_SPEED),
-                    AutoCommands.driveBackward(swerve, 2.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED)
-                )
-            ).withTimeout(8.0),
+                    Commands.run(intake::runIntake, intake),
+                    Commands.sequence(
+                        AutoCommands.driveForward(
+                            swerve, 3.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED),
+                        AutoCommands.strafeLeft(swerve, 1.0, AutoConstants.AUTO_SLOW_DRIVE_SPEED),
+                        AutoCommands.driveBackward(
+                            swerve, 2.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED)))
+                .withTimeout(8.0),
             Commands.runOnce(intake::stopRollers, intake),
             Commands.runOnce(intake::retract, intake),
 
             // Score collected FUEL
             AutoCommands.driveToPose(swerve, getShootingPose()),
             AutoCommands.shootAllFuel(shooter, intake),
-
             AutoCommands.stopDriving(swerve),
-            AutoCommands.logMessage("Mode 17 Complete")
-        ).withName("17: Deny FUEL");
-    }
+            AutoCommands.logMessage("Mode 17 Complete"))
+        .withName("17: Deny FUEL");
+  }
 
-    // ================================================================
-    // MODE 18: CENTER CONTROL (Strategic)
-    // ================================================================
+  // ================================================================
+  // MODE 18: CENTER CONTROL (Strategic)
+  // ================================================================
 
-    /**
-     * Mode 18: Control neutral zone center.
-     * Expected Points: Variable (strategic positioning)
-     */
-    public static Command centerControlAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /** Mode 18: Control neutral zone center. Expected Points: Variable (strategic positioning) */
+  public static Command centerControlAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 18: Center Control"),
 
             // Score preload
             AutoCommands.shootAllFuel(shooter, intake),
 
             // Position at center of neutral zone
-            AutoCommands.driveToPose(swerve, new Pose2d(
-                FieldConstants.CENTER_X,
-                FieldConstants.CENTER_Y,
-                Rotation2d.fromDegrees(0)
-            )),
+            AutoCommands.driveToPose(
+                swerve,
+                new Pose2d(
+                    FieldConstants.CENTER_X, FieldConstants.CENTER_Y, Rotation2d.fromDegrees(0))),
 
             // Collect while patrolling center
             Commands.runOnce(intake::deploy, intake),
             Commands.waitUntil(intake::isDeployed),
             Commands.parallel(
-                Commands.run(intake::runIntake, intake),
-                Commands.sequence(
-                    AutoCommands.strafeLeft(swerve, 2.0, AutoConstants.AUTO_SLOW_DRIVE_SPEED),
-                    AutoCommands.strafeRight(swerve, 4.0, AutoConstants.AUTO_SLOW_DRIVE_SPEED),
-                    AutoCommands.strafeLeft(swerve, 2.0, AutoConstants.AUTO_SLOW_DRIVE_SPEED)
-                )
-            ).withTimeout(6.0),
+                    Commands.run(intake::runIntake, intake),
+                    Commands.sequence(
+                        AutoCommands.strafeLeft(swerve, 2.0, AutoConstants.AUTO_SLOW_DRIVE_SPEED),
+                        AutoCommands.strafeRight(swerve, 4.0, AutoConstants.AUTO_SLOW_DRIVE_SPEED),
+                        AutoCommands.strafeLeft(swerve, 2.0, AutoConstants.AUTO_SLOW_DRIVE_SPEED)))
+                .withTimeout(6.0),
             Commands.runOnce(intake::stopRollers, intake),
             Commands.runOnce(intake::retract, intake),
 
             // Score collected
             AutoCommands.driveToPose(swerve, getShootingPose()),
             AutoCommands.shootAllFuel(shooter, intake),
-
             AutoCommands.stopDriving(swerve),
-            AutoCommands.logMessage("Mode 18 Complete")
-        ).withName("18: Center Control");
-    }
+            AutoCommands.logMessage("Mode 18 Complete"))
+        .withName("18: Center Control");
+  }
 
-    // ================================================================
-    // MODE 19: ALLIANCE SUPPORT (Strategic)
-    // ================================================================
+  // ================================================================
+  // MODE 19: ALLIANCE SUPPORT (Strategic)
+  // ================================================================
 
-    /**
-     * Mode 19: Support alliance partner's scoring.
-     * Expected Points: Variable (enables alliance)
-     */
-    public static Command allianceSupportAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  /** Mode 19: Support alliance partner's scoring. Expected Points: Variable (enables alliance) */
+  public static Command allianceSupportAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Mode 19: Alliance Support"),
 
             // Score preload quickly
@@ -505,9 +456,9 @@ public final class AutoRoutines {
             Commands.runOnce(intake::deploy, intake),
             Commands.waitUntil(intake::isDeployed),
             Commands.parallel(
-                Commands.run(intake::runIntake, intake),
-                AutoCommands.driveForward(swerve, 2.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED)
-            ).withTimeout(4.0),
+                    Commands.run(intake::runIntake, intake),
+                    AutoCommands.driveForward(swerve, 2.0, AutoConstants.AUTO_INTAKE_DRIVE_SPEED))
+                .withTimeout(4.0),
             Commands.runOnce(intake::stopRollers, intake),
             Commands.runOnce(intake::retract, intake),
 
@@ -518,99 +469,98 @@ public final class AutoRoutines {
             // Position for TELEOP support
             AutoCommands.stopDriving(swerve),
             AutoCommands.holdPosition(swerve, 3.0),
+            AutoCommands.logMessage("Mode 19 Complete"))
+        .withName("19: Alliance Support");
+  }
 
-            AutoCommands.logMessage("Mode 19 Complete")
-        ).withName("19: Alliance Support");
-    }
+  // ================================================================
+  // SIMPLE TEST ROUTINES (Not DIP selectable)
+  // ================================================================
 
-    // ================================================================
-    // SIMPLE TEST ROUTINES (Not DIP selectable)
-    // ================================================================
-
-    public static Command driveForwardAuto(SwerveDrive swerve) {
-        return Commands.sequence(
+  public static Command driveForwardAuto(SwerveDrive swerve) {
+    return Commands.sequence(
             AutoCommands.logMessage("Test: Drive Forward"),
             AutoCommands.driveForward(swerve, 2.0, AutoConstants.AUTO_DRIVE_SPEED),
             AutoCommands.stopDriving(swerve),
-            AutoCommands.holdPosition(swerve, 1.0)
-        ).withName("Drive Forward Auto");
-    }
+            AutoCommands.holdPosition(swerve, 1.0))
+        .withName("Drive Forward Auto");
+  }
 
-    public static Command driveBackwardAuto(SwerveDrive swerve) {
-        return Commands.sequence(
+  public static Command driveBackwardAuto(SwerveDrive swerve) {
+    return Commands.sequence(
             AutoCommands.logMessage("Test: Drive Backward"),
             AutoCommands.driveBackward(swerve, 2.0, AutoConstants.AUTO_DRIVE_SPEED),
             AutoCommands.stopDriving(swerve),
-            AutoCommands.holdPosition(swerve, 1.0)
-        ).withName("Drive Backward Auto");
-    }
+            AutoCommands.holdPosition(swerve, 1.0))
+        .withName("Drive Backward Auto");
+  }
 
-    public static Command driveAndIntakeAuto(SwerveDrive swerve, Intake intake) {
-        return Commands.sequence(
+  public static Command driveAndIntakeAuto(SwerveDrive swerve, Intake intake) {
+    return Commands.sequence(
             AutoCommands.logMessage("Test: Drive and Intake"),
             Commands.runOnce(intake::deploy, intake),
             Commands.waitUntil(intake::isDeployed),
             AutoCommands.intakeWhileDriving(intake, swerve, 3.0, 1.0),
             Commands.runOnce(intake::stopRollers, intake),
             Commands.runOnce(intake::retract, intake),
-            AutoCommands.stopDriving(swerve)
-        ).withName("Drive and Intake Auto");
-    }
+            AutoCommands.stopDriving(swerve))
+        .withName("Drive and Intake Auto");
+  }
 
-    public static Command twoFuelAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
-        return Commands.sequence(
+  public static Command twoFuelAuto(SwerveDrive swerve, Intake intake, Shooter shooter) {
+    return Commands.sequence(
             AutoCommands.logMessage("Test: Two FUEL Auto"),
             AutoCommands.shootOneFuel(shooter, intake),
             AutoCommands.driveForward(swerve, 2.0, AutoConstants.AUTO_DRIVE_SPEED),
             AutoCommands.intakeFuelWithTimeout(intake, 2.0),
             AutoCommands.driveBackward(swerve, 2.0, AutoConstants.AUTO_DRIVE_SPEED),
             AutoCommands.shootAllFuel(shooter, intake),
-            AutoCommands.stopDriving(swerve)
-        ).withName("Two FUEL Auto");
-    }
+            AutoCommands.stopDriving(swerve))
+        .withName("Two FUEL Auto");
+  }
 
-    // ================================================================
-    // MODE SELECTOR
-    // ================================================================
+  // ================================================================
+  // MODE SELECTOR
+  // ================================================================
 
-    /**
-     * Get the appropriate auto command based on DIP switch selection.
-     *
-     * @param selection The DIP switch value (0-19)
-     * @param swerve The swerve drive subsystem
-     * @param intake The intake subsystem
-     * @param shooter The shooter subsystem
-     * @return The selected autonomous command
-     */
-    public static Command getAutoFromSelection(int selection, SwerveDrive swerve,
-                                                Intake intake, Shooter shooter) {
-        switch (selection) {
-            case AutoConstants.AUTO_DO_NOTHING:
-                return doNothing();
-            case AutoConstants.AUTO_SCORE_AND_COLLECT:
-                return scoreAndCollectAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_DEPOT_RAID:
-                return depotRaidAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_FAR_NEUTRAL:
-                return farNeutralAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_PRELOAD_ONLY:
-                return preloadOnlyAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_MAX_CYCLES:
-                return maxCyclesAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_CLIMB_SUPPORT:
-                return climbSupportAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_WIN_AUTO:
-                return winAutoAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_DUAL_CYCLE:
-                return dualCycleAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_DENY_FUEL:
-                return denyFuelAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_CENTER_CONTROL:
-                return centerControlAuto(swerve, intake, shooter);
-            case AutoConstants.AUTO_ALLIANCE_SUPPORT:
-                return allianceSupportAuto(swerve, intake, shooter);
-            default:
-                return doNothing();
-        }
+  /**
+   * Get the appropriate auto command based on DIP switch selection.
+   *
+   * @param selection The DIP switch value (0-19)
+   * @param swerve The swerve drive subsystem
+   * @param intake The intake subsystem
+   * @param shooter The shooter subsystem
+   * @return The selected autonomous command
+   */
+  public static Command getAutoFromSelection(
+      int selection, SwerveDrive swerve, Intake intake, Shooter shooter) {
+    switch (selection) {
+      case AutoConstants.AUTO_DO_NOTHING:
+        return doNothing();
+      case AutoConstants.AUTO_SCORE_AND_COLLECT:
+        return scoreAndCollectAuto(swerve, intake, shooter);
+      case AutoConstants.AUTO_DEPOT_RAID:
+        return depotRaidAuto(swerve, intake, shooter);
+      case AutoConstants.AUTO_FAR_NEUTRAL:
+        return farNeutralAuto(swerve, intake, shooter);
+      case AutoConstants.AUTO_PRELOAD_ONLY:
+        return preloadOnlyAuto(swerve, intake, shooter);
+      case AutoConstants.AUTO_MAX_CYCLES:
+        return maxCyclesAuto(swerve, intake, shooter);
+      case AutoConstants.AUTO_CLIMB_SUPPORT:
+        return climbSupportAuto(swerve, intake, shooter);
+      case AutoConstants.AUTO_WIN_AUTO:
+        return winAutoAuto(swerve, intake, shooter);
+      case AutoConstants.AUTO_DUAL_CYCLE:
+        return dualCycleAuto(swerve, intake, shooter);
+      case AutoConstants.AUTO_DENY_FUEL:
+        return denyFuelAuto(swerve, intake, shooter);
+      case AutoConstants.AUTO_CENTER_CONTROL:
+        return centerControlAuto(swerve, intake, shooter);
+      case AutoConstants.AUTO_ALLIANCE_SUPPORT:
+        return allianceSupportAuto(swerve, intake, shooter);
+      default:
+        return doNothing();
     }
+  }
 }
