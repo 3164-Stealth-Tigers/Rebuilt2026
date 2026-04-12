@@ -106,6 +106,7 @@ public class RobotContainer {
     // OPERATOR
     operatorJoystick.runSpintake().whileTrue(Commands.startEnd(spindexer::startFeed, spindexer::stopFeed, spindexer));
 
+    // uncomment this out when the turret it enabled or it won't compile
     // operatorJoystick.turretLeft().onTrue(
     //     new InstantCommand(() -> turret.nudgeYaw(-TurretConstants.YAW_NUDGE_DEGREES)));
     // operatorJoystick.turretRight().onTrue(
@@ -135,7 +136,10 @@ public class RobotContainer {
     // }, intake.getR()::stopRollers,
     // intake));
 
-    // operatorJoystick.chatClipThat() removed — POV left now mapped to turretLeft()
+    // operatorJoystick.chatClipThat().onTrue(
+    // new RunCommand(() -> {
+    // vision.getL().rewindRecord(5);
+    // }, vision));
 
   }
 
