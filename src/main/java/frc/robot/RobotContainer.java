@@ -106,6 +106,11 @@ public class RobotContainer {
     // OPERATOR
     operatorJoystick.runSpintake().whileTrue(Commands.startEnd(spindexer::startFeed, spindexer::stopFeed, spindexer));
 
+    // operatorJoystick.turretLeft().onTrue(
+    //     new InstantCommand(() -> turret.nudgeYaw(-TurretConstants.YAW_NUDGE_DEGREES)));
+    // operatorJoystick.turretRight().onTrue(
+    //     new InstantCommand(() -> turret.nudgeYaw(TurretConstants.YAW_NUDGE_DEGREES)));
+
     // operatorJoystick.runFlywheel().whileTrue(
     // Commands.startEnd(
     // turret.getF()::spinUp,
@@ -130,10 +135,7 @@ public class RobotContainer {
     // }, intake.getR()::stopRollers,
     // intake));
 
-    // operatorJoystick.chatClipThat().onTrue(
-    // new RunCommand(() -> {
-    // vision.getL().rewindRecord(5);
-    // }, vision));
+    // operatorJoystick.chatClipThat() removed — POV left now mapped to turretLeft()
 
   }
 

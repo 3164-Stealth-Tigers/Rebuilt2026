@@ -59,6 +59,12 @@ public class Turret extends SubsystemBase {
         return yaw.getDegrees();
     }
 
+    public void nudgeYaw(double degrees) {
+        double target = yaw.getDegrees() + degrees;
+        target = Math.max(TurretConstants.MIN_YAW, Math.min(TurretConstants.MAX_YAW, target));
+        yaw.moveTo(target);
+    }
+
     public double getPitch() {
         return pitch.getDegrees();
     }

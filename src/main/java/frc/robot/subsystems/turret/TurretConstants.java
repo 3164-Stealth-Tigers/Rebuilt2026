@@ -11,6 +11,7 @@ public final class TurretConstants {
   public static final double YAW_TOLERANCE = 2.0 + 1.5; // degrees
   public static final double MAX_YAW = 300 - YAW_TOLERANCE;
   public static final double MIN_YAW = 0.0 + YAW_TOLERANCE;
+  public static final double YAW_NUDGE_DEGREES = 2.0; // manual POV nudge step
   public static final double INIT_YAW = 0.0;
   public static final double OFFSET_YAW = 0.0; // degrees TODO: calibrate
   public static final double YAW_kP = 0.1; // TODO: placeholder

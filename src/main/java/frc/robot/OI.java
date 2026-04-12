@@ -105,8 +105,13 @@ public final class OI {
     }
 
     @Override
-    public Trigger chatClipThat() {
+    public Trigger turretLeft() {
       return stick.povLeft();
+    }
+
+    @Override
+    public Trigger turretRight() {
+      return stick.povRight();
     }
 
     @Override
