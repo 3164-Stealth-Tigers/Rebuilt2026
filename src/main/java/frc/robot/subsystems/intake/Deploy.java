@@ -61,11 +61,4 @@ public class Deploy {
   public double getRotations() {
     return deployEncoder.getPosition();
   }
-
-
-  public void update() {
-      if (Math.abs(deployEncoder.getPosition()) > IntakeConstants.TOLERANCE) {
-        deployEncoder.setPosition(0);
-      }
-    }
 }

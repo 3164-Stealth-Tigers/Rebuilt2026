@@ -53,6 +53,5 @@ public class Intake extends SubsystemBase {
   @Override
   public void periodic() {
     state_machine.update(deploy.isDeployed(), deploy.isStowed());
-    deploy.update();
   }
 }
