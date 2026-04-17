@@ -14,15 +14,16 @@ public class Kicker {
         this.motor = motor;
 
         SparkFlexConfig config = new SparkFlexConfig();
+        config.disableFollowerMode();
         config.idleMode(TurretConstants.KICKER_COAST ?
             IdleMode.kCoast : IdleMode.kBrake);
         config.smartCurrentLimit(
-            TurretConstants.KICKER_STATOR_CURRENT_LIMIT, 
+            TurretConstants.KICKER_STATOR_CURRENT_LIMIT,
             TurretConstants.KICKER_SUPPLY_CURRENT_LIMIT);
         config.closedLoop
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
-        this.motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+        this.motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public void run() {
