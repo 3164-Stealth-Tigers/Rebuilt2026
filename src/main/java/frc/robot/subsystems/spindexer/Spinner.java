@@ -35,7 +35,9 @@ public class Spinner {
                 .i(SpindexerConstants.SPIN_kI)
                 .d(SpindexerConstants.SPIN_kD);
 
-        config.closedLoop.feedForward.kV(SpindexerConstants.SPIN_kV);
+        config.closedLoop.feedForward
+                .kS(SpindexerConstants.SPIN_kS)
+                .kV(SpindexerConstants.SPIN_kV);
 
         spindmotor.configure(config,
                 ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
