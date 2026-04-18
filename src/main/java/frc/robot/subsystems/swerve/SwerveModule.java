@@ -207,6 +207,12 @@ public class SwerveModule {
   public SwerveModulePosition getModulePosition() {
     return new SwerveModulePosition(getPosition(), getAngle());
   }
+  public TalonFX GetDriveMotor() {
+    return driveMotor;
+  }
+  public TalonFX GetAzimuthMotor() {
+    return azimuthMotor;
+  }
 
   // ================================================================
   // CONTROL

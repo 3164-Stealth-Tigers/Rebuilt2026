@@ -3,6 +3,8 @@ package frc.robot.subsystems.swerve;
 import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.sim.TalonFXSimState;
+
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -10,9 +12,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 
 public class Swerve extends SubsystemBase {
     // Dependencies
@@ -88,13 +94,19 @@ public class Swerve extends SubsystemBase {
         //             update.timestampSeconds(),
         //             VecBuilder.fill(xyStdDev, xyStdDev, Units.degreesToRadians(thetaStdDev)));
         // });
-
         dashboard.updateLogs(getPose(), hardware.getStates());
     }
+    private final DCMotorSim m_motorSimModel = new DCMotorSim(LinearSystemId.createDCMotorSystem(DCMotor., 0))
 
     @Override
     public void simulationPeriodic() {
         dashboard.updateLogs(getPose(), hardware.getStates());
+        var talonFxSim =  hardware.getModule(0).GetDriveMotor().getSimState();
+        talonFxSim.setSupplyVoltage(12);
+        var motorVoltage = talonFxSim.getMotorVoltageMeasure();
+        m_motorSimModel.setInputVoltage(motorVoltage.in(Volts));
+        m_motorSimModel.update(0.020);
+        
     }
 
     public void zeroHeading() {
