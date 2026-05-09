@@ -23,12 +23,12 @@ public final class OI {
 
     @Override
     public double forward() {
-      return deadband(stick.getLeftY(), DrivingConstants.JOYSTICK_DEADBAND) * 0.3;
+      return deadband(stick.getLeftY(), DrivingConstants.JOYSTICK_DEADBAND);
     }
 
     @Override
     public double strafe() {
-      return deadband(stick.getLeftX(), DrivingConstants.JOYSTICK_DEADBAND) * 0.3;
+      return deadband(stick.getLeftX(), DrivingConstants.JOYSTICK_DEADBAND);
     }
 
     @Override
