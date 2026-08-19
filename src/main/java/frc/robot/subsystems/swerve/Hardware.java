@@ -28,38 +28,26 @@ public class Hardware {
                         0,
                         SwerveConstants.FL_DRIVE_ID,
                         SwerveConstants.FL_AZIMUTH_ID,
-                        SwerveConstants.FL_CANCODER_ID,
-                        SwerveConstants.FL_ENCODER_OFFSET,
                         SwerveConstants.FL_DRIVE_INVERT,
-                        SwerveConstants.FL_AZIMUTH_INVERT,
-                        SwerveConstants.FL_CANcoder_INVERT),
+                        SwerveConstants.FL_AZIMUTH_INVERT),
                 new SwerveModule(
                         1,
                         SwerveConstants.FR_DRIVE_ID,
                         SwerveConstants.FR_AZIMUTH_ID,
-                        SwerveConstants.FR_CANCODER_ID,
-                        SwerveConstants.FR_ENCODER_OFFSET,
                         SwerveConstants.FR_DRIVE_INVERT,
-                        SwerveConstants.FR_AZIMUTH_INVERT,
-                        SwerveConstants.FR_CANcoder_INVERT),
+                        SwerveConstants.FR_AZIMUTH_INVERT),
                 new SwerveModule(
                         2,
                         SwerveConstants.RL_DRIVE_ID,
                         SwerveConstants.RL_AZIMUTH_ID,
-                        SwerveConstants.RL_CANCODER_ID,
-                        SwerveConstants.RL_ENCODER_OFFSET,
                         SwerveConstants.BL_DRIVE_INVERT,
-                        SwerveConstants.BL_AZIMUTH_INVERT,
-                        SwerveConstants.BL_CANcoder_INVERT),
+                        SwerveConstants.BL_AZIMUTH_INVERT),
                 new SwerveModule(
                         3,
                         SwerveConstants.RR_DRIVE_ID,
-                        SwerveConstants.RR_AZIMUTH_ID, 
-                        SwerveConstants.RR_CANCODER_ID,
-                        SwerveConstants.RR_ENCODER_OFFSET, 
+                        SwerveConstants.RR_AZIMUTH_ID,
                         SwerveConstants.BR_DRIVE_INVERT,
-                        SwerveConstants.BR_AZIMUTH_INVERT,
-                        SwerveConstants.BR_CANcoder_INVERT)
+                        SwerveConstants.BR_AZIMUTH_INVERT)
         };
     }
 
@@ -116,6 +104,16 @@ public class Hardware {
     public void hardStop() {
         for (SwerveModule module : modules) {
             module.stop();
+        }
+    }
+
+    /**
+     * Re-zeros every module's azimuth relative encoder to "forward". Only call this while the
+     * wheels are physically pointed forward (no CANcoder to correct a bad zero automatically).
+     */
+    public void rezeroAzimuth() {
+        for (SwerveModule module : modules) {
+            module.resetToForward();
         }
     }
 
