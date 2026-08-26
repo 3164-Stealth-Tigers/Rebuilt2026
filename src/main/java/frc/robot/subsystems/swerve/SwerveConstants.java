@@ -16,10 +16,11 @@ public final class SwerveConstants {
   public static final double TRACK_WIDTH = Units.inchesToMeters(18.75); // Left to right
   public static final double WHEEL_BASE = Units.inchesToMeters(18.75); // Front to back (square frame)
 
-  public static final double MAX_SPEED = 4.5; // meters per second — theoretical free speed on
+  public static final double MAX_SPEED = 3.5; // meters per second — theoretical free speed on
       // SDS MK4i L2 (6.75:1) with a NEO (5676 RPM free / 6.75 * wheel circumference ≈ 4.47 m/s).
       // TODO: measure the real sustainable top speed under load once it's on the robot.
-  public static final double MAX_ANGULAR_VELOCITY = 13.4; // rad per second — estimated from
+  public static final double CENTER_TO_MODULE = Math.sqrt(Math.pow(TRACK_WIDTH, 2)+Math.pow(WHEEL_BASE, 2));
+  public static final double MAX_ANGULAR_VELOCITY = MAX_SPEED/CENTER_TO_MODULE; // rad per second — estimated from
       // MAX_SPEED / (distance from robot center to a module, ~0.337 m on this 18.75in square
       // frame). TODO: re-verify once MAX_SPEED is measured on the real robot.
 
