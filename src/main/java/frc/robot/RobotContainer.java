@@ -8,6 +8,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 // import com.pathplanner.lib.controllers.PathFollowingController;
 import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 // import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -35,6 +36,9 @@ public class RobotContainer {
   private final XboxDriver driverJoystick;
   // private final XboxOperator operatorJoystick;
   // private final XboxTester testerJoystick;
+  private final SlewRateLimiter forwardLimiter;
+  private final SlewRateLimiter strafeLimiter;
+  private final SlewRateLimiter turnLimiter;
 
   // Auto
   // private final SendableChooser<Command> autoChooser;
@@ -55,6 +59,9 @@ public class RobotContainer {
     driverJoystick = new XboxDriver(DrivingConstants.DRIVER_PORT);
     // operatorJoystick = new XboxOperator(DrivingConstants.OPERATOR_PORT);
     // testerJoystick = new XboxTester(DrivingConstants.TEST_PORT);
+    forwardLimiter = new SlewRateLimiter(3.0);
+    strafeLimiter = new SlewRateLimiter(3.0);
+    turnLimiter = new SlewRateLimiter(3.0);
 
     // Auto
     // autoChooser = new SendableChooser<>();
@@ -134,9 +141,9 @@ public class RobotContainer {
   private void setupDrive() {
     // Drive command
     Command teleopDriveCommand = swerve.teleopCommand(
-        () -> applySpeedCurve(driverJoystick.forward()),
-        () -> applySpeedCurve(driverJoystick.strafe()),
-        () -> applySpeedCurve(driverJoystick.turn()));
+        () -> applySpeedCurve(forwardLimiter.calculate(driverJoystick.forward())),
+        () -> applySpeedCurve(strafeLimiter.calculate(driverJoystick.strafe())),
+        () -> applySpeedCurve(turnLimiter.calculate(driverJoystick.turn())));
     swerve.setDefaultCommand(teleopDriveCommand);
 
     // Gyro

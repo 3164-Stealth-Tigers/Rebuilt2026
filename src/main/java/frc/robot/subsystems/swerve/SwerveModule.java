@@ -31,6 +31,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -176,19 +177,33 @@ public class SwerveModule {
   // ================================================================
 
   public void setDesiredState(SwerveModuleState desiredState, boolean openLoop) {
-    desiredState.optimize(getAngle());
+    Rotation2d currentAngle = getAngle();
+    desiredState.optimize(currentAngle);
 
-    // Azimuth — position control in wheel rotations
-    azimuthController.setSetpoint(desiredState.angle.getRotations(), SparkMax.ControlType.kPosition);
+    // Azimuth — position control in wheel rotations.
+    //
+    // IMPORTANT: the closed-loop config above wraps position in the range [0.0, 1.0), but
+    // Rotation2d.getRotations() returns a value in (-0.5, 0.5]. Normalize into [0.0, 1.0)
+    // first so the setpoint always matches the wrap config (otherwise the module can take
+    // the wrong shortest path / snap when the target angle is negative).
+    double targetRotations = MathUtil.inputModulus(desiredState.angle.getRotations(), 0.0, 1.0);
+    azimuthController.setSetpoint(targetRotations, SparkMax.ControlType.kPosition);
+
+    // Cosine compensation — scale the drive speed down while the wheel is still turning to
+    // its target angle, so it doesn't scrub/skip across the floor before it's pointed the
+    // right way. optimize() guarantees the remaining angle error is within +/-90 degrees, so
+    // getCos() here is always >= 0 (never flips drive direction on its own).
+    double speedScalar = desiredState.angle.minus(currentAngle).getCos();
+    double desiredSpeed = desiredState.speedMetersPerSecond * speedScalar;
 
     // Drive
     if (openLoop) {
-      double percentOutput = desiredState.speedMetersPerSecond / SwerveConstants.MAX_SPEED;
+      double percentOutput = desiredSpeed / SwerveConstants.MAX_SPEED;
       driveMotor.set(percentOutput);
     } else {
-      double ffVolts = driveFeedforward.calculate(desiredState.speedMetersPerSecond);
+      double ffVolts = driveFeedforward.calculate(desiredSpeed);
       driveController.setSetpoint(
-          desiredState.speedMetersPerSecond,
+          desiredSpeed,
           SparkMax.ControlType.kVelocity,
           ClosedLoopSlot.kSlot0,
           ffVolts,
